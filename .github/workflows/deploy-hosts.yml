@@ -58,8 +58,8 @@ jobs:
             preserve: ""
           - repo: centro
             cname: centro.doutrina.org
-            # Center instance source stays on main alongside the SPA
-            preserve: "flavor.json manual assets"
+            # Instance source only — never top-level assets/ (Vite CSS/JS live there)
+            preserve: "flavor.json manual instance"
     steps:
       - name: Download dist
         uses: actions/download-artifact@v4

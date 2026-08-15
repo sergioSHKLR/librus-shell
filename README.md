@@ -22,7 +22,7 @@ Workflow [`.github/workflows/deploy-hosts.yml`](.github/workflows/deploy-hosts.y
 |-----------|--------|----------------------|
 | [librus](https://github.com/sergioSHKLR/librus) | `librus.app` | — |
 | [doutrina](https://github.com/sergioSHKLR/doutrina) | `doutrina.org` | — |
-| [centro](https://github.com/sergioSHKLR/centro) | `centro.doutrina.org` | `flavor.json`, `manual/`, `assets/` |
+| [centro](https://github.com/sergioSHKLR/centro) | `centro.doutrina.org` | `flavor.json`, `manual/`, `instance/` (not `assets/` — SPA owns that) |
 
 Triggers: **push to `main`** and **workflow_dispatch**.
 
