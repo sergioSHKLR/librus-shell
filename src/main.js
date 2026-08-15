@@ -276,8 +276,10 @@ const PROVIDERS = {
     search: "https://{lang}.wiktionary.org/wiki/{query}",
   },
   map: {
-    home: "https://www.openstreetmap.org/",
+    /* full site blocks iframes (X-Frame-Options); embed URL used via mapEmbedUrl() */
+    home: "https://www.openstreetmap.org/export/embed.html?bbox=-20%2C-40%2C60%2C70&layer=mapnik",
     search: "https://www.openstreetmap.org/search?query={query}",
+    external: "https://www.openstreetmap.org/search?query={query}",
   },
   bible: {
     home: "https://www.bible.com/pt/bible/212",
@@ -540,6 +542,33 @@ function cycleTheme() {
   const i = THEME_CYCLE.indexOf(themePref);
   const next = THEME_CYCLE[(i < 0 ? 0 : i + 1) % THEME_CYCLE.length];
   setTheme(/** @type {'system'|'light'|'dark'} */ (next));
+}
+
+/**
+ * Top browser / installed-PWA chrome only — neutral white or black.
+ * Brand colors stay in-app (mark, accents); never paint the OS status/title bar.
+ * @param {'light'|'dark'} resolved
+ * @param {'system'|'light'|'dark'} [pref]
+ */
+function syncBrowserChrome(resolved, pref = themePref) {
+  const light = "#ffffff";
+  const dark = "#000000";
+  const paint = resolved === "dark" ? dark : light;
+  const meta = document.getElementById("meta-theme-color");
+  if (meta) meta.content = paint;
+  /* media-tagged metas: when user locks light/dark, both match lock */
+  const metaL = document.getElementById("meta-theme-color-light");
+  const metaD = document.getElementById("meta-theme-color-dark");
+  if (pref === "light") {
+    if (metaL) metaL.content = light;
+    if (metaD) metaD.content = light;
+  } else if (pref === "dark") {
+    if (metaL) metaL.content = dark;
+    if (metaD) metaD.content = dark;
+  } else {
+    if (metaL) metaL.content = light;
+    if (metaD) metaD.content = dark;
+  }
 }
 
 /**
@@ -1683,19 +1712,111 @@ function applyWikiTheme(url) {
   }
 }
 
+/** Link-injection short codes → PROVIDERS keys */
+const LINK_PROVIDER_KEY = {
+  m: "map",
+  map: "map",
+  w: "encyc",
+  encyc: "encyc",
+  d: "dict",
+  dict: "dict",
+  l: "luz",
+  luz: "luz",
+  bible: "bible",
+  kardec: "kardec",
+};
+
 function providerUrl(key, term) {
   const meta = PROVIDERS[key];
   if (!meta) return "";
-  const tpl = term ? meta.search : meta.home;
+  const tpl = term ? meta.search || meta.home : meta.home;
   let url = tpl
     .replace(/\{lang\}/g, wikiLang())
     .replace(/\{query\}/gi, encodeURIComponent(term || ""));
   return applyWikiTheme(url);
 }
 
+/**
+ * OSM main site refuses iframes; use export/embed when possible.
+ * @param {string} [query]
+ * @returns {Promise<string>}
+ */
+async function mapEmbedUrl(query) {
+  const q = String(query || "").trim();
+  if (!q) return PROVIDERS.map.home;
+  try {
+    const res = await fetch(
+      "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" +
+        encodeURIComponent(q),
+      {
+        headers: {
+          Accept: "application/json",
+          /* Nominatim usage policy: identify the app */
+          "Accept-Language": currentLang === "en" ? "en" : "pt",
+        },
+      },
+    );
+    if (res.ok) {
+      const data = await res.json();
+      const hit = data && data[0];
+      if (hit && hit.boundingbox) {
+        const [south, north, west, east] = hit.boundingbox;
+        const lat = hit.lat;
+        const lon = hit.lon;
+        return (
+          "https://www.openstreetmap.org/export/embed.html?bbox=" +
+          encodeURIComponent(west + "," + south + "," + east + "," + north) +
+          "&layer=mapnik&marker=" +
+          encodeURIComponent(lat + "," + lon)
+        );
+      }
+    }
+  } catch (_) {
+    /* fall through */
+  }
+  /* Last resort: external search page (also used if embed fails) */
+  return (
+    PROVIDERS.map.external?.replace(
+      /\{query\}/gi,
+      encodeURIComponent(q),
+    ) || PROVIDERS.map.search.replace(/\{query\}/gi, encodeURIComponent(q))
+  );
+}
+
+function isMapUrl(url) {
+  return /openstreetmap\.org/i.test(String(url || ""));
+}
+
+function isEmbeddableMapUrl(url) {
+  return /openstreetmap\.org\/export\/embed/i.test(String(url || ""));
+}
+
+/**
+ * Resolve provider URL (async for maps).
+ * @param {string} key
+ * @param {string} term
+ * @returns {Promise<string>}
+ */
+async function resolveProviderUrl(key, term) {
+  if (key === "map") return mapEmbedUrl(term);
+  return providerUrl(key, term);
+}
+
 function loadCtx(url, { push = true } = {}) {
   const frame = ctxEl();
   if (!frame || !url) return;
+
+  /* OSM search UI cannot run in iframe — open externally + show embed if we have one */
+  if (isMapUrl(url) && !isEmbeddableMapUrl(url)) {
+    try {
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (_) {
+      /* ignore */
+    }
+    /* Prefer showing a working map pane rather than a blank frame */
+    url = PROVIDERS.map.home;
+  }
+
   if (push && lastCtxUrl && lastCtxUrl !== url) {
     ctxHistory.push(lastCtxUrl);
     if (ctxHistory.length > 40) ctxHistory.shift();
@@ -1710,6 +1831,57 @@ function loadCtx(url, { push = true } = {}) {
     /* ignore */
   }
   syncCtxBackBtn();
+}
+
+/** Open a provider from toolbar (selection = query for search). */
+async function openProvider(key) {
+  const term = selectionTerm();
+  const url = await resolveProviderUrl(key, term);
+  if (url) loadCtx(url);
+}
+
+/**
+ * Book body links: keep in consult pane when possible.
+ * @param {string} href
+ * @param {HTMLAnchorElement | null} anchor
+ */
+async function openBookLink(href, anchor) {
+  if (!href) return;
+  const code = (anchor?.getAttribute("data-link-provider") || "").toLowerCase();
+  const key = LINK_PROVIDER_KEY[code] || "";
+  const term = String(anchor?.textContent || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (key === "map" || isMapUrl(href)) {
+    let q = term;
+    try {
+      const u = new URL(href, location.href);
+      q = u.searchParams.get("query") || u.searchParams.get("q") || term;
+    } catch (_) {
+      /* ignore */
+    }
+    const embed = await mapEmbedUrl(q);
+    if (embed && isEmbeddableMapUrl(embed)) {
+      loadCtx(embed);
+      return;
+    }
+    loadCtx(href);
+    return;
+  }
+
+  if (key) {
+    const url = await resolveProviderUrl(key, term);
+    if (url) {
+      loadCtx(url);
+      return;
+    }
+  }
+
+  /* Other absolute links → consult iframe (wiki etc.) */
+  if (/^https?:\/\//i.test(href)) {
+    loadCtx(href);
+  }
 }
 
 function ctxGoBack() {
@@ -1976,8 +2148,7 @@ function wire() {
     document.querySelectorAll("[data-provider]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const key = btn.getAttribute("data-provider");
-        const term = selectionTerm();
-        loadCtx(providerUrl(key, term));
+        if (key) openProvider(key);
       });
     });
     document.querySelectorAll('[data-ctx="back"]').forEach((btn) => {
@@ -1988,6 +2159,33 @@ function wire() {
         if (lastCtxUrl) loadCtx(lastCtxUrl, { push: false });
       });
     });
+    /* In-book links (incl. map / data-link-provider) → consult pane */
+    document.addEventListener(
+      "click",
+      (e) => {
+        const t = e.target;
+        if (!(t instanceof Element)) return;
+        const book = bookEl();
+        if (!book) return;
+        const a = t.closest("a[href]");
+        if (!a || !book.contains(a)) return;
+        const href = a.getAttribute("href") || "";
+        if (!href || href.startsWith("#")) return;
+        /* Internal page anchors in the book */
+        if (href.startsWith("#") || (href.startsWith("/") && !href.startsWith("//"))) {
+          return;
+        }
+        if (
+          /^https?:\/\//i.test(href) ||
+          a.hasAttribute("data-link-provider") ||
+          a.hasAttribute("data-doutrina-link")
+        ) {
+          e.preventDefault();
+          openBookLink(href, a instanceof HTMLAnchorElement ? a : null);
+        }
+      },
+      true,
+    );
     syncCtxBackBtn();
     try {
       hydrateIcons(document.querySelector('#p3 [data-tool="consult:web"]'));
