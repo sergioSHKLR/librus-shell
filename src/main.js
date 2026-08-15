@@ -544,15 +544,19 @@ function cycleTheme() {
   setTheme(/** @type {'system'|'light'|'dark'} */ (next));
 }
 
+/** Default OS/PWA title-bar greys (not pure white/black, not brand). */
+const CHROME_GREY_LIGHT = "#e8eaed";
+const CHROME_GREY_DARK = "#202124";
+
 /**
- * Top browser / installed-PWA chrome only — neutral white or black.
+ * Top browser / installed-PWA chrome only — neutral chrome grey.
  * Brand colors stay in-app (mark, accents); never paint the OS status/title bar.
  * @param {'light'|'dark'} resolved
  * @param {'system'|'light'|'dark'} [pref]
  */
 function syncBrowserChrome(resolved, pref = themePref) {
-  const light = "#ffffff";
-  const dark = "#000000";
+  const light = CHROME_GREY_LIGHT;
+  const dark = CHROME_GREY_DARK;
   const paint = resolved === "dark" ? dark : light;
   const meta = document.getElementById("meta-theme-color");
   if (meta) meta.content = paint;

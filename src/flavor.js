@@ -218,11 +218,11 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
     fav.href = href;
   }
 
-  /* Top browser/PWA chrome: never brand color (see syncBrowserChrome in main) */
+  /* Top browser/PWA chrome: neutral grey only (syncBrowserChrome in main owns it) */
   try {
     const metaTheme = document.getElementById("meta-theme-color");
     if (metaTheme) {
-      metaTheme.content = resolvedTheme === "dark" ? "#000000" : "#ffffff";
+      metaTheme.content = resolvedTheme === "dark" ? "#202124" : "#e8eaed";
     }
   } catch (_) {
     /* ignore */
