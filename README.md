@@ -9,10 +9,36 @@ Shared **LIBRUS** reader shell — multi-flavor SPA for **librus.app**, **doutri
 | **librus-shell** | SPA, flavors, PWA (this repo) |
 | **librus-linker** | Provider link injection on content artifacts |
 | **doutrina-content** | Editorial source (MD / QA) |
-| **librus** / **doutrina** | Published site hosts (`dist` only) |
+| **librus** / **doutrina** / **centro** | Published site hosts (Pages on `main`) |
 | `center-*` | Center manual + `flavor.json` |
 
 Predecessor UI experiment `simple/` (if present elsewhere) is left untouched.
+
+## Deploy (GitHub Actions)
+
+Workflow [`.github/workflows/deploy-hosts.yml`](.github/workflows/deploy-hosts.yml) builds this repo and publishes `dist/` to:
+
+| Host repo | CNAME | Preserves on publish |
+|-----------|--------|----------------------|
+| [librus](https://github.com/sergioSHKLR/librus) | `librus.app` | — |
+| [doutrina](https://github.com/sergioSHKLR/doutrina) | `doutrina.org` | — |
+| [centro](https://github.com/sergioSHKLR/centro) | `centro.doutrina.org` | `flavor.json`, `manual/`, `assets/` |
+
+Triggers: **push to `main`** and **workflow_dispatch**.
+
+### Secret (required once)
+
+On **librus-shell** → Settings → Secrets and variables → Actions → **New repository secret**:
+
+| Name | Value |
+|------|--------|
+| `DEPLOY_TOKEN` | Fine-grained PAT (or classic `repo` scope) with **Contents: Read and Write** on `librus`, `doutrina`, and `centro` |
+
+Classic PAT: `repo` scope is enough for private/public push. Fine-grained: select those three repositories, permission **Contents → Read and write**.
+
+Without `DEPLOY_TOKEN`, the deploy job fails with a clear error; the build artifact still uploads.
+
+SPA note: each publish copies `index.html` → `404.html` and writes `.nojekyll` + `CNAME`.
 
 ## Keeps
 

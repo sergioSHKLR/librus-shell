@@ -1,0 +1,139 @@
+# Build librus-shell once; publish dist/ to host repos (Pages on main).
+# Requires repo secret DEPLOY_TOKEN: fine-grained PAT with Contents: Read+Write
+# on sergioSHKLR/librus, sergioSHKLR/doutrina, sergioSHKLR/centro.
+
+name: Deploy hosts
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hosts
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout shell
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install & build
+        run: |
+          npm ci
+          npm run build
+          # SPA fallback for GitHub Pages (no server rewrite)
+          cp dist/index.html dist/404.html
+
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - repo: librus
+            cname: librus.app
+            preserve: ""
+          - repo: doutrina
+            cname: doutrina.org
+            preserve: ""
+          - repo: centro
+            cname: centro.doutrina.org
+            # Center instance source stays on main alongside the SPA
+            preserve: "flavor.json manual assets"
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Check deploy token
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$DEPLOY_TOKEN" ]; then
+            echo "::error::Missing secret DEPLOY_TOKEN. Create a fine-grained PAT with Contents read/write on librus, doutrina, and centro; add it as repository secret DEPLOY_TOKEN on librus-shell."
+            exit 1
+          fi
+
+      - name: Publish to ${{ matrix.repo }}
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          TARGET_REPO: ${{ matrix.repo }}
+          CNAME_VALUE: ${{ matrix.cname }}
+          PRESERVE: ${{ matrix.preserve }}
+          GIT_USER: github-actions[bot]
+          GIT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          OWNER="sergioSHKLR"
+          WORK="$RUNNER_TEMP/host-$TARGET_REPO"
+          rm -rf "$WORK"
+          git clone --depth 1 "https://x-access-token:${DEPLOY_TOKEN}@github.com/${OWNER}/${TARGET_REPO}.git" "$WORK"
+          cd "$WORK"
+
+          # Stash paths we must keep across a clean publish
+          KEEP_DIR="$RUNNER_TEMP/keep-$TARGET_REPO"
+          rm -rf "$KEEP_DIR"
+          mkdir -p "$KEEP_DIR"
+          for p in $PRESERVE; do
+            if [ -e "$p" ]; then
+              mkdir -p "$KEEP_DIR/$(dirname "$p")"
+              cp -a "$p" "$KEEP_DIR/$p"
+            fi
+          done
+          if [ -f CNAME ]; then
+            cp CNAME "$KEEP_DIR/CNAME"
+          fi
+
+          # Replace tree with SPA build (orphan-style clean, keep .git)
+          find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          cp -a "$GITHUB_WORKSPACE/dist/." .
+
+          # Restore preserved Center sources (if any)
+          if [ -n "$PRESERVE" ] && [ -d "$KEEP_DIR" ]; then
+            for p in $PRESERVE; do
+              if [ -e "$KEEP_DIR/$p" ]; then
+                rm -rf "./$p"
+                mkdir -p "$(dirname "$p")"
+                cp -a "$KEEP_DIR/$p" "./$p"
+              fi
+            done
+          fi
+
+          # Always write CNAME for custom domain (Pages)
+          printf '%s\n' "$CNAME_VALUE" > CNAME
+
+          # Optional nojekyll for GH Pages static assets
+          touch .nojekyll
+
+          git config user.name "$GIT_USER"
+          git config user.email "$GIT_EMAIL"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes for $TARGET_REPO"
+            exit 0
+          fi
+          git commit -m "deploy: librus-shell ${GITHUB_SHA:0:7}"
+          git push origin HEAD:main
+          echo "Published → https://github.com/${OWNER}/${TARGET_REPO}"
