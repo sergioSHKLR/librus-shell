@@ -30,7 +30,7 @@ const FALLBACK = {
       brand: {
         name: "LIBRUS",
         title: "LIBRUS",
-        description: "L∙I∙B∙R∙U∙S",
+        description: "LIBRUS",
         cta: { pt: "Ache · Leia · Consulte · Anote", en: "Find · Read · Consult · Annotate" },
         tagline: { pt: "annotate to assimilate", en: "annotate to assimilate" },
         icon: "columns-4",
@@ -224,6 +224,25 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
     /* Keep dark paint black; light uses brand theme color */
     if (resolvedTheme === "dark") metaTheme.content = "#000000";
     else metaTheme.content = brand.themeColor;
+  }
+
+  /* PWA install surface: per-flavor name + icons (static manifests under /public) */
+  const nextManifest = `/manifest-${id}.webmanifest`;
+  let manifest = document.getElementById("web-manifest");
+  if (!manifest) {
+    manifest = document.querySelector('link[rel="manifest"]');
+    if (manifest) manifest.id = "web-manifest";
+  }
+  /* Drop vite-plugin-pwa’s default /manifest.webmanifest if a second link was injected */
+  document.querySelectorAll('link[rel="manifest"]').forEach((link) => {
+    if (link !== manifest) link.remove();
+  });
+  if (manifest && manifest.getAttribute("href") !== nextManifest) {
+    manifest.setAttribute("href", nextManifest);
+  }
+  const apple = document.getElementById("apple-touch-icon");
+  if (apple) {
+    apple.href = `/pwa/${id}-apple-touch-icon.png`;
   }
 
   const titleEl = document.querySelector("#library > header h1");

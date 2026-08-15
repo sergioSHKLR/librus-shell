@@ -39,60 +39,31 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_FLAVOR': JSON.stringify(feat('VITE_FLAVOR', ''))
     },
     plugins: [
+      /* Pin default manifest/apple icon when VITE_FLAVOR is set (local multi-port). */
+      {
+        name: 'flavor-html-defaults',
+        transformIndexHtml(html) {
+          const f = feat('VITE_FLAVOR', 'librus') || 'librus';
+          const id = ['librus', 'doutrina', 'centro'].includes(f) ? f : 'librus';
+          return html
+            .replaceAll('/manifest-librus.webmanifest', `/manifest-${id}.webmanifest`)
+            .replaceAll('/pwa/librus-apple-touch-icon.png', `/pwa/${id}-apple-touch-icon.png`);
+        }
+      },
       VitePWA({
         registerType: 'autoUpdate',
+        /* Flavor manifests live in public/; avoid a second generic inject. */
+        manifest: false,
         includeAssets: [
           'favicon.svg',
           'favicon-dark.svg',
-          'pwa/apple-touch-icon.png',
-          'pwa/icon-192.png',
-          'pwa/icon-512.png',
-          'pwa/icon-192-maskable.png',
-          'pwa/icon-512-maskable.png',
+          'manifest-librus.webmanifest',
+          'manifest-doutrina.webmanifest',
+          'manifest-centro.webmanifest',
+          'pwa/*.png',
           'robots.txt',
           'llms.txt'
         ],
-        manifest: {
-          id: '/',
-          name: 'L∙I∙B∙R∙U∙S',
-          short_name: 'LIBRUS',
-          description:
-            'Loosely Integrated Book Reading Universal System — library, multi-pane reading, notes',
-          start_url: '/',
-          scope: '/',
-          display: 'standalone',
-          orientation: 'any',
-          background_color: '#ffffff',
-          theme_color: '#008b00',
-          lang: 'pt-BR',
-          categories: ['books', 'education'],
-          icons: [
-            {
-              src: 'pwa/icon-192.png',
-              sizes: '192x192',
-              type: 'image/png',
-              purpose: 'any'
-            },
-            {
-              src: 'pwa/icon-512.png',
-              sizes: '512x512',
-              type: 'image/png',
-              purpose: 'any'
-            },
-            {
-              src: 'pwa/icon-192-maskable.png',
-              sizes: '192x192',
-              type: 'image/png',
-              purpose: 'maskable'
-            },
-            {
-              src: 'pwa/icon-512-maskable.png',
-              sizes: '512x512',
-              type: 'image/png',
-              purpose: 'maskable'
-            }
-          ]
-        },
         workbox: {
           globPatterns: ['**/*.{js,css,html,svg,ico,png,woff2,webmanifest}'],
           globIgnores: ['**/books/**'],
