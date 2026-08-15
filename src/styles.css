@@ -735,7 +735,7 @@ html[data-theme="dark"][data-guide="min"] #reader #p1 [data-tool],
 html[data-theme="dark"][data-guide="min"] #reader #p2 [data-tool],
 html[data-theme="dark"][data-guide="min"] #reader #p3 [data-tool],
 html[data-theme="dark"][data-guide="min"] #reader #p4 [data-tool] {
-  background: #0a0a0a;
+  background: var(--chrome-active-bg);
   color: var(--fg);
 }
 
@@ -875,6 +875,15 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tabs] > button:not(.on) 
 #reader [data-tool] input:focus {
   outline: none;
   background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+/* Minimal: no brand tint on focused inputs — grey chrome variant */
+html[data-guide="min"] #reader [data-tool] input:focus {
+  background: color-mix(in srgb, var(--fg) 10%, var(--chrome-active-bg));
+}
+
+html[data-theme="dark"][data-guide="min"] #reader [data-tool] input:focus {
+  background: color-mix(in srgb, #fff 8%, var(--chrome-active-bg));
 }
 
 #reader [data-tool] [data-icon] svg,
