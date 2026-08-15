@@ -36,7 +36,6 @@ const FALLBACK = {
         icon: "columns-4",
         favicon: "/favicon.svg",
         faviconDark: "/favicon-dark.svg",
-        themeColor: "#000000",
         accent: "#1a5fb4",
       },
       catalog: "/books/catalog.json",
