@@ -36,6 +36,14 @@
   /* Active tab label text (on chrome fills) — ≥15:1 vs chrome bgs */
   --chrome-label: #111111;
   /*
+   * Tab top accent: inverse of fill intensity (full = calmer edge, min = brightest).
+   * Falls back to --accent-* when not overridden per guide.
+   */
+  --tab-top-find: var(--accent-find);
+  --tab-top-read: var(--accent-read);
+  --tab-top-consult: var(--accent-consult);
+  --tab-top-annotate: var(--accent-annotate);
+  /*
    * Pane title / bottom-bar accents — WebAIM AA normal text on white (≥4.5:1).
    * Checked: crimson≈5.0, #0b5cad≈6.7, #0d6b2c≈6.7, #7a5c00≈6.3 on #fff.
    * (dodgerblue / limegreen / #ffcc00 failed AA on white.)
@@ -549,30 +557,30 @@ html[data-theme="dark"] #reader #p2 #book {
   color: var(--chrome-label) !important;
   background: var(--chrome-active-bg) !important;
   border-color: var(--border) !important;
-  border-top-color: var(--accent-read) !important;
+  border-top-color: var(--tab-top-read) !important;
 }
 
 #reader [data-tabs] > button.on[data-mode^="find:"] {
   background: var(--chrome-find) !important;
-  border-top-color: var(--accent-find) !important;
+  border-top-color: var(--tab-top-find) !important;
   color: var(--chrome-label) !important;
 }
 
 #reader [data-tabs] > button.on[data-mode^="read:"] {
   background: var(--chrome-read) !important;
-  border-top-color: var(--accent-read) !important;
+  border-top-color: var(--tab-top-read) !important;
   color: var(--chrome-label) !important;
 }
 
 #reader [data-tabs] > button.on[data-mode^="consult:"] {
   background: var(--chrome-consult) !important;
-  border-top-color: var(--accent-consult) !important;
+  border-top-color: var(--tab-top-consult) !important;
   color: var(--chrome-label) !important;
 }
 
 #reader [data-tabs] > button.on[data-mode^="annotate:"] {
   background: var(--chrome-annotate) !important;
-  border-top-color: var(--accent-annotate) !important;
+  border-top-color: var(--tab-top-annotate) !important;
   color: var(--chrome-label) !important;
 }
 
@@ -615,46 +623,84 @@ html[data-theme="dark"] #reader #p2 #book {
   padding-right: 4.5rem;
 }
 
-/* ── Color guide: full (default) · soft · min ───────────────── */
-/* full: soft role fills on toolbar + active tab; top accent on active */
+/*
+ * Color guide: full · soft · min
+ * Fills get quieter left→right; tab top accents get brighter (inverse).
+ */
 
+/* full (default): soft role fills; calmer tops (AA accents as-is) */
+html[data-guide="full"],
+html:not([data-guide]) {
+  --tab-top-find: var(--accent-find);
+  --tab-top-read: var(--accent-read);
+  --tab-top-consult: var(--accent-consult);
+  --tab-top-annotate: var(--accent-annotate);
+}
+
+/* soft: diluted fills; slightly punchier tops */
 html[data-guide="soft"] {
-  --chrome-find: color-mix(in srgb, #ffe4e8 45%, var(--surface));
-  --chrome-read: color-mix(in srgb, #e3f0ff 45%, var(--surface));
-  --chrome-consult: color-mix(in srgb, #e3f5e8 45%, var(--surface));
-  --chrome-annotate: color-mix(in srgb, #fff6b8 45%, var(--surface));
+  --chrome-find: color-mix(in srgb, #ffe4e8 40%, var(--surface));
+  --chrome-read: color-mix(in srgb, #e3f0ff 40%, var(--surface));
+  --chrome-consult: color-mix(in srgb, #e3f5e8 40%, var(--surface));
+  --chrome-annotate: color-mix(in srgb, #fff6b8 40%, var(--surface));
   --chrome-band: var(--surface);
+  --tab-top-find: #d01232;
+  --tab-top-read: #0a6fd4;
+  --tab-top-consult: #0f8a38;
+  --tab-top-annotate: #c9a000;
 }
 
 html[data-theme="dark"][data-guide="soft"] {
-  --chrome-find: color-mix(in srgb, #3a2228 55%, var(--surface));
-  --chrome-read: color-mix(in srgb, #1a2838 55%, var(--surface));
-  --chrome-consult: color-mix(in srgb, #1a2e22 55%, var(--surface));
-  --chrome-annotate: color-mix(in srgb, #3a3520 55%, var(--surface));
+  --chrome-find: color-mix(in srgb, #3a2228 50%, var(--surface));
+  --chrome-read: color-mix(in srgb, #1a2838 50%, var(--surface));
+  --chrome-consult: color-mix(in srgb, #1a2e22 50%, var(--surface));
+  --chrome-annotate: color-mix(in srgb, #3a3520 50%, var(--surface));
+  --tab-top-find: #ff9aa4;
+  --tab-top-read: #8ec5f5;
+  --tab-top-consult: #9aedb8;
+  --tab-top-annotate: #f0d040;
 }
 
-/* min: flat white/dark chrome; selection = top border only */
+/*
+ * min (light): white strip + inactive white/muted; active = grey chrome;
+ * brightest role tops (signal moves to the edge).
+ */
 html[data-guide="min"] {
-  --chrome-find: #f2f2f2;
-  --chrome-read: #f2f2f2;
-  --chrome-consult: #f2f2f2;
-  --chrome-annotate: #f2f2f2;
-  --chrome-band: #f2f2f2;
-  --chrome-active-bg: #ffffff;
+  --chrome-find: #ffffff;
+  --chrome-read: #ffffff;
+  --chrome-consult: #ffffff;
+  --chrome-annotate: #ffffff;
+  --chrome-band: #ffffff;
+  --chrome-active-bg: #e8e8e8;
   --chrome-label: #111111;
+  --tab-top-find: #ff2d4a;
+  --tab-top-read: #1a8cff;
+  --tab-top-consult: #12b54a;
+  --tab-top-annotate: #e6b800;
+  --chrome-tab-top: 3px;
 }
 
-html[data-theme="dark"][data-guide="min"] {
-  --chrome-find: #1e1e1e;
-  --chrome-read: #1e1e1e;
-  --chrome-consult: #1e1e1e;
-  --chrome-annotate: #1e1e1e;
-  --chrome-band: #1e1e1e;
-  --chrome-active-bg: #0a0a0a;
-  --chrome-label: #f0f0f0;
+/* min: toolbars match white strip (not grey blocks) */
+html[data-guide="min"] #reader #p1 [data-tool],
+html[data-guide="min"] #reader #p2 [data-tool],
+html[data-guide="min"] #reader #p3 [data-tool],
+html[data-guide="min"] #reader #p4 [data-tool] {
+  background: #ffffff;
+  color: var(--fg);
 }
 
-/* min: active tab uses flat active bg; keep role top accent */
+/* min: inactive tabs — white + muted icon/text */
+html[data-guide="min"] #reader [data-tabs] > button:not(.on) {
+  background: #ffffff !important;
+  color: var(--muted) !important;
+}
+
+html[data-guide="min"] #reader [data-tabs] > button:not(.on):hover {
+  background: color-mix(in srgb, var(--fg) 5%, #ffffff) !important;
+  color: var(--fg) !important;
+}
+
+/* min: active tab = grey chrome + vivid top (not role fill) */
 html[data-guide="min"] #reader [data-tabs] > button.on[data-mode^="find:"],
 html[data-guide="min"] #reader [data-tabs] > button.on[data-mode^="read:"],
 html[data-guide="min"] #reader [data-tabs] > button.on[data-mode^="consult:"],
@@ -663,12 +709,39 @@ html[data-guide="min"] #reader [data-tabs] > button.on[data-mode^="annotate:"] {
   color: var(--chrome-label) !important;
 }
 
-/* min: pane titles quieter (structure, not rainbow) */
 html[data-guide="min"] #reader #p1 [data-tabs] > [data-i18n="pane.find"],
 html[data-guide="min"] #reader #p2 [data-tabs] > [data-i18n="pane.read"],
 html[data-guide="min"] #reader #p3 [data-tabs] > [data-i18n="pane.consult"],
 html[data-guide="min"] #reader #p4 [data-tabs] > [data-i18n="pane.annotate"] {
   color: var(--muted);
+}
+
+/* min dark: invert — dark strip, muted inactive, raised grey active, bright tops */
+html[data-theme="dark"][data-guide="min"] {
+  --chrome-find: #0a0a0a;
+  --chrome-read: #0a0a0a;
+  --chrome-consult: #0a0a0a;
+  --chrome-annotate: #0a0a0a;
+  --chrome-band: #0a0a0a;
+  --chrome-active-bg: #2a2a2a;
+  --chrome-label: #f0f0f0;
+  --tab-top-find: #ff6b7a;
+  --tab-top-read: #5eb0ff;
+  --tab-top-consult: #5ee09a;
+  --tab-top-annotate: #ffd84d;
+}
+
+html[data-theme="dark"][data-guide="min"] #reader #p1 [data-tool],
+html[data-theme="dark"][data-guide="min"] #reader #p2 [data-tool],
+html[data-theme="dark"][data-guide="min"] #reader #p3 [data-tool],
+html[data-theme="dark"][data-guide="min"] #reader #p4 [data-tool] {
+  background: #0a0a0a;
+  color: var(--fg);
+}
+
+html[data-theme="dark"][data-guide="min"] #reader [data-tabs] > button:not(.on) {
+  background: #0a0a0a !important;
+  color: var(--muted) !important;
 }
 
 #reader [data-tool] {
