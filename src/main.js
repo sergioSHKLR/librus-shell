@@ -649,11 +649,7 @@ function setTheme(pref, { persist = true, reloadHypo = true } = {}) {
       /* ignore */
     }
   }
-  /* Browser/PWA chrome: neutral only (brand color is too loud on mobile) */
-  const meta = document.getElementById("meta-theme-color");
-  if (meta) {
-    meta.content = currentTheme === "dark" ? "#000000" : "#ffffff";
-  }
+  syncBrowserChrome(currentTheme, themePref);
   const fav = document.getElementById("favicon");
   if (fav) fav.href = flavorFavicon(currentTheme);
   try {

@@ -219,10 +219,14 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
     fav.href = href;
   }
 
-  /* Browser/PWA chrome stays neutral — brand lives in mark/accent, not OS bars */
-  const metaTheme = document.getElementById("meta-theme-color");
-  if (metaTheme) {
-    metaTheme.content = resolvedTheme === "dark" ? "#000000" : "#ffffff";
+  /* Top browser/PWA chrome: never brand color (see syncBrowserChrome in main) */
+  try {
+    const metaTheme = document.getElementById("meta-theme-color");
+    if (metaTheme) {
+      metaTheme.content = resolvedTheme === "dark" ? "#000000" : "#ffffff";
+    }
+  } catch (_) {
+    /* ignore */
   }
 
   /* PWA install surface: per-flavor name + icons (static manifests under /public) */
