@@ -278,7 +278,8 @@ const MEASURES = ["narrow", "medium", "wide"];
 const FONT_SIZES = [0.85, 0.95, 1, 1.1, 1.25, 1.4, 1.5];
 const LINE_HEIGHTS = [1.35, 1.5, 1.65, 1.85, 2.1];
 const ALIGNS = ["start", "justify"];
-const FONTS = ["sans", "serif"];
+/* Reading faces only — order: default first (serif ≈ printed book) */
+const FONTS = ["serif", "sans"];
 const BOOK_CACHE = {};
 /** Full shelf from disk (all flavors) */
 let CATALOG_ALL = [];
@@ -296,7 +297,7 @@ let fontSize = 1;
 let lineHeight = 1.65;
 let measure = "medium";
 let textAlign = "start";
-let fontFamily = "sans";
+let fontFamily = "serif";
 let searchQuery = "";
 let hypoTimer = null;
 let lastCtxUrl = "";
@@ -1306,7 +1307,8 @@ function syncTypoButtons() {
     }
   });
   setIcon("align", textAlign === "justify" ? "align-justify" : "align-left");
-  setIcon("font", fontFamily === "serif" ? "type" : "case-upper");
+  /* Label = current face; icons: AA ≈ sans UI, type ≈ body/serif */
+  setIcon("font", fontFamily === "sans" ? "case-upper" : "type");
   setIcon(
     "size",
     fontSize >= 1.2

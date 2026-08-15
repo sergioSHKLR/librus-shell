@@ -12,8 +12,13 @@
   --notes-w: 460px;
   /* UI chrome — Quicksand pairs with Lucide’s rounded geometry */
   --sans: "Quicksand", system-ui, "Segoe UI", sans-serif;
-  /* Pane 1 + main reading body */
-  --serif: "Times New Roman", Times, Georgia, serif;
+  /* Reading body only — system faces, never Quicksand */
+  --book-serif: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino,
+    "Times New Roman", Times, serif;
+  --book-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  /* Legacy alias: find pane / chrome that asked for “serif” */
+  --serif: var(--book-serif);
   --bg: #f5f5f5;
   --fg: #111;
   --muted: #555;
@@ -756,6 +761,14 @@ html[data-theme="dark"] #reader #p2 #book {
   position: relative;
 }
 
+/*
+ * Read pane: scrollbar sits on the 2|3 edge (no body padding gap).
+ * Column measure + page padding live on #book only.
+ */
+#reader #p2 > [data-body] {
+  padding: 0;
+}
+
 #p3 > [data-body] {
   padding: 0;
 }
@@ -900,45 +913,57 @@ html[data-theme="dark"] #reader #p2 #book {
 #book {
   font-size: var(--book-size);
   line-height: var(--book-lh);
-  max-width: var(--book-measure);
-  margin: 0 auto;
+  /* Fill scrollport width so the pane scrollbar tracks the 2|3 border;
+     measure still caps the text column. */
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  margin: 0;
   text-align: var(--book-align, start);
   min-height: 12rem;
   padding: 1rem 1.25rem 2rem;
 }
 
+/* Measured column: full-width wrapper keeps scrollbar flush; inner max-width */
+#book > * {
+  max-width: var(--book-measure);
+  margin-left: auto;
+  margin-right: auto;
+}
+
 #book .chrome-hint {
   color: var(--muted);
-  font-family: var(--sans);
+  font-family: var(--book-sans);
 }
 
 /*
- * Face toggle — specificity must beat any #reader #book rule.
- * Sans = UI stack (Trebuchet); serif = Georgia.
+ * Face toggle — reading faces only (never UI Quicksand).
+ * data-font matches button label: serif ↔ book-serif, sans ↔ book-sans.
  */
+#reader #book,
 #reader #book[data-font="serif"],
 #reader #book:not([data-font]) {
-  font-family: var(--serif);
+  font-family: var(--book-serif);
 }
 
 #reader #book[data-font="sans"] {
-  font-family: var(--sans) !important;
+  font-family: var(--book-sans) !important;
 }
 
 #reader #book[data-font="serif"] {
-  font-family: var(--serif) !important;
+  font-family: var(--book-serif) !important;
 }
 
 #book[data-measure="narrow"] {
-  max-width: 28rem;
+  --book-measure: 28rem;
 }
 
 #book[data-measure="medium"] {
-  max-width: 42rem;
+  --book-measure: 42rem;
 }
 
 #book[data-measure="wide"] {
-  max-width: 56rem;
+  --book-measure: 56rem;
 }
 
 #book[data-align="justify"] {

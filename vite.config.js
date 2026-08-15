@@ -56,14 +56,16 @@ export default defineConfig(({ mode }) => {
           id: '/',
           name: 'L∙I∙B∙R∙U∙S',
           short_name: 'LIBRUS',
-          description: 'Loosely Integrated Book Reading Universal System — POC',
+          description:
+            'Loosely Integrated Book Reading Universal System — library, multi-pane reading, notes',
           start_url: '/',
           scope: '/',
           display: 'standalone',
           orientation: 'any',
           background_color: '#ffffff',
-          theme_color: '#000000',
+          theme_color: '#008b00',
           lang: 'pt-BR',
+          categories: ['books', 'education'],
           icons: [
             {
               src: 'pwa/icon-192.png',
