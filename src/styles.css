@@ -1357,7 +1357,7 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
   user-select: none;
 }
 
-/* Centered product stage mark — all flavors */
+/* Centered product stage mark — as tall as the bar allows */
 #bar-beta {
   position: absolute;
   left: 50%;
@@ -1366,9 +1366,10 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
   margin: 0;
   padding: 0;
   font-family: var(--sans);
-  font-size: 0.72rem;
+  /* Fill bar height (50px chrome); slight headroom for glyph ascent */
+  font-size: calc(var(--chrome) * 0.72);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   line-height: 1;
   color: #ffcc00;
   pointer-events: none;
