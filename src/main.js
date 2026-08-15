@@ -18,6 +18,9 @@ import {
 } from "./flavor.js";
 
 const THEME_KEY = "librus-theme";
+const GUIDE_KEY = "librus-color-guide";
+/** @type {'full'|'soft'|'min'} */
+let colorGuide = "full";
 const LANG_KEY = "librus-lang";
 const ORIENT_DISMISS_KEY = "librus-orient-dismiss";
 const APP_VERSION = "0.9.0-poc";
@@ -84,6 +87,12 @@ const I18N = {
     "notes.off": "Hypothesis desligado neste build.",
     "set.title": "Ajustes",
     "set.hint": "Idioma e tema: botões na barra inferior.",
+    "set.guide": "Guia de cor",
+    "set.guideHint":
+      "Cores do chrome do leitor (abas e barras). O tema claro/escuro fica na barra inferior.",
+    "set.guideFull": "Completo",
+    "set.guideSoft": "Suave",
+    "set.guideMin": "Mínimo",
     "set.theme": "Tema",
     "set.system": "Sistema",
     "set.light": "Claro",
@@ -194,6 +203,12 @@ const I18N = {
     "notes.off": "Hypothesis disabled in this build.",
     "set.title": "Settings",
     "set.hint": "Language and theme: use the bottom bar buttons.",
+    "set.guide": "Color guide",
+    "set.guideHint":
+      "Reader chrome colors (tabs and toolbars). Light/dark theme stays on the bottom bar.",
+    "set.guideFull": "Full",
+    "set.guideSoft": "Soft",
+    "set.guideMin": "Minimal",
     "set.theme": "Theme",
     "set.system": "System",
     "set.light": "Light",
@@ -525,6 +540,38 @@ function cycleTheme() {
   const i = THEME_CYCLE.indexOf(themePref);
   const next = THEME_CYCLE[(i < 0 ? 0 : i + 1) % THEME_CYCLE.length];
   setTheme(/** @type {'system'|'light'|'dark'} */ (next));
+}
+
+/**
+ * Color guide: full soft chrome · soft diluted · min flat + tab top accent only.
+ * Independent of theme (light/system/dark).
+ * @param {'full'|'soft'|'min'} mode
+ * @param {{ persist?: boolean }} [opts]
+ */
+function setColorGuide(mode, { persist = true } = {}) {
+  if (mode !== "full" && mode !== "soft" && mode !== "min") mode = "full";
+  colorGuide = mode;
+  document.documentElement.dataset.guide = mode;
+  if (persist) {
+    try {
+      localStorage.setItem(GUIDE_KEY, mode);
+    } catch (_) {
+      /* ignore */
+    }
+  }
+  document.querySelectorAll('input[name="color-guide"]').forEach((el) => {
+    if (el instanceof HTMLInputElement) {
+      el.checked = el.value === mode;
+    }
+  });
+}
+
+function syncColorGuideInputs() {
+  document.querySelectorAll('input[name="color-guide"]').forEach((el) => {
+    if (el instanceof HTMLInputElement) {
+      el.checked = el.value === colorGuide;
+    }
+  });
 }
 
 function setLang(lang, { persist = true } = {}) {
@@ -1816,6 +1863,16 @@ function wire() {
   const ver = document.getElementById("info-version");
   if (ver) ver.textContent = "LIBRUS " + APP_VERSION;
 
+  /* Color guide radios (settings) */
+  document.querySelectorAll('input[name="color-guide"]').forEach((el) => {
+    el.addEventListener("change", () => {
+      if (el instanceof HTMLInputElement && el.checked) {
+        setColorGuide(/** @type {'full'|'soft'|'min'} */ (el.value));
+      }
+    });
+  });
+  syncColorGuideInputs();
+
   /* Single delegated click owner for chrome navigation */
   document.addEventListener("click", (e) => {
     const t = e.target;
@@ -2183,6 +2240,18 @@ async function boot() {
     watchSystemTheme();
   } catch (err) {
     console.warn("[POC] theme", err);
+  }
+
+  try {
+    let g = "full";
+    try {
+      g = localStorage.getItem(GUIDE_KEY) || g;
+    } catch (_) {
+      /* ignore */
+    }
+    setColorGuide(/** @type {'full'|'soft'|'min'} */ (g), { persist: false });
+  } catch (err) {
+    console.warn("[POC] color guide", err);
   }
 
   try {
