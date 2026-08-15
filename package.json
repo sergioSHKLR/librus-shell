@@ -1,0 +1,29 @@
+{
+  "name": "librus-shell",
+  "version": "0.9.0",
+  "private": true,
+  "type": "module",
+  "description": "LIBRUS shell — lean multi-flavor reader (librus.app · doutrina.org · centers)",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "build:fast": "vite build --minify esbuild",
+    "build:lean": "VITE_FEAT_PDF=0 VITE_FEAT_JAAS=0 VITE_FEAT_PROFILES=0 vite build",
+    "build:full": "VITE_FEAT_PDF=1 VITE_FEAT_JAAS=1 VITE_FEAT_HYPO=1 vite build",
+    "build:no-hypo": "VITE_FEAT_HYPO=0 vite build",
+    "dev:librus": "VITE_FLAVOR=librus vite --host --port 5174 --strictPort",
+    "dev:doutrina": "VITE_FLAVOR=doutrina vite --host --port 5175 --strictPort",
+    "dev:centro": "VITE_FLAVOR=centro vite --host --port 5176 --strictPort",
+    "preview": "vite preview --host",
+    "preview:librus": "VITE_FLAVOR=librus vite preview --host --port 4174 --strictPort",
+    "preview:doutrina": "VITE_FLAVOR=doutrina vite preview --host --port 4175 --strictPort",
+    "preview:centro": "VITE_FLAVOR=centro vite preview --host --port 4176 --strictPort"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "vite-plugin-pwa": "^0.21.0"
+  }
+}

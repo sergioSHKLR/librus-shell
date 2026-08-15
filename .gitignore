@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.dev-sw*
+.vite/
+index.old
+lighthouse-*.json
+dev-dist/
