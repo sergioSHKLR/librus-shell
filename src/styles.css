@@ -680,12 +680,12 @@ html[data-guide="min"] {
   --chrome-tab-top: 3px;
 }
 
-/* min: toolbars match white strip (not grey blocks) */
+/* min: toolbars = same grey as active tab */
 html[data-guide="min"] #reader #p1 [data-tool],
 html[data-guide="min"] #reader #p2 [data-tool],
 html[data-guide="min"] #reader #p3 [data-tool],
 html[data-guide="min"] #reader #p4 [data-tool] {
-  background: #ffffff;
+  background: var(--chrome-active-bg);
   color: var(--fg);
 }
 
