@@ -649,11 +649,10 @@ function setTheme(pref, { persist = true, reloadHypo = true } = {}) {
       /* ignore */
     }
   }
+  /* Browser/PWA chrome: neutral only (brand color is too loud on mobile) */
   const meta = document.getElementById("meta-theme-color");
-  const brandColor = getFlavor()?.brand?.themeColor;
   if (meta) {
-    meta.content =
-      currentTheme === "dark" ? "#000000" : brandColor || "#ffffff";
+    meta.content = currentTheme === "dark" ? "#000000" : "#ffffff";
   }
   const fav = document.getElementById("favicon");
   if (fav) fav.href = flavorFavicon(currentTheme);
