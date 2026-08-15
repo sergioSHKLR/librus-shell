@@ -655,9 +655,15 @@ html[data-theme="dark"] #reader #p2 #book {
 #reader [data-tool][hidden],
 #reader [data-feat][hidden],
 #reader [data-panel][hidden],
+#reader [data-mode][hidden],
+#reader [data-provider][hidden],
+#reader [data-tool] button[hidden],
+#reader [data-tabs] button[hidden],
 [data-tool][hidden],
 [data-feat][hidden],
-[data-panel][hidden] {
+[data-panel][hidden],
+[data-mode][hidden],
+[data-provider][hidden] {
   display: none !important;
 }
 

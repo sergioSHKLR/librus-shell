@@ -1089,6 +1089,13 @@ function setMode(group, panel) {
 }
 
 function openMode(mode) {
+  /* Flavor may disable video (librus / doutrina); ignore open */
+  if (mode === "consult:video") {
+    const f = typeof getFlavor === "function" ? getFlavor() : null;
+    if (!f?.features || f.features.jaas !== true) {
+      mode = "consult:web";
+    }
+  }
   const [group, panel] = mode.split(":");
   if (group && panel) setMode(group, panel);
 }

@@ -41,7 +41,7 @@ const FALLBACK = {
       },
       catalog: "/books/catalog.json",
       profile: "librus",
-      features: { providers: ["encyc", "dict", "map"], jaasRoom: "librus-estudo" },
+      features: { providers: ["encyc", "dict", "map"], jaas: false },
     },
   },
 };
@@ -282,14 +282,41 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
     tagline.textContent = brand.tagline[code] || brand.tagline.pt || tagline.textContent;
   }
 
-  /* Optional: default JaaS room */
+  const feat = flavor.features || {};
+
+  /* Video / JaaS: opt-in per flavor (centro on; librus & doutrina off) */
+  const jaasOn = feat.jaas === true;
+  document.documentElement.dataset.flavorJaas = jaasOn ? "1" : "0";
+  document.querySelectorAll(
+    '[data-mode="consult:video"], [data-tool="consult:video"], [data-panel="consult:video"], fieldset[data-feat="jaas"]',
+  ).forEach((el) => {
+    el.hidden = !jaasOn;
+    if (!jaasOn) el.classList.remove("on");
+  });
+  if (!jaasOn) {
+    /* Leave consult on web if video was active */
+    const webMode = document.querySelector('[data-mode="consult:web"]');
+    const webTool = document.querySelector('[data-tool="consult:web"]');
+    const webPanel = document.querySelector('[data-panel="consult:web"]');
+    if (webMode) webMode.classList.add("on");
+    if (webTool) {
+      webTool.hidden = false;
+      webTool.classList.add("on");
+    }
+    if (webPanel) {
+      webPanel.hidden = false;
+      webPanel.classList.add("on");
+    }
+  }
+
+  /* Optional: default JaaS room (only when video enabled) */
   const room = document.getElementById("jitsi-room");
-  if (room && flavor.features?.jaasRoom && !room.dataset.userEdited) {
-    room.value = flavor.features.jaasRoom;
+  if (jaasOn && room && feat.jaasRoom && !room.dataset.userEdited) {
+    room.value = feat.jaasRoom;
   }
 
   /* Hide provider buttons not listed for this flavor (when specified) */
-  const allowed = flavor.features?.providers;
+  const allowed = feat.providers;
   if (Array.isArray(allowed) && allowed.length) {
     document.querySelectorAll("[data-provider]").forEach((btn) => {
       const key = btn.getAttribute("data-provider");
