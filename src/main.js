@@ -23,6 +23,8 @@ const GUIDE_KEY = "librus-color-guide";
 let colorGuide = "full";
 const LANG_KEY = "librus-lang";
 const ORIENT_DISMISS_KEY = "librus-orient-dismiss";
+/** Below this width: reduced study (no Consulte panel / consult links). */
+const STUDY_REDUCED_MAX_W = 920;
 const APP_VERSION = "0.9.0-poc";
 
 const I18N = {
@@ -74,7 +76,7 @@ const I18N = {
     "tip.ctx.reload": "Recarregar página de consulta",
     "tip.close": "Fechar",
     "tip.home": "Biblioteca",
-    "tip.orient.dismiss": "Continuar em retrato",
+    "tip.orient.dismiss": "Continuar em modo reduzido",
     "prov.luz": "Luz Espírita",
     "prov.encyc": "Enciclopédia",
     "prov.dict": "Dicionário",
@@ -111,10 +113,10 @@ const I18N = {
       "Sumário e busca no painel esquerdo (ou abas dobradas na faixa principal).",
     "help.tagline": "annotate to assimilate",
     "help.pwa": "PWA · Hypothesis · Vite",
-    "orient.title": "Gire o dispositivo",
+    "orient.title": "Estudo reduzido neste espaço",
     "orient.body":
-      "A experiência em modo retrato é limitada. Gire o aparelho para paisagem (sentido anti-horário).",
-    "orient.dismiss": "Continuar mesmo assim",
+      "Neste espaço a leitura ativa completa (texto + consulta ao mesmo tempo + anotações) não é possível. O painel de consulta foi removido. Continue apenas se aceitar uma experiência reduzida, ou gire / use uma tela maior para o estudo completo.",
+    "orient.dismiss": "Continuar em modo reduzido",
     "set.jitsi": "Videoconferência (JaaS)",
     "set.jitsiAppId": "App ID (8x8 JaaS)",
     "set.jitsiRoom": "Sala",
@@ -191,7 +193,7 @@ const I18N = {
     "tip.ctx.reload": "Reload context page",
     "tip.close": "Close",
     "tip.home": "Library",
-    "tip.orient.dismiss": "Continue in portrait",
+    "tip.orient.dismiss": "Continue in reduced mode",
     "prov.luz": "Luz",
     "prov.encyc": "Encyc",
     "prov.dict": "Dict",
@@ -227,10 +229,10 @@ const I18N = {
       "TOC and search live in the left pane (or folded tabs on the main strip).",
     "help.tagline": "annotate to assimilate",
     "help.pwa": "PWA · Hypothesis · Vite",
-    "orient.title": "Rotate your device",
+    "orient.title": "Reduced study on this screen",
     "orient.body":
-      "Portrait mode is limited. Rotate the device to landscape (counter-clockwise).",
-    "orient.dismiss": "Continue anyway",
+      "Full active study (text + simultaneous consultation + notes) is not possible here. The consult panel has been removed. Continue only if you accept a reduced experience, or rotate / use a larger screen for the complete instrument.",
+    "orient.dismiss": "Continue in reduced mode",
     "set.jitsi": "Video conference (JaaS)",
     "set.jitsiAppId": "App ID (8x8 JaaS)",
     "set.jitsiRoom": "Room",
@@ -1072,7 +1074,7 @@ function syncMainStripActive() {
 function applyOverlaySingleTool() {
   const w = window.innerWidth;
   const foldFind = w <= 1650;
-  const foldConsult = w <= 920;
+  const foldConsult = !isStudyConstrained() && w <= STUDY_REDUCED_MAX_W;
   const p1 = document.getElementById("p1");
   const p3 = document.getElementById("p3");
 
@@ -1083,16 +1085,24 @@ function applyOverlaySingleTool() {
     );
   }
   if (p3) {
-    p3.classList.toggle(
-      "overlay-single",
-      p3.classList.contains("overlay") && foldConsult,
-    );
+    if (isStudyReduced()) {
+      p3.classList.remove("overlay", "overlay-single", "is-closing");
+    } else {
+      p3.classList.toggle(
+        "overlay-single",
+        p3.classList.contains("overlay") && foldConsult,
+      );
+    }
   }
 
   syncMainStripActive();
 }
 
 function setMode(group, panel) {
+  /* Reduced study: refuse Consulte entirely */
+  if (group === "consult" && isStudyReduced()) {
+    return;
+  }
   const mode = group + ":" + panel;
   focusMode = mode;
   if (group === "read") lastReadMode = mode;
@@ -1133,7 +1143,12 @@ function setMode(group, panel) {
     } catch (_) {
       /* ignore */
     }
-  } else if (group === "consult" && w <= 920) {
+  } else if (group === "consult" && w <= STUDY_REDUCED_MAX_W) {
+    /* Reduced study: Consulte is intentionally absent — do not open overlay */
+    if (isStudyReduced()) {
+      applyOverlaySingleTool();
+      return;
+    }
     const p1 = document.getElementById("p1");
     if (p1?.classList.contains("overlay")) {
       p1.classList.add("is-closing", "overlay-single");
@@ -1165,6 +1180,10 @@ function setMode(group, panel) {
 }
 
 function openMode(mode) {
+  /* Reduced surface: no Consulte */
+  if (String(mode || "").startsWith("consult:") && isStudyReduced()) {
+    return;
+  }
   /* Flavor may disable video (librus / doutrina); ignore open */
   if (mode === "consult:video") {
     const f = typeof getFlavor === "function" ? getFlavor() : null;
@@ -1184,11 +1203,16 @@ function handleTabFolding(force = false) {
   const strip = document.getElementById("main-tabs");
   if (!strip) return;
   const w = window.innerWidth;
+  const reduced = isStudyConstrained();
   const foldFind = w <= 1650;
-  const foldConsult = w <= 920;
+  /* In reduced mode consult is removed, not folded */
+  const foldConsult = !reduced && w <= STUDY_REDUCED_MAX_W;
   /* Labels: icon-only when strip is crowded (fold find) or consult is dense */
   const compact = foldFind || w <= 1800;
-  const foldKey = (foldFind ? "1" : "0") + (foldConsult ? "1" : "0");
+  const foldKey =
+    (foldFind ? "1" : "0") +
+    (foldConsult ? "1" : "0") +
+    (reduced ? "R" : "F");
 
   document.body.dataset.compact = compact ? "1" : "0";
   document.body.dataset.foldFind = foldFind ? "1" : "0";
@@ -1807,6 +1831,7 @@ async function resolveProviderUrl(key, term) {
 }
 
 function loadCtx(url, { push = true } = {}) {
+  if (isStudyReduced()) return;
   const frame = ctxEl();
   if (!frame || !url) return;
 
@@ -1839,6 +1864,7 @@ function loadCtx(url, { push = true } = {}) {
 
 /** Open a provider from toolbar (selection = query for search). */
 async function openProvider(key) {
+  if (isStudyReduced()) return;
   const term = selectionTerm();
   const url = await resolveProviderUrl(key, term);
   if (url) loadCtx(url);
@@ -1851,6 +1877,20 @@ async function openProvider(key) {
  */
 async function openBookLink(href, anchor) {
   if (!href) return;
+  /* Reduced mode: no simultaneous consult — ignore consultation triggers */
+  if (isStudyReduced()) {
+    const code = (anchor?.getAttribute("data-link-provider") || "").toLowerCase();
+    if (
+      code ||
+      anchor?.hasAttribute("data-doutrina-link") ||
+      isMapUrl(href)
+    ) {
+      return;
+    }
+    /* Allow pure internal section jumps only */
+    if (href.startsWith("#")) return;
+    return;
+  }
   const code = (anchor?.getAttribute("data-link-provider") || "").toLowerCase();
   const key = LINK_PROVIDER_KEY[code] || "";
   const term = String(anchor?.textContent || "")
@@ -2315,20 +2355,16 @@ function closeAllDrawers() {
   }
 }
 
-/* ── Portrait lock ───────────────────────────────── */
+/* ── Study surface gate (narrow = reduced mode) ──── */
 
-function isPortraitViewport() {
+/** True when multi-pane active study (incl. simultaneous consult) is not viable. */
+function isStudyConstrained() {
   const w = window.innerWidth || 0;
-  const h = window.innerHeight || 0;
-  if (w > 0 && h > 0 && h > w) return true;
-  try {
-    if (window.matchMedia("(orientation: portrait)").matches) return true;
-    if (window.matchMedia("(max-aspect-ratio: 13/10)").matches && h >= w)
-      return true;
-  } catch (_) {
-    /* ignore */
-  }
-  return false;
+  return w > 0 && w <= STUDY_REDUCED_MAX_W;
+}
+
+function isStudyReduced() {
+  return document.documentElement.dataset.study === "reduced";
 }
 
 function isOrientDismissed() {
@@ -2349,11 +2385,70 @@ function setOrientDismissed() {
   if (el) el.dataset.dismissed = "1";
 }
 
+function clearOrientDismissed() {
+  try {
+    sessionStorage.removeItem(ORIENT_DISMISS_KEY);
+  } catch (_) {
+    /* ignore */
+  }
+  const el = document.getElementById("orient");
+  if (el) delete el.dataset.dismissed;
+}
+
+/**
+ * Apply full vs reduced study surface.
+ * Reduced: hide Consulte (p3), suppress consult links/controls; keep Leia + Anote.
+ */
+function applyStudySurface() {
+  const reduced = isStudyConstrained();
+  const prev = document.documentElement.dataset.study;
+  document.documentElement.dataset.study = reduced ? "reduced" : "full";
+  document.body.dataset.study = reduced ? "reduced" : "full";
+
+  const p3 = document.getElementById("p3");
+  if (p3) {
+    if (reduced) {
+      p3.classList.remove("overlay", "overlay-single", "is-closing");
+      p3.setAttribute("aria-hidden", "true");
+    } else {
+      p3.removeAttribute("aria-hidden");
+    }
+  }
+
+  /* Leaving reduced → allow gate again next time width shrinks */
+  if (prev === "reduced" && !reduced) {
+    clearOrientDismissed();
+  }
+
+  if (reduced) {
+    /* If user was in consult, return to reading */
+    if (String(focusMode || "").startsWith("consult:")) {
+      focusMode = lastReadMode || "read:book";
+      lastReadMode = focusMode;
+      try {
+        setMode("read", focusMode.split(":")[1] || "book");
+      } catch (_) {
+        /* ignore */
+      }
+    }
+  }
+
+  try {
+    handleTabFolding(true);
+    syncMainTabHighlight();
+  } catch (_) {
+    /* ignore */
+  }
+}
+
 function updateOrientLock() {
   const el = document.getElementById("orient");
   if (!el) return;
-  const portrait = isPortraitViewport();
-  const show = portrait && !isOrientDismissed();
+
+  applyStudySurface();
+
+  const constrained = isStudyConstrained();
+  const show = constrained && !isOrientDismissed();
 
   if (show) {
     el.hidden = false;
@@ -2362,7 +2457,6 @@ function updateOrientLock() {
     document.documentElement.classList.add("is-portrait-blocked");
     document.body.classList.add("is-portrait-blocked");
   } else {
-    /* Always fully hide when landscape or dismissed — never block splash clicks */
     el.hidden = true;
     el.classList.remove("on");
     el.setAttribute("aria-hidden", "true");
@@ -2392,7 +2486,7 @@ function initOrientLock() {
     setTimeout(updateOrientLock, 250);
   });
   try {
-    const mq = window.matchMedia("(orientation: portrait)");
+    const mq = window.matchMedia("(max-width: " + STUDY_REDUCED_MAX_W + "px)");
     if (mq.addEventListener) mq.addEventListener("change", updateOrientLock);
     else if (mq.addListener) mq.addListener(updateOrientLock);
   } catch (_) {

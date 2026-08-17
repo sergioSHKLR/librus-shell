@@ -91,9 +91,10 @@
   </head>
 
   <body data-view="library" data-lang="pt">
-    <!-- Portrait notice — fullscreen, dismissable; auto-hides in landscape -->
+    <!-- Narrow-surface gate — allow + warn; reduced study if dismissed -->
     <div
       id="orient"
+      class="study-gate"
       hidden
       role="alertdialog"
       aria-modal="true"
@@ -109,13 +110,17 @@
           </div>
           <div id="orient-arc"></div>
         </div>
-        <h2 id="orient-title" data-i18n="orient.title">Gire o dispositivo</h2>
+        <h2 id="orient-title" data-i18n="orient.title">
+          Estudo reduzido neste espaço
+        </h2>
         <p id="orient-msg" data-i18n="orient.body">
-          A experiência em modo retrato é limitada. Gire o aparelho para
-          paisagem (sentido anti-horário).
+          Neste espaço a leitura ativa completa (texto + consulta ao mesmo tempo
+          + anotações) não é possível. O painel de consulta foi removido.
+          Continue apenas se aceitar uma experiência reduzida, ou gire / use uma
+          tela maior para o estudo completo.
         </p>
         <button type="button" id="orient-dismiss" data-i18n="orient.dismiss">
-          Continuar mesmo assim
+          Continuar em modo reduzido
         </button>
       </div>
     </div>

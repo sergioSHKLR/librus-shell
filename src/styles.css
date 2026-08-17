@@ -1677,7 +1677,7 @@ mark.focus {
   outline: 2px solid var(--accent);
 }
 
-/* ========== Portrait lock (fullscreen, dismissable) ========== */
+/* ========== Study gate (narrow surface — allow + warn) ========== */
 #orient {
   position: fixed;
   inset: 0;
@@ -1687,8 +1687,9 @@ mark.focus {
   justify-content: center;
   padding: 1.5rem;
   box-sizing: border-box;
-  background: var(--bg);
-  color: var(--fg);
+  /* Red wash — draws attention to methodological importance */
+  background: color-mix(in srgb, #a0122a 88%, #1a0508);
+  color: #fff8f8;
   text-align: center;
   overscroll-behavior: none;
   touch-action: none;
@@ -1700,8 +1701,8 @@ mark.focus {
 }
 
 html[data-theme="dark"] #orient {
-  background: #000;
-  color: #f5f5f5;
+  background: color-mix(in srgb, #7a0e22 92%, #000);
+  color: #fff5f5;
 }
 
 html.is-portrait-blocked,
@@ -1710,12 +1711,19 @@ html.is-portrait-blocked body {
 }
 
 #orient > div {
-  max-width: 22rem;
+  max-width: 24rem;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.25rem;
+  padding: 1.35rem 1.25rem 1.5rem;
+  border-radius: 14px;
+  border: 2px solid color-mix(in srgb, #ffcc00 55%, #ff6b7a);
+  background: color-mix(in srgb, #5c0a18 75%, #000);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, #ff2d4a 40%, transparent),
+    0 16px 48px rgba(0, 0, 0, 0.45);
 }
 
 #orient-anim {
@@ -1731,14 +1739,15 @@ html.is-portrait-blocked body {
 #orient-phone {
   width: 3.1rem;
   height: 5.4rem;
-  border: 3px solid currentColor;
+  border: 3px solid color-mix(in srgb, #ffcc00 70%, #fff);
   border-radius: 0.55rem;
-  background: color-mix(in srgb, var(--surface) 80%, var(--fg) 8%);
+  background: color-mix(in srgb, #ff2d4a 25%, #1a0508);
   box-sizing: border-box;
   position: relative;
   animation: orient-phone-ccw 2.4s ease-in-out infinite;
   transform-origin: center center;
   will-change: transform;
+  color: #ffcc00;
 }
 
 #orient-notch {
@@ -1789,32 +1798,64 @@ html.is-portrait-blocked body {
 
 #orient-title {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 700;
   letter-spacing: 0.02em;
+  color: #ffcc00;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
 }
 
 #orient-msg {
   margin: 0;
   font-size: 0.95rem;
-  line-height: 1.45;
-  color: var(--muted);
-  max-width: 18rem;
+  line-height: 1.5;
+  color: #ffe8ec;
+  max-width: 22rem;
 }
 
 #orient-dismiss {
   margin-top: 0.25rem;
-  padding: 0.55rem 1.1rem;
+  padding: 0.65rem 1.25rem;
   border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--fg);
-  font-weight: 600;
+  border: 2px solid #ffcc00;
+  background: #ffcc00;
+  color: #3a0a10;
+  font-weight: 700;
   cursor: pointer;
 }
 
 #orient-dismiss:hover {
-  border-color: var(--fg);
+  border-color: #ffe066;
+  background: #ffe066;
+  color: #2a060c;
+}
+
+/* ── Reduced study surface (≤920px) ───────────────── */
+html[data-study="reduced"] #p3 {
+  display: none !important;
+}
+
+/* Suppress consultation link affordances — clean text surface */
+html[data-study="reduced"] #book a[data-link-provider],
+html[data-study="reduced"] #book a[data-doutrina-link] {
+  color: inherit !important;
+  text-decoration: none !important;
+  border: none !important;
+  background: none !important;
+  cursor: text !important;
+  pointer-events: none !important;
+  font-weight: inherit;
+}
+
+html[data-study="reduced"] #book a[data-link-provider]::after,
+html[data-study="reduced"] #book a[data-doutrina-link]::after {
+  display: none !important;
+}
+
+/* No consult tools / provider strip when p3 is gone */
+html[data-study="reduced"] #main-tabs > button[data-fold="3"],
+html[data-study="reduced"] #main-tabs > button[data-mode^="consult:"] {
+  display: none !important;
 }
 
 @keyframes orient-phone-ccw {
