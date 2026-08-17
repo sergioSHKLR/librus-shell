@@ -91,7 +91,7 @@
   </head>
 
   <body data-view="library" data-lang="pt">
-    <!-- Narrow-surface gate — allow + warn; reduced study if dismissed -->
+    <!-- Narrow-surface gate — modal overlay layout, no close (X); dismiss CTA only -->
     <div
       id="orient"
       class="study-gate"
@@ -102,20 +102,24 @@
       aria-describedby="orient-msg"
       aria-hidden="true"
     >
-      <div>
-        <div id="orient-emoji" aria-hidden="true">⚠️</div>
-        <h2 id="orient-title" data-i18n="orient.title">
-          Estudo reduzido neste espaço
-        </h2>
-        <p id="orient-msg" data-i18n="orient.body">
-          Neste espaço a leitura ativa completa (texto + consulta ao mesmo tempo
-          + anotações) não é possível. O painel de consulta foi removido.
-          Continue apenas se aceitar uma experiência reduzida, ou gire / use uma
-          tela maior para o estudo completo.
-        </p>
-        <button type="button" id="orient-dismiss" data-i18n="orient.dismiss">
-          Continuar em modo reduzido
-        </button>
+      <div id="orient-card" class="modal study-gate-card">
+        <header>
+          <span id="orient-title" data-i18n="orient.title"
+            >Estudo reduzido neste espaço</span
+          >
+        </header>
+        <div>
+          <div id="orient-emoji" aria-hidden="true">⚠️</div>
+          <p id="orient-msg" data-i18n="orient.body">
+            Neste espaço a leitura ativa completa (texto + consulta ao mesmo
+            tempo + anotações) não é possível. O painel de consulta foi removido.
+            Continue apenas se aceitar uma experiência reduzida, ou gire / use
+            uma tela maior para o estudo completo.
+          </p>
+          <button type="button" id="orient-dismiss" data-i18n="orient.dismiss">
+            Continuar em modo reduzido
+          </button>
+        </div>
       </div>
     </div>
 
