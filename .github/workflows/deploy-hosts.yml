@@ -93,10 +93,12 @@ jobs:
           cd "$WORK"
 
           # Stash paths we must keep across a clean publish
+          # Always keep maintainer docs (README/CREDITS) — deploys replace the SPA tree only.
           KEEP_DIR="$RUNNER_TEMP/keep-$TARGET_REPO"
           rm -rf "$KEEP_DIR"
           mkdir -p "$KEEP_DIR"
-          for p in $PRESERVE; do
+          ALWAYS_KEEP="README.md CREDITS.md"
+          for p in $ALWAYS_KEEP $PRESERVE; do
             if [ -e "$p" ]; then
               mkdir -p "$KEEP_DIR/$(dirname "$p")"
               cp -a "$p" "$KEEP_DIR/$p"
@@ -110,17 +112,14 @@ jobs:
           find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
           cp -a "$GITHUB_WORKSPACE/dist/." .
 
-          # Restore preserved Center sources (if any)
-          if [ -n "$PRESERVE" ] && [ -d "$KEEP_DIR" ]; then
-            for p in $PRESERVE; do
-              if [ -e "$KEEP_DIR/$p" ]; then
-                rm -rf "./$p"
-                mkdir -p "$(dirname "$p")"
-                cp -a "$KEEP_DIR/$p" "./$p"
-              fi
-            done
-          fi
-
+          # Restore preserved docs + Center sources (if any)
+          for p in $ALWAYS_KEEP $PRESERVE; do
+            if [ -e "$KEEP_DIR/$p" ]; then
+              rm -rf "./$p"
+              mkdir -p "$(dirname "$p")"
+              cp -a "$KEEP_DIR/$p" "./$p"
+            fi
+          done
           # Always write CNAME for custom domain (Pages)
           printf '%s\n' "$CNAME_VALUE" > CNAME
 
