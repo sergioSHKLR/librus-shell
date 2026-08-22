@@ -108,6 +108,10 @@ npm run dev:centro     # http://localhost:5176
 2. Propose UX fixes that keep **active study** (not passive media).  
 3. Keep PRs focused; do not hand-edit host `dist/` — change the shell and deploy.  
 
+## 🏅 Credits
+
+1. See [CREDITS.md](./CREDITS.md) — Sergio SHKLR (lead, git metrics) · Grok / xAI (assisted implementation & docs).  
+
 ---
 
 # 🇧🇷 Português — Etapa 3 de 4
@@ -178,3 +182,7 @@ npm run dev:centro     # http://localhost:5176
 1. Rode um sabor localmente; abra issues com viewport + id do sabor.  
 2. Proponha UX que preserve **estudo ativo** (não mídia passiva).  
 3. PRs focados; não edite `dist/` nos hosts à mão — altere o shell e faça deploy.  
+
+## 🏅 Créditos
+
+1. Ver [CREDITS.md](./CREDITS.md) — Sergio SHKLR (líder, métricas git) · Grok / xAI (implementação e docs assistidos).  
