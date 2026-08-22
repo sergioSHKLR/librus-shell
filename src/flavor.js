@@ -249,7 +249,18 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
 
   const titleEl = document.querySelector("#library > header h1");
   if (titleEl && brand.name) {
-    titleEl.textContent = brand.name;
+    /* Name lives in a child span so #app-version superscript stays intact */
+    const nameEl =
+      titleEl.querySelector('[data-i18n="library.title"]') ||
+      titleEl.querySelector("span");
+    if (nameEl) {
+      nameEl.textContent = brand.name;
+      nameEl.removeAttribute("data-i18n");
+    } else {
+      const verEl = titleEl.querySelector("#app-version, .app-version");
+      titleEl.textContent = brand.name;
+      if (verEl) titleEl.appendChild(verEl);
+    }
     titleEl.removeAttribute("data-i18n");
   }
 
@@ -343,8 +354,16 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
       const key = btn.getAttribute("data-provider");
       btn.hidden = allowed.indexOf(key) === -1;
     });
+    /* Páginas toolbar: only Luz / Encyc / Dict, further gated by flavor */
+    document.querySelectorAll("[data-link].link-toggle").forEach((btn) => {
+      const key = btn.getAttribute("data-link");
+      btn.hidden = !key || allowed.indexOf(key) === -1;
+    });
   } else {
     document.querySelectorAll("[data-provider]").forEach((btn) => {
+      btn.hidden = false;
+    });
+    document.querySelectorAll("[data-link].link-toggle").forEach((btn) => {
       btn.hidden = false;
     });
   }

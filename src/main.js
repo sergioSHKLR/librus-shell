@@ -25,7 +25,7 @@ const LANG_KEY = "librus-lang";
 const ORIENT_DISMISS_KEY = "librus-orient-dismiss";
 /** Below this width: reduced study (no Consulte panel / consult links). */
 const STUDY_REDUCED_MAX_W = 920;
-const APP_VERSION = "0.9.0-poc";
+const APP_VERSION = "0.9.0";
 
 const I18N = {
   pt: {
@@ -44,8 +44,9 @@ const I18N = {
     "tab.pdf": "PDF",
     "tab.video": "Vídeo",
     "tab.notes": "Notas",
-    "btn.prev": "Ant.",
-    "btn.next": "Próx.",
+    "btn.prev": "Anterior",
+    "btn.next": "Próxima",
+    "page.unit": "páginas",
     "btn.back": "Voltar",
     "btn.reload": "Recarregar",
     "btn.zoomIn": "Mais",
@@ -54,7 +55,7 @@ const I18N = {
     "btn.joinVoice": "Voz",
     "btn.leave": "Sair",
     "ph.filter": "Filtrar…",
-    "ph.search": "Buscar…",
+    "ph.search": "Buscar… (Enter)",
     "typo.size": "Texto",
     "typo.line": "Linhas",
     "typo.measure": "Coluna",
@@ -77,12 +78,22 @@ const I18N = {
     "tip.close": "Fechar",
     "tip.home": "Biblioteca",
     "tip.orient.dismiss": "Continuar em modo reduzido",
+    "tip.density": "Densidade de ligações",
+    "tip.link.luz": "Mostrar / ocultar ligações Luz",
+    "tip.link.encyc": "Mostrar / ocultar ligações enciclopédia",
+    "tip.link.dict": "Mostrar / ocultar ligações dicionário",
+    "density.lo": "Zero",
+    "density.md": "Médio",
+    "density.hi": "Alto",
     "prov.luz": "Luz Espírita",
     "prov.encyc": "Enciclopédia",
     "prov.dict": "Dicionário",
     "prov.map": "Mapas",
     "prov.bible": "Bíblia",
     "prov.kardec": "Kardecpedia",
+    "ctx.searching": 'Buscando "{term}" em {provider}',
+    "ctx.opening": "Abrindo {provider}…",
+    "ctx.loading": "Carregando…",
     "notes.hypo": "Anotações",
     "notes.hint":
       "Notas abrem na barra lateral do Hypothesis (ícone no canto).",
@@ -130,9 +141,11 @@ const I18N = {
     "pdf.mockLoaded": "PDF mock carregado",
     "pdf.mockCleared": "PDF mock removido",
     "toc.empty": "Nenhum item no sumário.",
-    "search.empty": "Digite para buscar no livro…",
+    "search.empty": "Digite e pressione Enter para buscar…",
     "search.none": "Nenhum resultado.",
     "search.hits": "{n} resultados",
+    "search.hitsCapped": "Mostrando os primeiros {n} resultados",
+    "search.nowhere": "Sem seção",
     "meet.hint": "Configure o App ID JaaS em Ajustes.",
     "meet.needAppId": "Informe o App ID JaaS em Ajustes.",
     "meet.connecting": "A conectar…",
@@ -161,8 +174,9 @@ const I18N = {
     "tab.pdf": "PDF",
     "tab.video": "Video",
     "tab.notes": "Notes",
-    "btn.prev": "Prev",
+    "btn.prev": "Previous",
     "btn.next": "Next",
+    "page.unit": "pages",
     "btn.back": "Back",
     "btn.reload": "Reload",
     "btn.zoomIn": "In",
@@ -171,7 +185,7 @@ const I18N = {
     "btn.joinVoice": "Voice",
     "btn.leave": "Leave",
     "ph.filter": "Filter…",
-    "ph.search": "Search…",
+    "ph.search": "Search… (Enter)",
     "typo.size": "Size",
     "typo.line": "Lines",
     "typo.measure": "Column",
@@ -194,12 +208,22 @@ const I18N = {
     "tip.close": "Close",
     "tip.home": "Library",
     "tip.orient.dismiss": "Continue in reduced mode",
+    "tip.density": "Link density",
+    "tip.link.luz": "Show / hide Luz links",
+    "tip.link.encyc": "Show / hide encyclopedia links",
+    "tip.link.dict": "Show / hide dictionary links",
+    "density.lo": "Zero",
+    "density.md": "Medium",
+    "density.hi": "High",
     "prov.luz": "Luz",
-    "prov.encyc": "Encyc",
-    "prov.dict": "Dict",
+    "prov.encyc": "Encyclopedia",
+    "prov.dict": "Dictionary",
     "prov.map": "Maps",
     "prov.bible": "Bible",
-    "prov.kardec": "Kardec",
+    "prov.kardec": "Kardecpedia",
+    "ctx.searching": 'Searching for "{term}" on {provider}',
+    "ctx.opening": "Opening {provider}…",
+    "ctx.loading": "Loading…",
     "notes.hypo": "Hypothesis",
     "notes.hint": "Notes open in the Hypothesis sidebar (corner control).",
     "notes.off": "Hypothesis disabled in this build.",
@@ -246,9 +270,11 @@ const I18N = {
     "pdf.mockLoaded": "Mock PDF loaded",
     "pdf.mockCleared": "Mock PDF cleared",
     "toc.empty": "No TOC items.",
-    "search.empty": "Type to search this book…",
+    "search.empty": "Type and press Enter to search…",
     "search.none": "No results.",
     "search.hits": "{n} results",
+    "search.hitsCapped": "Showing first {n} results",
+    "search.nowhere": "No section",
     "meet.hint": "Set JaaS App ID in Settings.",
     "meet.needAppId": "Enter JaaS App ID in Settings.",
     "meet.connecting": "Connecting…",
@@ -296,6 +322,9 @@ const PROVIDERS = {
 const MEASURES = ["narrow", "medium", "wide"];
 const FONT_SIZES = [0.85, 0.95, 1, 1.1, 1.25, 1.4, 1.5];
 const LINE_HEIGHTS = [1.35, 1.5, 1.65, 1.85, 2.1];
+/** Link density on Páginas toolbar: Zero / Med / Hi (filters data-link-interest). */
+const LINK_DENSITY_KEYS = ["lo", "md", "hi"];
+const LINK_DENSITY_KEY = "librus-link-density";
 const ALIGNS = ["start", "justify"];
 /* Reading faces only — order: default first (serif ≈ printed book) */
 const FONTS = ["serif", "sans"];
@@ -317,6 +346,15 @@ let lineHeight = 1.65;
 let measure = "medium";
 let textAlign = "start";
 let fontFamily = "serif";
+/** @type {'lo'|'md'|'hi'} */
+let linkDensity = "md";
+/**
+ * Páginas toolbar toggles only: Luz · Encyc · Dict (not map/bible/kardec).
+ * Flavor gates which appear (e.g. LIBRUS has no Luz).
+ */
+const PAGE_LINK_PROVIDERS = ["luz", "encyc", "dict"];
+/** Provider keys currently on for inject-link visibility. */
+const linkProvidersOn = new Set(["encyc", "dict"]);
 let searchQuery = "";
 let hypoTimer = null;
 let lastCtxUrl = "";
@@ -347,9 +385,15 @@ function applyI18n() {
   document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
     el.setAttribute("placeholder", t(el.getAttribute("data-i18n-ph")));
   });
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+    const label = t(el.getAttribute("data-i18n-aria"));
+    el.setAttribute("aria-label", label);
+    el.setAttribute("title", label);
+  });
   document.documentElement.lang = currentLang === "en" ? "en" : "pt-BR";
   document.body.dataset.lang = currentLang;
   if (typeof syncTypoButtons === "function") syncTypoButtons();
+  if (typeof syncLinkControls === "function") syncLinkControls();
   if (typeof syncChromeBar === "function") syncChromeBar();
   if (typeof syncTooltips === "function") syncTooltips();
   if (
@@ -955,6 +999,14 @@ async function enterReader(slug, page = 0) {
   setMode("read", "typo");
   setMode("consult", "web");
   setMode("annotate", "notes");
+  /*
+   * setMode("annotate") leaves focusMode on annotate:notes. On folded
+   * widths (≤1650) the main strip paints exclusively from focusMode and
+   * Annotate isn't on that strip (p4 often hidden) — so Typo flashed then
+   * went dark. Park focus back on the default read tool.
+   */
+  focusMode = "read:typo";
+  lastReadMode = "read:typo";
   applyTypography();
   renderPage();
   renderToc();
@@ -1050,8 +1102,20 @@ function syncMainStripActive() {
   const foldConsult = w <= 920;
 
   if (foldFind || foldConsult) {
+    /*
+     * Exclusive strip highlight. If focusMode isn't on this strip
+     * (e.g. annotate:notes — Anote often off-strip at ≤1400), paint
+     * lastReadMode so Tipo/Páginas don't go blank after boot.
+     */
+    let paint = focusMode;
+    const onStrip = !!strip.querySelector(
+      'button[data-mode="' + CSS.escape(String(paint || "")) + '"]',
+    );
+    if (!onStrip) {
+      paint = lastReadMode || "read:typo";
+    }
     strip.querySelectorAll("button[data-mode]").forEach((btn) => {
-      btn.classList.toggle("on", btn.getAttribute("data-mode") === focusMode);
+      btn.classList.toggle("on", btn.getAttribute("data-mode") === paint);
     });
   } else {
     const activeModes = new Set();
@@ -1059,6 +1123,13 @@ function syncMainStripActive() {
       const m = tb.getAttribute("data-tool");
       if (m) activeModes.add(m);
     });
+    /* Prefer last read tool when annotate is the only leftover .on */
+    if (
+      ![...activeModes].some((m) => String(m).startsWith("read:")) &&
+      lastReadMode
+    ) {
+      activeModes.add(lastReadMode);
+    }
     strip.querySelectorAll("button[data-mode]").forEach((btn) => {
       const mode = btn.getAttribute("data-mode") || "";
       btn.classList.toggle("on", mode ? activeModes.has(mode) : false);
@@ -1330,21 +1401,32 @@ function nearest(list, value) {
 
 function applyTypography() {
   const el = bookEl();
-  if (!el) return;
-  el.style.setProperty("--book-size", fontSize + "rem");
-  el.style.setProperty("--book-lh", String(lineHeight));
-  /* Explicit attribute so CSS [data-font="sans"|"serif"] always matches */
-  el.setAttribute("data-font", fontFamily === "serif" ? "serif" : "sans");
-  el.dataset.measure = measure;
-  el.dataset.align = textAlign;
-  el.style.setProperty(
-    "--book-align",
-    textAlign === "justify" ? "justify" : "start",
+  const face = fontFamily === "serif" ? "serif" : "sans";
+  if (el) {
+    el.style.setProperty("--book-size", fontSize + "rem");
+    el.style.setProperty("--book-lh", String(lineHeight));
+    /* Explicit attribute so CSS [data-font="sans"|"serif"] always matches */
+    el.setAttribute("data-font", face);
+    el.dataset.measure = measure;
+    el.dataset.align = textAlign;
+    el.style.setProperty(
+      "--book-align",
+      textAlign === "justify" ? "justify" : "start",
+    );
+  }
+  /* Mirror reading face for P1 hit-card body text */
+  document.documentElement.dataset.bookFont = face;
+  document.documentElement.style.setProperty(
+    "--reading-font",
+    face === "serif" ? "var(--book-serif)" : "var(--book-sans)",
   );
   syncTypoButtons();
 }
 
-/** Update cyclic typo button labels + icons to match current state. */
+/**
+ * Update cyclic typo button labels + icons to show what the *next* click does
+ * (preview of the resulting value), not the current applied state.
+ */
 function syncTypoButtons() {
   const root = document.querySelector('[data-tool="read:typo"]');
   if (!root) return;
@@ -1369,34 +1451,39 @@ function syncTypoButtons() {
     hydrateIcons(btn);
   };
 
-  const pct = Math.round(fontSize * 100) + "%";
-  setLabel("size", pct);
-  setLabel("line", String(lineHeight));
-  setLabel("measure", t("typo." + measure), "typo." + measure);
+  const nextSize = cycle(FONT_SIZES, nearest(FONT_SIZES, fontSize));
+  const nextLine = cycle(LINE_HEIGHTS, nearest(LINE_HEIGHTS, lineHeight));
+  const nextMeasure = cycle(MEASURES, measure);
+  const nextAlign = cycle(ALIGNS, textAlign);
+  const nextFont = cycle(FONTS, fontFamily);
+
+  const nextPct = Math.round(nextSize * 100) + "%";
+  setLabel("size", nextPct);
+  setLabel("line", String(nextLine));
+  setLabel("measure", t("typo." + nextMeasure), "typo." + nextMeasure);
   setLabel(
     "align",
-    textAlign === "justify" ? t("typo.alignJustify") : t("typo.alignStart"),
-    textAlign === "justify" ? "typo.alignJustify" : "typo.alignStart",
+    nextAlign === "justify" ? t("typo.alignJustify") : t("typo.alignStart"),
+    nextAlign === "justify" ? "typo.alignJustify" : "typo.alignStart",
   );
   setLabel(
     "font",
-    fontFamily === "serif" ? t("typo.serif") : t("typo.sans"),
-    fontFamily === "serif" ? "typo.serif" : "typo.sans",
+    nextFont === "serif" ? t("typo.serif") : t("typo.sans"),
+    nextFont === "serif" ? "typo.serif" : "typo.sans",
   );
-  /* Titles for icon-only compact chrome */
-  /* Tooltip = tip key + current value (icon-only chrome still discoverable) */
+
   const tipVal = {
-    size: t("tip.typo.size") + " · " + pct,
-    line: t("tip.typo.line") + " · " + String(lineHeight),
-    measure: t("tip.typo.measure") + " · " + t("typo." + measure),
+    size: t("tip.typo.size") + " → " + nextPct,
+    line: t("tip.typo.line") + " → " + String(nextLine),
+    measure: t("tip.typo.measure") + " → " + t("typo." + nextMeasure),
     align:
       t("tip.typo.align") +
-      " · " +
-      (textAlign === "justify" ? t("typo.alignJustify") : t("typo.alignStart")),
+      " → " +
+      (nextAlign === "justify" ? t("typo.alignJustify") : t("typo.alignStart")),
     font:
       t("tip.typo.font") +
-      " · " +
-      (fontFamily === "serif" ? t("typo.serif") : t("typo.sans")),
+      " → " +
+      (nextFont === "serif" ? t("typo.serif") : t("typo.sans")),
   };
   Object.keys(tipVal).forEach((key) => {
     const btn = root.querySelector('[data-typo="' + key + '"]');
@@ -1405,17 +1492,177 @@ function syncTypoButtons() {
       btn.setAttribute("aria-label", tipVal[key]);
     }
   });
-  setIcon("align", textAlign === "justify" ? "align-justify" : "align-left");
-  /* Label = current face; icons: AA ≈ sans UI, type ≈ body/serif */
-  setIcon("font", fontFamily === "sans" ? "case-upper" : "type");
-  setIcon(
-    "size",
-    fontSize >= 1.2
-      ? "a-arrow-up"
-      : fontSize <= 0.95
-        ? "a-arrow-down"
-        : "a-arrow-up",
+  /* Icons reflect the destination of the click */
+  setIcon("align", nextAlign === "justify" ? "align-justify" : "align-left");
+  setIcon("font", nextFont === "sans" ? "case-upper" : "type");
+  setIcon("size", nextSize >= fontSize ? "a-arrow-up" : "a-arrow-down");
+}
+
+/* ── Link density / provider filters (Páginas toolbar) ── */
+
+/** Flavor-allowed subset of PAGE_LINK_PROVIDERS (Luz only on doutrina/centro). */
+function pageLinkProvidersForFlavor() {
+  const allowed = getFlavor()?.features?.providers;
+  if (!Array.isArray(allowed) || !allowed.length) {
+    return PAGE_LINK_PROVIDERS.slice();
+  }
+  return PAGE_LINK_PROVIDERS.filter((k) => allowed.indexOf(k) !== -1);
+}
+
+function defaultLinkProvidersOn() {
+  pageLinkProvidersForFlavor().forEach((k) => linkProvidersOn.add(k));
+}
+
+function applyLinkFilters() {
+  const book = bookEl();
+  if (!book) return;
+  book.dataset.linkDensity = linkDensity;
+
+  /* Drop on-state for providers not in this flavor */
+  const pageKeys = new Set(pageLinkProvidersForFlavor());
+  [...linkProvidersOn].forEach((k) => {
+    if (!pageKeys.has(k)) linkProvidersOn.delete(k);
+  });
+
+  book.querySelectorAll("a[data-link-provider], a[data-doutrina-link]").forEach(
+    (a) => {
+      if (!(a instanceof HTMLElement)) return;
+      const code = (
+        a.getAttribute("data-link-provider") ||
+        a.getAttribute("data-provider") ||
+        ""
+      ).toLowerCase();
+      const interest = (
+        a.getAttribute("data-link-interest") || "med"
+      ).toLowerCase();
+      const key = LINK_PROVIDER_KEY[code] || "";
+
+      let show = true;
+      if (linkDensity === "lo") {
+        show = false; /* Zero — no inject links */
+      } else if (linkDensity === "md") {
+        /* Medium: hi + med only */
+        show = interest === "hi" || interest === "med";
+      }
+      /* hi: all interests */
+
+      /* Páginas toggles only filter luz / encyc / dict */
+      if (show && PAGE_LINK_PROVIDERS.includes(key) && !linkProvidersOn.has(key)) {
+        show = false;
+      }
+
+      a.classList.toggle("link-hidden", !show);
+      if (!show) a.setAttribute("aria-hidden", "true");
+      else a.removeAttribute("aria-hidden");
+    },
   );
+
+  syncLinkControls();
+}
+
+function syncLinkControls() {
+  const knob = document.getElementById("link-density");
+  if (knob) {
+    knob.setAttribute("data-step", linkDensity);
+    const label = knob.querySelector("span");
+    if (label) {
+      label.textContent = t("density." + linkDensity);
+      label.setAttribute("data-i18n", "density." + linkDensity);
+    }
+    const icon = knob.querySelector("[data-icon], svg");
+    const rot =
+      linkDensity === "lo"
+        ? "225deg"
+        : linkDensity === "hi"
+          ? "405deg"
+          : "315deg";
+    if (icon instanceof HTMLElement) icon.style.rotate = rot;
+    const tip = t("tip.density") + " · " + t("density." + linkDensity);
+    knob.title = tip;
+    knob.setAttribute("aria-label", tip);
+  }
+
+  const pageKeys = pageLinkProvidersForFlavor();
+  document.querySelectorAll("[data-link].link-toggle").forEach((btn) => {
+    const key = btn.getAttribute("data-link");
+    if (!key) return;
+    /* Flavor gate (also applied in applyFlavorBrand) */
+    const allowed = pageKeys.includes(key);
+    if (!allowed) {
+      btn.hidden = true;
+      return;
+    }
+    if (!isStudyReduced()) btn.hidden = false;
+    const on = linkProvidersOn.has(key);
+    btn.classList.toggle("is-on", on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    const tipKey = "tip.link." + key;
+    const tip = t(tipKey) !== tipKey ? t(tipKey) : key;
+    btn.title = tip;
+    btn.setAttribute("aria-label", tip);
+  });
+
+  /* Hide entire link-control cluster in reduced study */
+  const reduced = isStudyReduced();
+  document.querySelectorAll("[data-link-controls]").forEach((el) => {
+    if (!(el instanceof HTMLElement)) return;
+    if (el.classList?.contains("link-toggle")) {
+      /* Provider toggles: reduced OR flavor-hidden */
+      const key = el.getAttribute("data-link");
+      const flavorOk = key && pageKeys.includes(key);
+      el.hidden = reduced || !flavorOk;
+      return;
+    }
+    /* density knob + separator */
+    el.hidden = reduced;
+  });
+}
+
+function setLinkDensity(level) {
+  if (!LINK_DENSITY_KEYS.includes(level)) return;
+  linkDensity = /** @type {'lo'|'md'|'hi'} */ (level);
+  try {
+    localStorage.setItem(LINK_DENSITY_KEY, linkDensity);
+  } catch (_) {
+    /* ignore */
+  }
+  if (linkDensity === "lo") {
+    /* Match simple/: zero density clears provider LEDs */
+    linkProvidersOn.clear();
+  } else if (linkProvidersOn.size === 0) {
+    /* Restore flavor-default page providers when leaving zero */
+    defaultLinkProvidersOn();
+  }
+  applyLinkFilters();
+}
+
+function cycleLinkDensity() {
+  const i = LINK_DENSITY_KEYS.indexOf(linkDensity);
+  const next = LINK_DENSITY_KEYS[(i < 0 ? 0 : i + 1) % LINK_DENSITY_KEYS.length];
+  setLinkDensity(next);
+}
+
+function toggleLinkProvider(key) {
+  if (!key) return;
+  if (!pageLinkProvidersForFlavor().includes(key)) return;
+  if (linkProvidersOn.has(key)) linkProvidersOn.delete(key);
+  else {
+    linkProvidersOn.add(key);
+    if (linkDensity === "lo") {
+      /* Turning a provider on from zero → at least medium density */
+      linkDensity = "md";
+      try {
+        localStorage.setItem(LINK_DENSITY_KEY, linkDensity);
+      } catch (_) {
+        /* ignore */
+      }
+    }
+  }
+  applyLinkFilters();
+  /* Opening the provider when enabling (simple/ behaviour) */
+  if (linkProvidersOn.has(key) && !isStudyReduced()) {
+    openProvider(key);
+  }
 }
 
 /* ── Catalog / books ─────────────────────────────── */
@@ -1606,12 +1853,20 @@ function renderPage() {
     input.max = String(Math.max(1, pages.length));
   }
   if (total) total.textContent = "/ " + Math.max(1, pages.length);
-  const multi = pages.length > 1;
-  document.querySelectorAll("[data-page]").forEach((b) => {
-    b.hidden = !multi;
+  /* Hard pages only — single HTML blob books hide the whole ‹ n / X › cluster */
+  const hardPages = pages.length > 1 || currentBook?.paged === true;
+  document.querySelectorAll("[data-page-nav]").forEach((nav) => {
+    nav.hidden = !hardPages;
+    nav.classList.toggle("is-disabled", !hardPages);
   });
-  if (input && input.closest("label")) input.closest("label").hidden = !multi;
+  document.querySelectorAll("[data-page]").forEach((b) => {
+    b.disabled = !hardPages;
+    b.setAttribute("aria-disabled", hardPages ? "false" : "true");
+  });
+  if (input) input.disabled = !hardPages;
+  document.body.dataset.hardPages = hardPages ? "1" : "0";
   applyTypography();
+  applyLinkFilters();
 }
 
 function goToPage(index) {
@@ -1632,6 +1887,76 @@ function stripHtml(html) {
   return (d.textContent || "").replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Clean heading label for hit cards — drop emoji/icons, collapse space.
+ * @param {string} raw
+ */
+function cleanHeadingLabel(raw) {
+  return String(raw || "")
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Index page plain text (same normalization as stripHtml) and heading
+ * starts. “Lowest heading” for a hit = last H1–H6 whose start ≤ hit offset
+ * (nearest preceding / deepest current section title).
+ * @param {string} html
+ * @returns {{ text: string, headings: { start: number, label: string }[] }}
+ */
+function indexPageHeadings(html) {
+  const root = document.createElement("div");
+  root.innerHTML = html || "";
+  const collapsed = (root.textContent || "").replace(/\s+/g, " ");
+  const text = collapsed.trim();
+  const lead = collapsed.length - collapsed.trimStart().length;
+  const headings = /** @type {{ start: number, label: string }[]} */ ([]);
+
+  root.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
+    const label = cleanHeadingLabel(h.textContent || "");
+    if (!label) return;
+    try {
+      const range = document.createRange();
+      range.selectNodeContents(root);
+      range.setEndBefore(h);
+      const pre = range.toString().replace(/\s+/g, " ");
+      const start = Math.max(0, pre.length - lead);
+      headings.push({ start, label });
+    } catch (_) {
+      /* ignore malformed trees */
+    }
+  });
+
+  return { text, headings };
+}
+
+/**
+ * @param {{ start: number, label: string }[]} headings
+ * @param {number} at plain-text offset of the hit
+ */
+function headingAt(headings, at) {
+  let label = "";
+  for (let i = 0; i < headings.length; i++) {
+    if (headings[i].start <= at) label = headings[i].label;
+    else break;
+  }
+  return label;
+}
+
+/** Unwrap in-book <mark> highlights (search clear / new query). */
+function clearSearchHighlights() {
+  const el = bookEl();
+  if (!el) return;
+  el.querySelectorAll("mark").forEach((m) => {
+    const p = m.parentNode;
+    p?.replaceChild(document.createTextNode(m.textContent || ""), m);
+    p?.normalize();
+  });
+}
+
+const SEARCH_HIT_CAP = 80;
+
 function runSearch(q) {
   const box = hitsEl();
   if (!box) return;
@@ -1639,51 +1964,95 @@ function runSearch(q) {
   const query = (searchQuery || "").trim();
   box.innerHTML = "";
   if (!query) {
+    clearSearchHighlights();
     box.innerHTML = "<p>" + t("search.empty") + "</p>";
     return;
   }
   const pages = currentBook?.pages || [];
   const hits = [];
+  let capped = false;
   const lower = query.toLowerCase();
-  pages.forEach((page, i) => {
-    const text = stripHtml(page.html);
+  outer: for (let i = 0; i < pages.length; i++) {
+    const indexed = indexPageHeadings(pages[i].html || "");
+    const text = indexed.text;
     let from = 0;
     let idx;
+    let pageHit = 0;
     while ((idx = text.toLowerCase().indexOf(lower, from)) !== -1) {
       const start = Math.max(0, idx - 40);
       const snip = text.slice(start, idx + query.length + 40);
-      hits.push({ page: i, snip, at: idx });
+      const where = headingAt(indexed.headings, idx);
+      hits.push({
+        page: i,
+        snip,
+        at: idx,
+        pageHitIndex: pageHit++,
+        heading: where,
+      });
       from = idx + query.length;
-      if (hits.length >= 80) break;
+      if (hits.length >= SEARCH_HIT_CAP) {
+        capped = true;
+        break outer;
+      }
     }
-  });
+  }
   if (!hits.length) {
+    clearSearchHighlights();
     box.innerHTML = "<p>" + t("search.none") + "</p>";
     return;
   }
   const head = document.createElement("p");
-  head.textContent = t("search.hits").replace("{n}", String(hits.length));
+  head.textContent = (
+    capped ? t("search.hitsCapped") : t("search.hits")
+  ).replace("{n}", String(hits.length));
   box.appendChild(head);
-  hits.forEach((hit, hi) => {
+  /** @type {HTMLButtonElement[]} */
+  const cards = [];
+  hits.forEach((hit, n) => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.textContent = "p." + (hit.page + 1) + " · …" + hit.snip + "…";
+    const num = String(n + 1);
+    const loc =
+      hit.heading ||
+      (pages.length > 1 ? "p." + (hit.page + 1) : t("search.nowhere"));
+    const snip = "…" + hit.snip + "…";
+    btn.innerHTML =
+      '<span class="hit-num">' +
+      num +
+      "</span>" +
+      '<span class="hit-loc"></span>' +
+      '<span class="hit-snip"></span>';
+    const locEl = btn.querySelector(".hit-loc");
+    const snipEl = btn.querySelector(".hit-snip");
+    if (locEl) locEl.textContent = loc;
+    if (snipEl) snipEl.textContent = snip;
+    btn.title = num + ". " + loc;
     btn.addEventListener("click", () => {
+      /* is-current only — avoid global button.on (white text on black) */
+      box.querySelectorAll("button").forEach((b) => {
+        b.classList.remove("is-current", "on");
+      });
+      btn.classList.add("is-current");
       goToPage(hit.page);
-      highlightInPage(query, hi);
+      highlightInPage(query, hit.pageHitIndex);
     });
     box.appendChild(btn);
+    cards.push(btn);
   });
+
+  /* Paint all marks on the first hit’s page as soon as the list appears */
+  const first = hits[0];
+  if (first) {
+    cards[0]?.classList.add("is-current");
+    if (first.page !== pageIndex) goToPage(first.page);
+    highlightInPage(query, first.pageHitIndex);
+  }
 }
 
 function highlightInPage(query, focusIndex) {
   const el = bookEl();
   if (!el || !query) return;
-  el.querySelectorAll("mark").forEach((m) => {
-    const p = m.parentNode;
-    p?.replaceChild(document.createTextNode(m.textContent || ""), m);
-    p?.normalize();
-  });
+  clearSearchHighlights();
   const re = new RegExp(
     "(" + query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")",
     "ig",
@@ -1709,7 +2078,8 @@ function highlightInPage(query, focusIndex) {
     parent.replaceChild(frag, textNode);
   });
   const marks = el.querySelectorAll("mark");
-  const target = marks[Math.min(focusIndex || 0, marks.length - 1)] || marks[0];
+  const target =
+    marks[Math.min(Math.max(0, focusIndex || 0), marks.length - 1)] || marks[0];
   marks.forEach((m) => m.classList.remove("focus"));
   if (target) {
     target.classList.add("focus");
@@ -1830,7 +2200,68 @@ async function resolveProviderUrl(key, term) {
   return providerUrl(key, term);
 }
 
-function loadCtx(url, { push = true } = {}) {
+function providerLabel(key) {
+  const k = String(key || "").toLowerCase();
+  if (!k) return "";
+  const i18n = t("prov." + k);
+  if (i18n && i18n !== "prov." + k) return i18n;
+  return k;
+}
+
+function providerFromUrl(url) {
+  if (!url) return "";
+  try {
+    const h = new URL(url, location.href).hostname || "";
+    if (/luzespirita/i.test(h)) return "luz";
+    if (/wiktionary/i.test(h)) return "dict";
+    if (/wikipedia/i.test(h)) return "encyc";
+    if (/bible\.com/i.test(h)) return "bible";
+    if (/kardecpedia/i.test(h)) return "kardec";
+    if (/openstreetmap/i.test(h)) return "map";
+  } catch (_) {
+    /* ignore */
+  }
+  return "";
+}
+
+function formatCtxLoadingMessage(term, providerKey, url) {
+  const key =
+    String(providerKey || "").toLowerCase() || providerFromUrl(url || "");
+  const provider = providerLabel(key);
+  const tTerm = String(term || "").trim();
+  if (tTerm) {
+    return t("ctx.searching")
+      .replace(/\{term\}/g, tTerm)
+      .replace(/\{provider\}/g, provider || "…");
+  }
+  if (key || provider) {
+    return t("ctx.opening").replace(/\{provider\}/g, provider || "…");
+  }
+  return t("ctx.loading");
+}
+
+/**
+ * Spinner overlay over the consult iframe (+ what/who is loading).
+ * @param {boolean} on
+ * @param {{ term?: string, provider?: string, url?: string }} [opts]
+ */
+function setCtxLoading(on, opts = {}) {
+  const host = document.getElementById("ctx-host");
+  const spin = document.getElementById("ctx-loading");
+  const msg = document.getElementById("ctx-loading-msg");
+  if (host) host.classList.toggle("is-loading", !!on);
+  if (spin) {
+    spin.hidden = !on;
+    spin.setAttribute("aria-hidden", on ? "false" : "true");
+  }
+  if (msg) {
+    msg.textContent = on
+      ? formatCtxLoadingMessage(opts.term, opts.provider, opts.url)
+      : "";
+  }
+}
+
+function loadCtx(url, { push = true, term = "", provider = "" } = {}) {
   if (isStudyReduced()) return;
   const frame = ctxEl();
   if (!frame || !url) return;
@@ -1851,6 +2282,17 @@ function loadCtx(url, { push = true } = {}) {
     if (ctxHistory.length > 40) ctxHistory.shift();
   }
   lastCtxUrl = url;
+  const prov = provider || providerFromUrl(url);
+  setCtxLoading(true, { term, provider: prov, url });
+  const done = () => {
+    setCtxLoading(false);
+    frame.removeEventListener("load", done);
+    frame.removeEventListener("error", done);
+  };
+  frame.addEventListener("load", done);
+  frame.addEventListener("error", done);
+  /* Safety: don't spin forever on blocked/cross-origin quirks */
+  setTimeout(done, 12000);
   frame.src = url;
   setMode("consult", "web");
   /* Ensure back/reload icons paint when consult chrome first appears */
@@ -1867,7 +2309,7 @@ async function openProvider(key) {
   if (isStudyReduced()) return;
   const term = selectionTerm();
   const url = await resolveProviderUrl(key, term);
-  if (url) loadCtx(url);
+  if (url) loadCtx(url, { term, provider: key });
 }
 
 /**
@@ -1907,24 +2349,24 @@ async function openBookLink(href, anchor) {
     }
     const embed = await mapEmbedUrl(q);
     if (embed && isEmbeddableMapUrl(embed)) {
-      loadCtx(embed);
+      loadCtx(embed, { term: q, provider: "map" });
       return;
     }
-    loadCtx(href);
+    loadCtx(href, { term, provider: key || "map" });
     return;
   }
 
   if (key) {
     const url = await resolveProviderUrl(key, term);
     if (url) {
-      loadCtx(url);
+      loadCtx(url, { term, provider: key });
       return;
     }
   }
 
   /* Other absolute links → consult iframe (wiki etc.) */
   if (/^https?:\/\//i.test(href)) {
-    loadCtx(href);
+    loadCtx(href, { term, provider: key || providerFromUrl(href) });
   }
 }
 
@@ -2063,16 +2505,8 @@ function wire() {
     console.warn("[POC] chrome init", err);
   }
 
-  const build = document.getElementById("build");
-  if (build) {
-    const flags = Object.entries(FEAT)
-      .filter(([, v]) => v)
-      .map(([k]) => k)
-      .join("+");
-    build.textContent = "v" + APP_VERSION + " · " + (flags || "core");
-  }
-  const ver = document.getElementById("info-version");
-  if (ver) ver.textContent = "LIBRUS " + APP_VERSION;
+  const appVer = document.getElementById("app-version");
+  if (appVer) appVer.textContent = "v." + APP_VERSION;
 
   /* Color guide radios (settings) */
   document.querySelectorAll('input[name="color-guide"]').forEach((el) => {
@@ -2126,6 +2560,9 @@ function wire() {
 
     if (t.id === "scrim" || t.closest("#scrim")) {
       e.preventDefault();
+      /* Study gate is blocking — only the CTA dismisses it */
+      const orient = document.getElementById("orient");
+      if (orient && orient.classList.contains("is-open")) return;
       closeAllDrawers();
       return;
     }
@@ -2164,12 +2601,47 @@ function wire() {
     if (n >= 1) goToPage(n - 1);
   });
 
-  document
-    .getElementById("toc-q")
-    ?.addEventListener("input", () => renderToc());
-  document.getElementById("search-q")?.addEventListener("input", function () {
-    runSearch(this.value);
+  function syncInputClear(inputId) {
+    const input = document.getElementById(inputId);
+    const btn = document.querySelector(
+      '.input-clear[data-clear="' + inputId + '"]',
+    );
+    if (!input || !btn) return;
+    btn.hidden = !String(input.value || "").length;
+  }
+
+  document.getElementById("toc-q")?.addEventListener("input", () => {
+    syncInputClear("toc-q");
+    renderToc();
   });
+  const searchQ = document.getElementById("search-q");
+  if (searchQ) {
+    /* Search runs on Enter only (not on every keystroke) */
+    searchQ.addEventListener("input", () => syncInputClear("search-q"));
+    searchQ.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        runSearch(searchQ.value);
+      }
+    });
+  }
+  document.querySelectorAll(".input-clear[data-clear]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const id = btn.getAttribute("data-clear");
+      const input = id ? document.getElementById(id) : null;
+      if (!input) return;
+      input.value = "";
+      syncInputClear(id);
+      if (id === "search-q") runSearch("");
+      else if (id === "toc-q") renderToc();
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.focus();
+    });
+  });
+  syncInputClear("toc-q");
+  syncInputClear("search-q");
 
   if (FEAT.typo) {
     document.querySelectorAll("[data-typo]").forEach((btn) => {
@@ -2187,6 +2659,29 @@ function wire() {
     });
     syncTypoButtons();
   }
+
+  /* Páginas: link density + provider filters */
+  document.getElementById("link-density")?.addEventListener("click", () => {
+    cycleLinkDensity();
+  });
+  document.querySelectorAll("[data-link].link-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      toggleLinkProvider(btn.getAttribute("data-link"));
+    });
+  });
+  try {
+    const stored = localStorage.getItem(LINK_DENSITY_KEY);
+    if (stored === "lo" || stored === "md" || stored === "hi") {
+      linkDensity = stored;
+    }
+  } catch (_) {
+    /* ignore */
+  }
+  /* Seed on-state from flavor (Luz only when listed) */
+  linkProvidersOn.clear();
+  if (linkDensity !== "lo") defaultLinkProvidersOn();
+  syncLinkControls();
+  applyLinkFilters();
 
   if (FEAT.providers) {
     document.querySelectorAll("[data-provider]").forEach((btn) => {
@@ -2271,6 +2766,10 @@ function wire() {
 const MODAL_IDS = ["help", "settings"];
 
 function openDrawer(id) {
+  /* Study gate owns the scrim while open */
+  const orient = document.getElementById("orient");
+  if (orient && orient.classList.contains("is-open")) return;
+
   MODAL_IDS.forEach((other) => {
     if (other === id) return;
     const o = document.getElementById(other);
@@ -2433,12 +2932,89 @@ function applyStudySurface() {
     }
   }
 
+  /* Refresh Páginas link controls + inject-link visibility */
+  try {
+    applyLinkFilters();
+  } catch (_) {
+    /* ignore before boot */
+  }
+
   try {
     handleTabFolding(true);
-    syncMainTabHighlight();
+    syncMainStripActive();
   } catch (_) {
     /* ignore */
   }
+}
+
+function openOrientGate(el) {
+  if (!el) return;
+  /* Close help/settings if open — gate owns the scrim */
+  MODAL_IDS.forEach((id) => {
+    const o = document.getElementById(id);
+    if (o) {
+      o.classList.remove("is-open", "is-closing");
+      o.hidden = true;
+    }
+  });
+  const scrim = document.getElementById("scrim");
+  el.hidden = false;
+  el.classList.remove("is-closing");
+  if (scrim) {
+    scrim.hidden = false;
+    scrim.classList.remove("is-closing");
+  }
+  el.setAttribute("aria-hidden", "false");
+  document.documentElement.classList.add("is-portrait-blocked");
+  document.body.classList.add("is-portrait-blocked");
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      el.classList.add("is-open");
+      if (scrim) scrim.classList.add("is-open");
+    });
+  });
+}
+
+function closeOrientGate(el) {
+  if (!el) return;
+  const scrim = document.getElementById("scrim");
+  const finish = () => {
+    el.classList.remove("is-open", "is-closing");
+    el.hidden = true;
+    el.setAttribute("aria-hidden", "true");
+    document.documentElement.classList.remove("is-portrait-blocked");
+    document.body.classList.remove("is-portrait-blocked");
+    if (scrim) {
+      scrim.classList.remove("is-open", "is-closing");
+      scrim.hidden = true;
+    }
+  };
+  if (!el.classList.contains("is-open")) {
+    finish();
+    return;
+  }
+  let done = false;
+  const end = () => {
+    if (done) return;
+    done = true;
+    el.removeEventListener("transitionend", onEnd);
+    finish();
+  };
+  const onEnd = (ev) => {
+    if (
+      ev.target === el &&
+      (ev.propertyName === "opacity" || ev.propertyName === "transform")
+    )
+      end();
+  };
+  el.classList.remove("is-open");
+  el.classList.add("is-closing");
+  if (scrim) {
+    scrim.classList.remove("is-open");
+    scrim.classList.add("is-closing");
+  }
+  el.addEventListener("transitionend", onEnd);
+  setTimeout(end, 280);
 }
 
 function updateOrientLock() {
@@ -2449,19 +3025,12 @@ function updateOrientLock() {
 
   const constrained = isStudyConstrained();
   const show = constrained && !isOrientDismissed();
+  const open = el.classList.contains("is-open") && !el.hidden;
 
-  if (show) {
-    el.hidden = false;
-    el.classList.add("on");
-    el.setAttribute("aria-hidden", "false");
-    document.documentElement.classList.add("is-portrait-blocked");
-    document.body.classList.add("is-portrait-blocked");
-  } else {
-    el.hidden = true;
-    el.classList.remove("on");
-    el.setAttribute("aria-hidden", "true");
-    document.documentElement.classList.remove("is-portrait-blocked");
-    document.body.classList.remove("is-portrait-blocked");
+  if (show && !open) {
+    openOrientGate(el);
+  } else if (!show && (open || !el.hidden)) {
+    closeOrientGate(el);
   }
 
   if (isOrientDismissed()) el.dataset.dismissed = "1";

@@ -58,7 +58,12 @@
   --accent: #1a5fb4;
   --book-size: 1rem;
   --book-lh: 1.65;
-  --book-measure: 42rem;
+  /* Fallback; #book overrides per data-measure (pane % + rem cap) */
+  --book-measure: min(72%, 42rem);
+  /* Side panes (Find / Consult / Annotate) — one flat fill, not layered */
+  --pane-aux: #f5f5f5;
+  /* In-book + sidebar current search hit */
+  --hit-focus: #e67e00;
 }
 
 html[data-theme="dark"] {
@@ -66,6 +71,7 @@ html[data-theme="dark"] {
   --fg: #f0f0f0;
   --muted: #a0a0a0;
   --surface: #0a0a0a;
+  --pane-aux: #141414;
   --border: #444;
   --gutter: #2a2a2a;
   --chrome-find: #3a2228;
@@ -164,6 +170,63 @@ input[type="text"] {
   width: 100%;
 }
 
+/* Hide native WebKit cancel — we use .input-clear (shows as soon as text exists) */
+#reader [data-tool] input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+#reader [data-tool] .tool-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--ctrl-h);
+}
+
+#reader [data-tool] .tool-search input[type="search"] {
+  padding-right: 2rem;
+  height: calc(var(--ctrl-h) - 8px);
+  margin: 0 0.35rem;
+}
+
+#reader [data-tool] .input-clear {
+  position: absolute;
+  right: 0.35rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  min-width: 0;
+  height: auto;
+  padding: 0 0.25rem;
+  margin: 0;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--muted);
+  font-size: 1.15rem;
+  font-weight: 500;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  box-shadow: none !important;
+}
+
+#reader [data-tool] .input-clear[hidden] {
+  display: none !important;
+}
+
+#reader [data-tool] .input-clear:hover {
+  background: transparent !important;
+  color: var(--fg);
+  border: none !important;
+}
+
 /* Views */
 [data-screen] {
   display: none !important;
@@ -193,11 +256,70 @@ body[data-view="reader"] #bar {
   display: none !important;
 }
 
-#build {
-  margin: 0.5rem 0 0;
-  font-size: 0.75rem !important;
-  opacity: 0.7;
+/* Color guide only affects reader chrome — hide that block on library */
+body[data-view="library"] #settings fieldset:has([name="color-guide"]),
+body[data-view="library"] #settings [data-reader-only] {
+  display: none !important;
+}
+
+/* Paging cluster: ‹  1 / X pages  › */
+#reader [data-tool="read:book"] .page-nav {
+  display: inline-flex;
+  align-items: stretch;
+  height: var(--ctrl-h);
+  flex: 0 0 auto;
+  border-right: 1px solid var(--border);
+}
+
+#reader [data-tool="read:book"] .page-nav[hidden] {
+  display: none !important;
+}
+
+#reader [data-tool="read:book"] .page-nav > button[data-page] {
+  min-width: var(--ctrl-h);
+  padding: 0;
+  border-right: 1px solid var(--border);
+}
+
+#reader [data-tool="read:book"] .page-nav > button[data-page]:last-of-type {
+  border-right: none;
+}
+
+#reader [data-tool="read:book"] .page-nav-readout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: var(--ctrl-h);
+  padding: 0 0.65rem;
+  margin: 0;
+  border-right: 1px solid var(--border);
+  color: var(--fg);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+#reader [data-tool="read:book"] .page-nav-readout input[type="number"] {
+  width: 2.75rem;
+  min-width: 2.75rem;
+  margin: 0;
+  padding: 0 0.25rem;
+  border: none;
+  border-right: none;
+  text-align: center;
+  background: transparent;
+  height: calc(var(--ctrl-h) - 8px);
+  min-height: 0;
+  max-height: none;
+}
+
+#reader [data-tool="read:book"] .page-nav-unit {
   color: var(--muted);
+  font-size: 0.75rem;
+}
+
+#reader [data-tool="read:book"] .page-nav.is-disabled {
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 /*
@@ -265,6 +387,18 @@ body[data-view="reader"] #bar {
 html[data-flavor="doutrina"] #library > header h1,
 html[data-flavor="centro"] #library > header h1 {
   letter-spacing: 0.1em;
+}
+
+/* Compact version mark next to product name (library only) */
+#library > header h1 .app-version,
+#app-version {
+  font-size: 0.55em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  vertical-align: super;
+  margin-left: 0.2em;
+  line-height: 0;
 }
 
 #library > header p {
@@ -461,12 +595,32 @@ html[data-flavor="centro"] #grid > li:first-child > button {
   z-index: 6;
 }
 
+/*
+ * Flat fills only — shell and body share --pane-aux so tints don’t stack
+ * (white shell under #f5f5f5 body made P1/P4 look dirtier than P3’s iframe).
+ */
 #reader [data-body],
 #reader #book {
   background: var(--surface);
 }
 
-/* Pane 2 (Read): pure white page; other panes stay --surface */
+#reader #p1,
+#reader #p3,
+#reader #p4,
+#reader #p1 > [data-body],
+#reader #p3 > [data-body],
+#reader #p4 > [data-body] {
+  background: var(--pane-aux);
+}
+
+/* Consult host panels: transparent so aux shows in letterboxing, not white */
+#reader #p3 #ctx-host,
+#reader #p3 #pdf-panel,
+#reader #p3 #video-panel {
+  background: transparent;
+}
+
+/* Pane 2 (Read): pure white page */
 #reader #p2,
 #reader #p2 [data-body],
 #reader #p2 #book {
@@ -476,16 +630,13 @@ html[data-flavor="centro"] #grid > li:first-child > button {
 html[data-theme="dark"] #reader #p2,
 html[data-theme="dark"] #reader #p2 [data-body],
 html[data-theme="dark"] #reader #p2 #book {
-  /* Dark theme: keep shared surface (not pure white) */
   background: var(--surface);
 }
 
-/* Pane 1 (find): Georgia. Book face is controlled by #book[data-font] below. */
+/* Pane 1 (find): TOC stays serif; hit meta uses UI sans (see #hits rules). */
 #reader #p1 [data-body],
 #reader #p1 #toc,
-#reader #p1 #hits,
-#reader #p1 #toc button,
-#reader #p1 #hits button {
+#reader #p1 #toc button {
   font-family: var(--serif);
 }
 
@@ -872,18 +1023,48 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tabs] > button:not(.on) 
   padding: 0 0.35rem;
 }
 
+/*
+ * Find (P1) search/filter: always find-chrome pink/red — never UA blue/white.
+ * Screen recording showed focus flipping the field to cool blue; kill appearance
+ * and paint an explicit --chrome-find fill + red underline.
+ */
 #reader [data-tool] input:focus {
   outline: none;
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
-/* Minimal: no brand tint on focused inputs — grey chrome variant */
-html[data-guide="min"] #reader [data-tool] input:focus {
-  background: color-mix(in srgb, var(--fg) 10%, var(--chrome-active-bg));
+#reader #p1 [data-tool] input[type="search"],
+#reader #p1 [data-tool] input[type="text"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--chrome-find) !important;
+  color: var(--fg);
 }
 
-html[data-theme="dark"][data-guide="min"] #reader [data-tool] input:focus {
-  background: color-mix(in srgb, #fff 8%, var(--chrome-active-bg));
+#reader #p1 [data-tool] input[type="search"]:focus,
+#reader #p1 [data-tool] input[type="search"]:focus-visible,
+#reader #p1 [data-tool] input[type="text"]:focus,
+#reader #p1 [data-tool] input[type="text"]:focus-visible,
+#reader #p1 [data-tool] .tool-search:focus-within input {
+  outline: none !important;
+  background: var(--chrome-find) !important;
+  border-color: transparent !important;
+  box-shadow: inset 0 -3px 0 var(--tab-top-find, var(--accent-find)) !important;
+  caret-color: var(--accent-find);
+  accent-color: var(--accent-find);
+  color: var(--fg) !important;
+}
+
+#reader #p1 [data-tool] input[type="search"]:-webkit-autofill,
+#reader #p1 [data-tool] input[type="search"]:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--fg);
+  box-shadow:
+    0 0 0 1000px var(--chrome-find) inset,
+    inset 0 -3px 0 var(--tab-top-find, var(--accent-find)) !important;
+  transition: background-color 99999s ease-out;
+}
+
+#reader #p1 [data-tool] .tool-search:focus-within {
+  background: var(--chrome-find);
 }
 
 #reader [data-tool] [data-icon] svg,
@@ -934,6 +1115,57 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tool] input:focus {
   width: 100%;
   border: 0;
   background: var(--surface);
+}
+
+/* Consult iframe loading spinner (covers pane while src loads) */
+#ctx-host {
+  position: absolute;
+}
+
+#ctx-loading.pane-spinner {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 0 0.75rem;
+  box-sizing: border-box;
+  background: color-mix(in srgb, var(--pane-aux, #f5f5f5) 92%, transparent);
+  pointer-events: none;
+}
+
+#ctx-loading.pane-spinner[hidden] {
+  display: none !important;
+}
+
+.pane-spinner-ring {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: 3px solid color-mix(in srgb, var(--accent-consult) 25%, transparent);
+  border-top-color: var(--accent-consult);
+  animation: pane-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.pane-spinner-msg {
+  margin: 0;
+  max-width: min(22rem, 88%);
+  text-align: center;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--fg);
+  overflow-wrap: anywhere;
+}
+
+@keyframes pane-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Mock PDF */
@@ -1052,15 +1284,21 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tool] input:focus {
 #book {
   font-size: var(--book-size);
   line-height: var(--book-lh);
-  /* Fill scrollport width so the pane scrollbar tracks the 2|3 border;
-     measure still caps the text column. */
+  /*
+   * Fill scrollport so the pane scrollbar tracks the 2|3 border.
+   * Measure is % of this box (see data-measure) so narrow/medium/wide
+   * stay distinct on tablet half-panes where fixed rem all overflowed.
+   * --book-gutter never collapses — text must not kiss the pane edges.
+   */
+  --book-gutter: clamp(1.25rem, 3.5%, 2rem);
+  --book-measure: min(72%, 42rem);
   width: 100%;
   max-width: none;
   box-sizing: border-box;
   margin: 0;
   text-align: var(--book-align, start);
   min-height: 12rem;
-  padding: 1rem 1.25rem 2rem;
+  padding: 1rem var(--book-gutter) 2.5rem;
 }
 
 /* Measured column: full-width wrapper keeps scrollbar flush; inner max-width */
@@ -1068,6 +1306,8 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tool] input:focus {
   max-width: var(--book-measure);
   margin-left: auto;
   margin-right: auto;
+  /* Nested full-bleed edges still stay inside the guttered scrollport */
+  box-sizing: border-box;
 }
 
 #book .chrome-hint {
@@ -1093,16 +1333,21 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tool] input:focus {
   font-family: var(--book-serif) !important;
 }
 
+/*
+ * Three visible steps on any pane width:
+ * % keeps tablet half-panes distinct; rem caps keep desktop lines readable.
+ */
 #book[data-measure="narrow"] {
-  --book-measure: 28rem;
+  --book-measure: min(55%, 32rem);
 }
 
 #book[data-measure="medium"] {
-  --book-measure: 42rem;
+  --book-measure: min(72%, 42rem);
 }
 
 #book[data-measure="wide"] {
-  --book-measure: 56rem;
+  /* Leave ~8% column air + --book-gutter — never flush to borders */
+  --book-measure: min(92%, 56rem);
 }
 
 #book[data-align="justify"] {
@@ -1140,13 +1385,81 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tool] input:focus {
   font-size: 0.85rem;
 }
 
+/* Hit count header + card index: UI Quicksand */
+#hits > p,
+#hits .hit-num {
+  font-family: var(--sans);
+}
+
 #hits button {
   text-align: left;
-  background: transparent;
+  background: var(--surface);
+  color: var(--fg);
   border: 1px solid var(--border);
+  border-radius: 0;
+  padding: 0.45rem 0.55rem;
+  line-height: 1.35;
+  display: grid;
+  grid-template-columns: 1.75rem 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 0.4rem;
+  row-gap: 0.15rem;
+  align-items: start;
+  /* Card body text follows P2 reading face */
+  font-family: var(--reading-font, var(--book-serif));
+}
+
+#hits .hit-num {
+  grid-row: 1 / span 2;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+#hits .hit-loc {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+#hits .hit-snip {
+  font-size: 0.78rem;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+#hits button.is-current .hit-num {
+  color: var(--hit-focus, #e67e00);
+}
+
+#hits button:hover {
+  border-color: var(--muted);
+  color: var(--fg);
+}
+
+/* Selected hit card — orange edge (match in-book mark.focus); readable text */
+#hits button.is-current {
+  border: 2px solid var(--hit-focus, #e67e00);
+  border-radius: 0;
+  background: color-mix(
+    in srgb,
+    var(--hit-focus, #e67e00) 12%,
+    var(--surface)
+  );
+  color: var(--fg);
 }
 
 #hits p {
+  font-family: var(--sans);
   color: var(--muted);
   margin: 0.5rem 0;
 }
@@ -1190,8 +1503,9 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tool] input:focus {
     left: 0;
     top: var(--chrome);
     bottom: var(--chrome);
-    width: min(30vw, 22rem);
-    min-width: 16rem;
+    /* Wider find overlay on tablet */
+    width: min(42vw, 28rem);
+    min-width: 18rem;
     z-index: 40;
     transform: translateX(-105%);
     transition: transform 0.25s ease;
@@ -1221,6 +1535,11 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tool] input:focus {
   #p3::after {
     display: none; /* no notes column */
   }
+
+  #p1 {
+    width: min(48vw, 30rem);
+    min-width: 18rem;
+  }
 }
 
 @media screen and (max-width: 920px) {
@@ -1231,7 +1550,7 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tool] input:focus {
   }
 
   #p1 {
-    width: min(90vw, 22rem);
+    width: min(94vw, 26rem);
   }
 
   #p2::after {
@@ -1245,7 +1564,7 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tool] input:focus {
     right: 0;
     top: var(--chrome);
     bottom: var(--chrome);
-    width: min(90vw, 28rem);
+    width: min(94vw, 32rem);
     z-index: 40;
     transform: translateX(105%);
     transition: transform 0.25s ease;
@@ -1626,10 +1945,6 @@ body {
   color: var(--muted);
 }
 
-#info-version {
-  opacity: 0.75;
-}
-
 #settings fieldset {
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -1668,34 +1983,37 @@ body {
   font-size: 0.85rem;
 }
 
+/* Search hit mark in book — yellow fill; current = orange ring (no radius) */
+#reader #book mark,
 mark {
   background: #ffe066;
   color: #111;
+  border-radius: 0;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
+#reader #book mark.focus,
 mark.focus {
-  outline: 2px solid var(--accent);
+  background: #ffd24d !important;
+  color: #111 !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--hit-focus, #e67e00) !important;
 }
 
-/* ========== Study gate — mirrors center modals, no close (X) ========== */
+/* ========== Study gate — same shell as Help/Settings, no close (X) ========== */
+#orient.modal,
 #orient {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  box-sizing: border-box;
-  /* Same weight as #scrim */
-  background: rgba(0, 0, 0, 0.4);
-  overscroll-behavior: none;
-  touch-action: none;
-  user-select: none;
-}
-
-#orient.on {
-  display: flex;
+  z-index: 540;
+  background: #ffffff;
+  /* Match Help/Settings border (no alert-red frame) */
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  /* Clip header fill so top corners stay rounded (not squared off) */
+  overflow: hidden;
+  color: #111;
+  /* Gate is blocking; scrim click must not dismiss (see main.js) */
 }
 
 html.is-portrait-blocked,
@@ -1703,51 +2021,27 @@ html.is-portrait-blocked body {
   overflow: hidden !important;
 }
 
-/* Card: same shell as Help/Settings (.modal), red border, no X control */
-#orient-card,
-#orient > .study-gate-card {
-  position: relative;
-  left: auto;
-  top: auto;
-  width: min(420px, 92vw);
-  max-height: min(80vh, calc(100% - var(--chrome) - 2rem));
-  margin: 0;
-  background: #ffffff;
-  border: 3px solid #c01030;
-  border-radius: 12px;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
-  transform: translateY(0) scale(1);
-  opacity: 1;
+/* Gate open: keep scrim above chrome but below gate card */
+html.is-portrait-blocked #scrim.is-open {
+  z-index: 535;
   pointer-events: auto;
-  color: #111;
-  text-align: start;
-  overflow: hidden;
 }
 
-#orient.on #orient-card {
-  animation: study-gate-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+#orient[hidden]:not(.is-closing) {
+  display: none !important;
 }
 
-@keyframes study-gate-in {
-  from {
-    transform: translateY(6%) scale(0.96);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-  }
+#orient.is-closing {
+  display: flex !important;
 }
 
-#orient-card > header {
+#orient > header {
   display: flex;
   align-items: center;
   justify-content: flex-start;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
+  border-radius: 12px 12px 0 0;
   font-weight: 600;
   background: #fff;
 }
@@ -1761,13 +2055,13 @@ html.is-portrait-blocked body {
   line-height: 1.3;
 }
 
-#orient-card > div {
-  padding: 1rem 1.15rem 1.25rem;
+#orient > div {
+  padding: 1rem;
   overflow: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
   text-align: center;
 }
 
@@ -1804,6 +2098,94 @@ html.is-portrait-blocked body {
   color: #2a060c;
 }
 
+/* ── Páginas toolbar: link density + provider toggles ─ */
+#reader [data-tool="read:book"] .tool-sep {
+  display: inline-block;
+  width: 1px;
+  height: 1.35rem;
+  margin: 0 0.35rem;
+  background: var(--border);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/*
+ * Link provider toggles (Luz / Encyc / Dict):
+ * ON  = --tab-top-read edge (tracks color guide; brighter in soft/min)
+ * OFF = grey edge + muted label
+ */
+#reader [data-tool="read:book"] button.link-toggle {
+  background: transparent;
+  /* Override toolbar border:none — top edge is the on/off mark */
+  border: none;
+  border-top: 3px solid var(--gutter, #c8c8c8) !important;
+  border-right: 1px solid var(--border);
+  box-sizing: border-box;
+  color: var(--muted);
+}
+
+#reader [data-tool="read:book"] button.link-toggle [data-icon] {
+  opacity: 0.65;
+}
+
+#reader [data-tool="read:book"] button.link-toggle:hover {
+  background: color-mix(in srgb, var(--fg) 6%, transparent);
+}
+
+#reader [data-tool="read:book"] button.link-toggle.is-on,
+#reader [data-tool="read:book"] button.link-toggle[aria-pressed="true"] {
+  background: transparent;
+  border-top-color: var(--tab-top-read) !important;
+  color: var(--chrome-label, var(--fg));
+}
+
+#reader [data-tool="read:book"] button.link-toggle.is-on [data-icon],
+#reader
+  [data-tool="read:book"]
+  button.link-toggle[aria-pressed="true"]
+  [data-icon] {
+  opacity: 1;
+}
+
+html[data-theme="dark"] #reader [data-tool="read:book"] button.link-toggle {
+  border-top-color: #555 !important;
+  color: var(--muted);
+}
+
+html[data-theme="dark"]
+  #reader
+  [data-tool="read:book"]
+  button.link-toggle.is-on,
+html[data-theme="dark"]
+  #reader
+  [data-tool="read:book"]
+  button.link-toggle[aria-pressed="true"] {
+  border-top-color: var(--tab-top-read) !important;
+  color: var(--chrome-label, var(--fg));
+}
+
+#link-density [data-icon] svg,
+#link-density svg {
+  transition: rotate 0.2s ease;
+}
+
+/* Inject links suppressed by density / provider filter */
+#book a.link-hidden,
+#book a.link-hidden[data-link-provider],
+#book a.link-hidden[data-doutrina-link] {
+  color: inherit !important;
+  text-decoration: none !important;
+  border: none !important;
+  background: none !important;
+  cursor: text !important;
+  pointer-events: none !important;
+  font-weight: inherit;
+}
+
+#book a.link-hidden::after {
+  display: none !important;
+}
+
 /* ── Reduced study surface (≤920px) ───────────────── */
 html[data-study="reduced"] #p3 {
   display: none !important;
@@ -1826,17 +2208,9 @@ html[data-study="reduced"] #book a[data-doutrina-link]::after {
   display: none !important;
 }
 
-/* No consult tools / provider strip when p3 is gone */
+/* No consult tools / provider strip / Páginas link controls when reduced */
 html[data-study="reduced"] #main-tabs > button[data-fold="3"],
-html[data-study="reduced"] #main-tabs > button[data-mode^="consult:"] {
+html[data-study="reduced"] #main-tabs > button[data-mode^="consult:"],
+html[data-study="reduced"] [data-link-controls] {
   display: none !important;
-}
-
-/* Only show when JS adds .on — never override [hidden] without .on */
-#orient[hidden] {
-  display: none !important;
-}
-
-#orient.on:not([hidden]) {
-  display: flex !important;
 }
