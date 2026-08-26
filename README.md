@@ -57,7 +57,12 @@ doutrina-content  →  librus-linker  →  librus-shell  →  host Pages
 2. [doutrina.org](https://doutrina.org) — Kardec codification  
 3. [centro.doutrina.org](https://centro.doutrina.org) — center + codification  
 
-Status: **BETA** — active-study UX; narrow screens are **blocked** until landscape / a wider viewport (no reduced-mode bypass).
+Status: **BETA v0.9.1** — active-study UX.
+
+1. Narrow screens are **blocked** until landscape / a wider viewport (no reduced-mode bypass).  
+2. First visit: onboard **Device | How to** (PT: **Dispositivo | Como usar**).  
+3. Chrome: theme · help · settings on the bar; **language** lives in Settings.  
+4. PDF · JaaS · profiles remain **off** by default (mocks unless `build:full`).  
 
 ## 🧱 What this repo owns
 
@@ -139,7 +144,12 @@ SPA Vite em vanilla: biblioteca + leitor em quatro painéis (Ache · Leia · Con
 2. [doutrina.org](https://doutrina.org)  
 3. [centro.doutrina.org](https://centro.doutrina.org)  
 
-Estado: **BETA** — UX de estudo ativo; telas estreitas ficam **bloqueadas** até paisagem / viewport mais larga (sem atalho de modo reduzido).
+Estado: **BETA v0.9.1** — UX de estudo ativo.
+
+1. Telas estreitas ficam **bloqueadas** até paisagem / viewport mais larga (sem atalho de modo reduzido).  
+2. Primeira visita: onboard **Dispositivo | Como usar** (EN: **Device | How to**).  
+3. Chrome: tema · ajuda · ajustes na barra; **idioma** fica em Ajustes.  
+4. PDF · JaaS · profiles continuam **desligados** por padrão (mocks, salvo `build:full`).  
 
 ## 🧱 O que este repo possui
 
