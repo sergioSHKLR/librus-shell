@@ -3304,21 +3304,26 @@ function closeOnboard(onDone, opts = {}) {
     return;
   }
   const scrim = document.getElementById("scrim");
+  const yieldToOrient = !!opts.skipOrient;
   const finish = () => {
     el.classList.remove("is-open", "is-closing");
     el.hidden = true;
-    if (scrim) {
+    if (scrim && !yieldToOrient) {
       scrim.classList.remove("is-open", "is-closing");
       scrim.hidden = true;
     }
     onDone?.();
     /* After a normal dismiss, size gate may need to appear */
-    if (!opts.skipOrient) {
+    if (!yieldToOrient) {
       try {
         updateOrientLock();
       } catch (_) {
         /* ignore */
       }
+    } else {
+      /* Re-assert opaque size gate + scrim (close anim must not steal it) */
+      const orient = document.getElementById("orient");
+      if (orient && isStudyConstrained()) openOrientGate(orient);
     }
   };
   if (!el.classList.contains("is-open")) {
@@ -3341,7 +3346,8 @@ function closeOnboard(onDone, opts = {}) {
   };
   el.classList.remove("is-open");
   el.classList.add("is-closing");
-  if (scrim) {
+  /* When yielding to orient, leave scrim open — orient owns the opaque backdrop */
+  if (scrim && !yieldToOrient) {
     scrim.classList.remove("is-open");
     scrim.classList.add("is-closing");
   }
