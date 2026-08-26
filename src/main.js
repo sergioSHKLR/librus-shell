@@ -836,18 +836,22 @@ function syncViewportRatio() {
   document.documentElement.dataset.vpOrient = w >= h ? "landscape" : "portrait";
 }
 
-function layoutViewportFrame(cardNums) {
+/**
+ * @param {number[]} cardNums
+ * @param {{ snap?: boolean }} [opts] snap: skip size tween (initial Desktop)
+ */
+function layoutViewportFrame(cardNums, opts = {}) {
   const stage = document.getElementById("cards-stage");
   const frame = document.getElementById("viewport-frame");
   const deviceLabel = document.getElementById("viewport-label-device");
   const cardsRoot = document.getElementById("cards");
-  if (!stage || !frame || !cardsRoot) return;
+  if (!stage || !frame || !cardsRoot) return false;
 
   const articles = [...cardsRoot.querySelectorAll("[data-card]")];
   const active = articles.filter((el) =>
     cardNums.includes(Number(el.dataset.card)),
   );
-  if (!active.length) return;
+  if (!active.length || active.length !== cardNums.length) return false;
 
   const stageBox = stage.getBoundingClientRect();
   /* Onboard not visible / zero layout yet */
@@ -860,25 +864,39 @@ function layoutViewportFrame(cardNums) {
   let minT = Infinity;
   let maxR = -Infinity;
   let maxB = -Infinity;
-  active.forEach((el) => {
+  /* Every requested card must have a real box — a partial union (e.g. only
+   * card 1 while 2–4 are still 0×0) is what made Desktop look like a hung
+   * left-only outline for the whole first hold. */
+  for (const el of active) {
     const r = el.getBoundingClientRect();
+    if (r.width < 8 || r.height < 8) {
+      frame.classList.remove("is-on");
+      return false;
+    }
     minL = Math.min(minL, r.left);
     minT = Math.min(minT, r.top);
     maxR = Math.max(maxR, r.right);
     maxB = Math.max(maxB, r.bottom);
-  });
+  }
 
-  if (!isFinite(minL) || maxR - minL < 4) {
+  if (!isFinite(minL) || maxR - minL < 4 || maxB - minT < 4) {
     frame.classList.remove("is-on");
     return false;
   }
 
   const pad = 8;
+  const snap = !!opts.snap;
+  if (snap) frame.classList.add("no-motion");
   frame.style.left = minL - stageBox.left - pad + "px";
   frame.style.top = minT - stageBox.top - pad + "px";
   frame.style.width = maxR - minL + pad * 2 + "px";
   frame.style.height = maxB - minT + pad * 2 + "px";
   frame.classList.add("is-on");
+  if (snap) {
+    /* Force reflow so later steps still animate */
+    void frame.offsetWidth;
+    frame.classList.remove("no-motion");
+  }
 
   articles.forEach((el) => {
     const n = Number(el.dataset.card);
@@ -894,12 +912,12 @@ function layoutViewportFrame(cardNums) {
   return true;
 }
 
-function applyViewportStep(index) {
+function applyViewportStep(index, opts = {}) {
   viewportStep =
     ((index % VIEWPORT_STEPS.length) + VIEWPORT_STEPS.length) %
     VIEWPORT_STEPS.length;
   const step = VIEWPORT_STEPS[viewportStep];
-  layoutViewportFrame(step.cards);
+  return layoutViewportFrame(step.cards, opts);
 }
 
 function inviteHowToPill() {
@@ -910,51 +928,119 @@ function clearHowToInvite() {
   document.getElementById("onboard-mode-how")?.classList.remove("is-invite");
 }
 
+/** Re-snap Desktop while the onboard modal is still settling its size. */
+let viewportDesktopRo = null;
+
+function clearViewportDesktopRo() {
+  if (viewportDesktopRo) {
+    viewportDesktopRo.disconnect();
+    viewportDesktopRo = null;
+  }
+}
+
 function startViewportAnim() {
   stopViewportAnim();
   viewportRunning = true;
   viewportPaused = false;
   viewportStep = 0;
   syncViewportRatio();
-  const kick = () => {
+
+  const placeDesktop = () => {
+    if (!viewportRunning) return false;
+    /* Snap: no CSS tween from 0×0 into the first Desktop outline */
+    return applyViewportStep(0, { snap: true }) === true;
+  };
+
+  const armInterval = () => {
     if (!viewportRunning) return;
-    applyViewportStep(0);
-    const frame = document.getElementById("viewport-frame");
-    /* If cards not laid out yet, frame stays 0×0 — retry shortly */
-    if (frame && parseFloat(frame.style.width || "0") < 8) {
+    if (viewportTimer) {
+      clearInterval(viewportTimer);
+      viewportTimer = null;
+    }
+    viewportTimer = setInterval(() => {
+      if (!viewportRunning || viewportPaused) return;
+      /* One cycle only: stop on last device (Mobile), then invite How to */
+      if (viewportStep >= VIEWPORT_STEPS.length - 1) {
+        setViewportPaused(true);
+        inviteHowToPill();
+        return;
+      }
+      /* Leaving Desktop — stop settle watcher */
+      if (viewportStep === 0) clearViewportDesktopRo();
+      applyViewportStep(viewportStep + 1);
+    }, VIEWPORT_HOLD_MS);
+  };
+
+  const watchDesktopSettle = () => {
+    clearViewportDesktopRo();
+    const stage = document.getElementById("cards-stage");
+    if (!stage || typeof ResizeObserver !== "function") {
+      /* Fallback: timed re-snaps while modal scale/size settles */
+      [80, 160, 280, 450].forEach((ms) => {
+        setTimeout(() => {
+          if (viewportRunning && viewportStep === 0 && !viewportPaused)
+            placeDesktop();
+        }, ms);
+      });
+      return;
+    }
+    let lastKey = "";
+    viewportDesktopRo = new ResizeObserver(() => {
+      if (!viewportRunning || viewportStep !== 0 || viewportPaused) {
+        clearViewportDesktopRo();
+        return;
+      }
+      const box = stage.getBoundingClientRect();
+      const key = `${Math.round(box.width)}x${Math.round(box.height)}`;
+      if (key === lastKey) return;
+      lastKey = key;
+      placeDesktop();
+    });
+    viewportDesktopRo.observe(stage);
+    /* Also catch transform scale-in (no ResizeObserver) via timed snaps */
+    [80, 200, 350].forEach((ms) => {
       setTimeout(() => {
-        if (viewportRunning) applyViewportStep(viewportStep || 0);
-      }, 80);
+        if (viewportRunning && viewportStep === 0 && !viewportPaused)
+          placeDesktop();
+      }, ms);
+    });
+  };
+
+  /*
+   * Wait until onboard is open + ALL Desktop cards have real boxes, then
+   * snap the outline (no 0×0 tween) and only then start the hold timer.
+   */
+  let tries = 0;
+  const tryStart = () => {
+    if (!viewportRunning) return;
+    const onboard = document.getElementById("onboard");
+    const ready =
+      onboard &&
+      !onboard.hidden &&
+      onboard.classList.contains("is-open") &&
+      placeDesktop();
+    if (ready) {
+      watchDesktopSettle();
+      armInterval();
+      return;
+    }
+    tries += 1;
+    if (tries < 60) requestAnimationFrame(tryStart);
+    else {
+      placeDesktop();
+      watchDesktopSettle();
+      armInterval();
     }
   };
-  // Wait for onboard to become visible + reflow after unhiding
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      if (!viewportRunning) return;
-      kick();
-      /* Clear any stray interval (openOnboard + setOnboardStep can both start) */
-      if (viewportTimer) {
-        clearInterval(viewportTimer);
-        viewportTimer = null;
-      }
-      viewportTimer = setInterval(() => {
-        if (!viewportRunning || viewportPaused) return;
-        /* One cycle only: stop on last device (Mobile), then invite How to */
-        if (viewportStep >= VIEWPORT_STEPS.length - 1) {
-          setViewportPaused(true);
-          inviteHowToPill();
-          return;
-        }
-        applyViewportStep(viewportStep + 1);
-      }, VIEWPORT_HOLD_MS);
-    });
-  });
+
+  requestAnimationFrame(() => requestAnimationFrame(tryStart));
   syncOnboardTransport();
 }
 
 function stopViewportAnim() {
   viewportRunning = false;
   viewportPaused = false;
+  clearViewportDesktopRo();
   if (viewportTimer) {
     clearInterval(viewportTimer);
     viewportTimer = null;
@@ -3314,9 +3400,9 @@ function openOnboard() {
     requestAnimationFrame(() => {
       el.classList.add("is-open");
       if (scrim) scrim.classList.add("is-open");
-      /* Relayout only — setOnboardStep already started the Device cycle */
+      /* Relayout after open — startViewportAnim retries until boxes exist */
       syncViewportRatio();
-      if (viewportRunning) applyViewportStep(viewportStep);
+      if (viewportRunning) applyViewportStep(viewportStep, { snap: true });
     });
   });
 }

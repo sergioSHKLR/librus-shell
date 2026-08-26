@@ -2518,6 +2518,11 @@ a.onboard-mock-link {
   opacity: 1;
 }
 
+/* First Desktop snap: no tween from 0×0 (that looked like a hung misaligned frame) */
+#viewport-frame.no-motion {
+  transition: opacity 0.2s ease !important;
+}
+
 #viewport-label-top,
 #viewport-label-device {
   position: absolute;
