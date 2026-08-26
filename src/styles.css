@@ -2098,6 +2098,678 @@ html.is-portrait-blocked #scrim.is-open {
   color: #2a060c;
 }
 
+/* ========== First-visit onboard (Where → How) ========== */
+#onboard.modal,
+#onboard {
+  z-index: 545;
+  /* Leave clear air above the bottom chrome bar; match window aspect */
+  --onboard-max-w: 90vw;
+  --onboard-max-h: calc(100dvh - var(--chrome) - 2.75rem);
+  --onboard-r: var(--vp-ratio, 1.5);
+  width: min(
+    var(--onboard-max-w),
+    calc(var(--onboard-max-h) * var(--onboard-r))
+  );
+  height: min(
+    var(--onboard-max-h),
+    calc(var(--onboard-max-w) / var(--onboard-r))
+  );
+  max-width: none;
+  max-height: none;
+  overflow: hidden;
+}
+
+#onboard[hidden]:not(.is-closing) {
+  display: none !important;
+}
+
+#onboard.is-closing {
+  display: flex !important;
+}
+
+#onboard > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+#onboard > header button {
+  border: none;
+  background: transparent;
+  font-size: 1.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+}
+
+#onboard > div {
+  padding: 1rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  min-height: 0;
+}
+
+#cards-stage {
+  position: relative;
+  margin: 0;
+  padding: 0.65rem;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+#cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 1fr;
+  gap: 0.75rem;
+  text-align: left;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  align-items: stretch;
+}
+
+/* Tall pane cards — fill stage height */
+#cards > article {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 0.85rem;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  background: var(--surface);
+  overflow: hidden;
+  transition:
+    background 0.45s ease,
+    filter 0.55s ease,
+    opacity 0.45s ease,
+    box-shadow 0.25s ease,
+    transform 0.12s ease;
+}
+
+#cards > article:nth-child(1) {
+  background: var(--chrome-find);
+}
+#cards > article:nth-child(2) {
+  background: var(--chrome-read);
+}
+#cards > article:nth-child(3) {
+  background: var(--chrome-consult);
+}
+#cards > article:nth-child(4) {
+  background: var(--chrome-annotate);
+}
+
+#cards > article.out {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.onboard-card-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease;
+}
+
+.onboard-card-head > [data-icon],
+.onboard-card-head > svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex-shrink: 0;
+  color: var(--fg);
+  opacity: 0.85;
+  transition:
+    opacity 0.35s ease,
+    width 0.35s ease,
+    height 0.35s ease;
+}
+
+.onboard-card-head strong {
+  font-size: 1rem;
+  color: var(--fg);
+  transition:
+    opacity 0.35s ease,
+    font-size 0.35s ease;
+}
+
+.onboard-card-head > span {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.35;
+  /* Keep description blocks the same visual height across panels */
+  min-height: calc(1.35em * 2);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  transition:
+    opacity 0.35s ease,
+    font-size 0.35s ease;
+}
+
+/* Viewport: head centered mid-card, 2× title, no filler */
+#onboard[data-step="where"] #cards > article {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+#onboard[data-step="where"] .onboard-card-head {
+  align-items: center;
+}
+
+#onboard[data-step="where"] .onboard-card-head > [data-icon],
+#onboard[data-step="where"] .onboard-card-head > svg {
+  /* 2× base (1.35rem) */
+  width: 2.7rem;
+  height: 2.7rem;
+}
+
+#onboard[data-step="where"] .onboard-card-head > [data-icon] svg {
+  width: 100%;
+  height: 100%;
+}
+
+#onboard[data-step="where"] .onboard-card-head strong {
+  font-size: 2rem;
+}
+
+#onboard[data-step="where"] .onboard-card-head > span {
+  font-size: 1rem;
+  max-width: 18ch;
+  min-height: calc(1.35em * 2);
+}
+
+#onboard[data-step="where"] .onboard-filler {
+  display: none !important;
+}
+
+/* How to: head at top; filler sample content */
+#onboard[data-step="how"] #cards > article {
+  justify-content: flex-start;
+  align-items: stretch;
+  text-align: left;
+  gap: 0;
+}
+
+#onboard[data-step="how"] .onboard-card-head {
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+#onboard[data-step="how"] .onboard-filler {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  margin-top: 1.15em; /* blank line under header */
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--fg);
+}
+
+.onboard-filler-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.onboard-toc {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.onboard-toc li {
+  color: var(--fg);
+}
+
+.onboard-lorem {
+  margin: 0;
+  color: var(--fg);
+}
+
+/* Mock interactive targets — panels are not buttons */
+.onboard-mock-hit {
+  border-radius: 3px;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease;
+}
+
+.onboard-mock-link {
+  color: var(--accent-read, #0b5cad);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: inherit;
+  font: inherit;
+}
+
+.onboard-mock-select {
+  border-radius: 2px;
+}
+
+.onboard-mock-hit.is-click {
+  box-shadow: 0 0 0 2px var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.onboard-mock-select.is-selected {
+  background: #ffe066;
+  color: #111;
+  box-shadow: none;
+}
+
+a.onboard-mock-link {
+  pointer-events: none; /* animation-only; no real navigation */
+}
+
+.onboard-ipsum-article {
+  margin: 0;
+  padding: 0.5rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+}
+
+.onboard-ipsum-article h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+}
+
+.onboard-ipsum-article p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.onboard-note {
+  margin: 0;
+  padding: 0.5rem 0.55rem;
+  border-left: 3px solid var(--accent-annotate, #7a5c00);
+  background: color-mix(in srgb, var(--chrome-annotate) 55%, var(--surface));
+  border-radius: 0 8px 8px 0;
+}
+
+.onboard-note strong {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+.onboard-note p {
+  margin: 0;
+  color: var(--fg);
+}
+
+/* How mode: blank / lit on the same cards */
+#onboard[data-step="how"] #viewport-frame {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+#onboard[data-step="where"] #how-cursor {
+  display: none !important;
+}
+
+#cards > article.is-blank {
+  background: color-mix(in srgb, var(--pane-aux, #eee) 70%, #bbb) !important;
+  border-color: var(--border);
+  filter: grayscale(1);
+}
+
+#cards > article.is-blank .onboard-card-head,
+#cards > article.is-blank .onboard-filler {
+  opacity: 0;
+}
+
+#cards > article.is-lit {
+  filter: none;
+}
+
+#cards > article.is-lit .onboard-card-head,
+#cards > article.is-lit .onboard-filler {
+  opacity: 1;
+}
+
+#cards > article[data-card="1"].is-lit {
+  background: var(--chrome-find) !important;
+}
+#cards > article[data-card="2"].is-lit {
+  background: var(--chrome-read) !important;
+}
+#cards > article[data-card="3"].is-lit {
+  background: var(--chrome-consult) !important;
+}
+#cards > article[data-card="4"].is-lit {
+  background: var(--chrome-annotate) !important;
+}
+
+/* Panel itself is never the click chrome — hits use .onboard-mock-hit.is-click */
+
+#viewport-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  box-sizing: border-box;
+  border: 2px solid var(--accent);
+  border-radius: 14px;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition:
+    top 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+    left 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.25s ease;
+}
+
+#viewport-frame.is-on {
+  opacity: 1;
+}
+
+#viewport-label-top,
+#viewport-label-device {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--surface);
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+#viewport-label-top {
+  top: -0.7rem;
+}
+
+#viewport-label-device {
+  bottom: -0.7rem;
+  top: auto;
+}
+
+.how-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+  color: #111;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+  transition:
+    top 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    left 0.55s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.12s ease;
+  transform: translate(-4px, -2px);
+}
+
+.how-cursor[hidden] {
+  display: none !important;
+}
+
+.how-cursor.is-press {
+  transform: translate(-4px, -2px) scale(0.82);
+}
+
+.how-cursor-glyph {
+  display: block;
+}
+
+.how-cursor[data-mode="pointer"] .how-cursor-link,
+.how-cursor[data-mode="pointer"] .how-cursor-text,
+.how-cursor[data-mode="link"] .how-cursor-pointer,
+.how-cursor[data-mode="link"] .how-cursor-text,
+.how-cursor[data-mode="text"] .how-cursor-pointer,
+.how-cursor[data-mode="text"] .how-cursor-link {
+  display: none !important;
+}
+
+.how-cursor[data-mode="link"] .how-cursor-link,
+.how-cursor[data-mode="text"] .how-cursor-text,
+.how-cursor[data-mode="pointer"] .how-cursor-pointer {
+  display: block !important;
+}
+
+/* Text cursor: center the I-beam on the target */
+.how-cursor[data-mode="text"] {
+  transform: translate(-10px, -14px);
+}
+
+.how-cursor[data-mode="text"].is-press {
+  transform: translate(-10px, -14px) scale(0.85);
+}
+
+.onboard-footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.onboard-persist {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.88rem;
+  cursor: pointer;
+  user-select: none;
+  justify-self: start;
+  grid-column: 1;
+}
+
+.onboard-footer-center {
+  grid-column: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  justify-self: center;
+}
+
+.onboard-mode-pill {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: visible; /* invite glow radiates past the pill */
+  background: var(--pane-aux, #f0f0f0);
+  flex-shrink: 0;
+}
+
+.onboard-mode-pill > button {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+/* End caps keep pill shape when overflow is visible (for invite glow) */
+.onboard-mode-pill > button:first-child {
+  border-radius: 999px 0 0 999px;
+}
+
+.onboard-mode-pill > button:last-child {
+  border-radius: 0 999px 999px 0;
+}
+
+.onboard-mode-pill > button:only-child {
+  border-radius: 999px;
+}
+
+.onboard-mode-pill > button + button {
+  border-left: 1px solid var(--border);
+}
+
+.onboard-mode-pill > button[aria-selected="true"] {
+  background: var(--accent);
+  color: #fff;
+}
+
+.onboard-mode-pill > button:hover:not([aria-selected="true"]) {
+  background: color-mix(in srgb, var(--fg) 6%, transparent);
+  color: var(--fg);
+}
+
+/* After Device plays once — orange glow radiates around How to (button look unchanged) */
+#onboard-mode-how.is-invite {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+}
+
+#onboard-mode-how.is-invite::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit; /* follows :last-child pill cap */
+  pointer-events: none;
+  z-index: -1;
+  background: transparent;
+  box-shadow: 0 0 0 0 rgba(230, 126, 0, 0.7);
+  animation: onboard-how-invite-glow 0.9s ease-out 3;
+}
+
+#onboard-mode-how.is-invite[aria-selected="true"]::after {
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes onboard-how-invite-glow {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(230, 126, 0, 0.85),
+      0 0 8px 2px rgba(255, 152, 0, 0.55);
+    opacity: 1;
+  }
+  70% {
+    box-shadow:
+      0 0 0 14px rgba(230, 126, 0, 0),
+      0 0 28px 10px rgba(255, 152, 0, 0.35);
+    opacity: 0.85;
+  }
+  100% {
+    box-shadow:
+      0 0 0 22px rgba(230, 126, 0, 0),
+      0 0 36px 14px rgba(255, 152, 0, 0);
+    opacity: 0;
+  }
+}
+
+.onboard-footer-center > button {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.onboard-footer-center > button:hover {
+  background: color-mix(in srgb, var(--fg) 6%, var(--surface));
+}
+
+.onboard-footer-center #onboard-play {
+  width: 2.85rem;
+  height: 2.85rem;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  position: relative;
+}
+
+.onboard-footer-center #onboard-play:hover {
+  filter: brightness(1.08);
+  background: var(--accent);
+}
+
+.onboard-footer-center [data-icon],
+.onboard-footer-center svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.onboard-footer-center #onboard-play [data-icon],
+.onboard-footer-center #onboard-play svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Only one glyph: pause while playing, play while paused. */
+.onboard-footer-center #onboard-play .onboard-ico-pause,
+.onboard-footer-center #onboard-play .onboard-ico-play {
+  display: none !important;
+}
+
+.onboard-footer-center #onboard-play.is-playing .onboard-ico-pause {
+  display: inline-flex !important;
+}
+
+.onboard-footer-center #onboard-play.is-paused .onboard-ico-play {
+  display: inline-flex !important;
+}
+
+@media (max-width: 560px) {
+  #cards {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .onboard-footer {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .onboard-persist {
+    justify-self: center;
+  }
+
+  .onboard-footer-center {
+    grid-column: 1;
+  }
+}
+
 /* ── Páginas toolbar: link density + provider toggles ─ */
 #reader [data-tool="read:book"] .tool-sep {
   display: inline-block;

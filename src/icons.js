@@ -35,6 +35,13 @@ const PATHS = {
     '<path d="M12 22v-6"/><path d="M12 8V2"/><path d="M4 12H2"/><path d="M10 12H8"/><path d="M16 12h-2"/><path d="M22 12h-2"/><path d="m15 19-3-3-3 3"/><path d="m15 5-3 3-3-3"/>',
   'chevrons-left-right': '<path d="m9 7-5 5 5 5"/><path d="m15 7 5 5-5 5"/>',
   'chevrons-right-left': '<path d="m20 17-5-5 5-5"/><path d="m4 17 5-5-5-5"/>',
+  /* Media transport for onboard */
+  'skip-back':
+    '<polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5"/>',
+  'skip-forward':
+    '<polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/>',
+  play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+  pause: '<rect x="14" y="4" width="4" height="16"/><rect x="6" y="4" width="4" height="16"/>',
   'text-align-start': '<path d="M21 5H3"/><path d="M15 12H3"/><path d="M17 19H3"/>',
   'text-align-justify': '<path d="M3 5h18"/><path d="M3 12h18"/><path d="M3 19h18"/>',
   'case-upper':

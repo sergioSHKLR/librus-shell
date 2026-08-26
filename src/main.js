@@ -23,6 +23,8 @@ const GUIDE_KEY = "librus-color-guide";
 let colorGuide = "full";
 const LANG_KEY = "librus-lang";
 const ORIENT_DISMISS_KEY = "librus-orient-dismiss";
+/** First-visit onboard; persist only when “don’t show again” is checked. */
+const ONBOARD_DISMISS_KEY = "librus-onboard-dismiss";
 /** Below this width: reduced study (no Consulte panel / consult links). */
 const STUDY_REDUCED_MAX_W = 920;
 const APP_VERSION = "0.9.0";
@@ -128,6 +130,26 @@ const I18N = {
     "orient.body":
       "Neste espaço a leitura ativa completa (texto + consulta ao mesmo tempo + anotações) não é possível. O painel de consulta foi removido. Continue apenas se aceitar uma experiência reduzida, ou gire / use uma tela maior para o estudo completo.",
     "orient.dismiss": "Continuar em modo reduzido",
+    "onboard.title": "Onde você estuda",
+    "onboard.titleHow": "Como estudar",
+    "onboard.whereBody":
+      "Quatro painéis coloridos. Em telas menores, o contorno mostra o que cabe: desktop → laptop → tablet → mobile.",
+    "onboard.howBody":
+      "Cursor: Ache → link ipsum → Consulte (foco) → selecione o 2º ipsum → Anote.",
+    "onboard.find": "Sumário e busca no livro.",
+    "onboard.read": "Texto, páginas e tipografia.",
+    "onboard.consult": "Fontes ao lado da leitura.",
+    "onboard.annotate": "Grifos, notas e destaques.",
+    "onboard.deviceTag": "Device",
+    "onboard.desktop": "Desktop",
+    "onboard.laptop": "Laptop",
+    "onboard.tablet": "Tablet",
+    "onboard.mobile": "Mobile",
+    "onboard.persist": "Não mostrar de novo",
+    "onboard.mode.device": "Device",
+    "onboard.mode.how": "How to",
+    "onboard.play": "Reproduzir",
+    "onboard.pause": "Pausar",
     "set.jitsi": "Videoconferência (JaaS)",
     "set.jitsiAppId": "App ID (8x8 JaaS)",
     "set.jitsiRoom": "Sala",
@@ -257,6 +279,26 @@ const I18N = {
     "orient.body":
       "Full active study (text + simultaneous consultation + notes) is not possible here. The consult panel has been removed. Continue only if you accept a reduced experience, or rotate / use a larger screen for the complete instrument.",
     "orient.dismiss": "Continue in reduced mode",
+    "onboard.title": "Where you study",
+    "onboard.titleHow": "How to study",
+    "onboard.whereBody":
+      "Four colored panes. On smaller screens the outline shows what fits: desktop → laptop → tablet → mobile.",
+    "onboard.howBody":
+      "Cursor: Find → ipsum link → Consult (focus) → select the 2nd ipsum → Annotate.",
+    "onboard.find": "Contents and in-book search.",
+    "onboard.read": "Text, pages, and typography.",
+    "onboard.consult": "Sources beside the reading.",
+    "onboard.annotate": "Highlights and sticky notes.",
+    "onboard.deviceTag": "Device",
+    "onboard.desktop": "Desktop",
+    "onboard.laptop": "Laptop",
+    "onboard.tablet": "Tablet",
+    "onboard.mobile": "Mobile",
+    "onboard.persist": "Don’t show again",
+    "onboard.mode.device": "Device",
+    "onboard.mode.how": "How to",
+    "onboard.play": "Play",
+    "onboard.pause": "Pause",
     "set.jitsi": "Video conference (JaaS)",
     "set.jitsiAppId": "App ID (8x8 JaaS)",
     "set.jitsiRoom": "Room",
@@ -781,6 +823,8 @@ const VIEWPORT_HOLD_MS = 1600;
 let viewportStep = 0;
 let viewportTimer = null;
 let viewportRunning = false;
+/** When true, viewport interval is frozen (play/pause). */
+let viewportPaused = false;
 
 /** Cards use the same aspect ratio as the browser window. */
 function syncViewportRatio() {
@@ -794,7 +838,7 @@ function syncViewportRatio() {
 function layoutViewportFrame(cardNums) {
   const stage = document.getElementById("cards-stage");
   const frame = document.getElementById("viewport-frame");
-  const label = document.getElementById("viewport-label");
+  const deviceLabel = document.getElementById("viewport-label-device");
   const cardsRoot = document.getElementById("cards");
   if (!stage || !frame || !cardsRoot) return;
 
@@ -840,11 +884,11 @@ function layoutViewportFrame(cardNums) {
     el.classList.toggle("out", !cardNums.includes(n));
   });
 
-  if (label) {
+  if (deviceLabel) {
     const step = VIEWPORT_STEPS.find((s) => s.cards.join() === cardNums.join());
     const key = step ? "onboard." + step.key : "onboard.desktop";
-    label.setAttribute("data-i18n", key);
-    label.textContent = t(key);
+    deviceLabel.setAttribute("data-i18n", key);
+    deviceLabel.textContent = t(key);
   }
   return true;
 }
@@ -857,13 +901,23 @@ function applyViewportStep(index) {
   layoutViewportFrame(step.cards);
 }
 
+function inviteHowToPill() {
+  document.getElementById("onboard-mode-how")?.classList.add("is-invite");
+}
+
+function clearHowToInvite() {
+  document.getElementById("onboard-mode-how")?.classList.remove("is-invite");
+}
+
 function startViewportAnim() {
   stopViewportAnim();
   viewportRunning = true;
+  viewportPaused = false;
+  viewportStep = 0;
   syncViewportRatio();
   const kick = () => {
     if (!viewportRunning) return;
-    applyViewportStep(viewportStep || 0);
+    applyViewportStep(0);
     const frame = document.getElementById("viewport-frame");
     /* If cards not laid out yet, frame stays 0×0 — retry shortly */
     if (frame && parseFloat(frame.style.width || "0") < 8) {
@@ -877,19 +931,38 @@ function startViewportAnim() {
     requestAnimationFrame(() => {
       kick();
       viewportTimer = setInterval(() => {
-        if (!viewportRunning) return;
+        if (!viewportRunning || viewportPaused) return;
+        /* One cycle only: stop on last device (Mobile), then invite How to */
+        if (viewportStep >= VIEWPORT_STEPS.length - 1) {
+          setViewportPaused(true);
+          inviteHowToPill();
+          return;
+        }
         applyViewportStep(viewportStep + 1);
       }, VIEWPORT_HOLD_MS);
     });
   });
+  syncOnboardTransport();
 }
 
 function stopViewportAnim() {
   viewportRunning = false;
+  viewportPaused = false;
   if (viewportTimer) {
     clearInterval(viewportTimer);
     viewportTimer = null;
   }
+}
+
+function setViewportPaused(paused) {
+  viewportPaused = !!paused;
+  if (!viewportPaused && viewportRunning && !viewportTimer) {
+    viewportTimer = setInterval(() => {
+      if (!viewportRunning || viewportPaused) return;
+      applyViewportStep(viewportStep + 1);
+    }, VIEWPORT_HOLD_MS);
+  }
+  syncOnboardTransport();
 }
 
 function setView(name) {
@@ -2554,6 +2627,11 @@ function wire() {
     const closeBtn = t.closest("[data-close]");
     if (closeBtn) {
       e.preventDefault();
+      const closeId = closeBtn.getAttribute("data-close");
+      if (closeId === "onboard") {
+        dismissOnboard({ persistIfChecked: true });
+        return;
+      }
       closeAllDrawers();
       return;
     }
@@ -2563,6 +2641,11 @@ function wire() {
       /* Study gate is blocking — only the CTA dismisses it */
       const orient = document.getElementById("orient");
       if (orient && orient.classList.contains("is-open")) return;
+      /* Onboard: scrim = skip (persist only if checkbox already on) */
+      if (isOnboardOpen()) {
+        dismissOnboard({ persistIfChecked: true });
+        return;
+      }
       closeAllDrawers();
       return;
     }
@@ -2763,12 +2846,559 @@ function wire() {
   }
 }
 
+/* ── First-visit onboard (Where → How) ───────────── */
+
+/** Closed this session (skip/X/done) — may still reappear next visit. */
+let onboardSessionDone = false;
+
+function isOnboardDismissed() {
+  try {
+    return localStorage.getItem(ONBOARD_DISMISS_KEY) === "1";
+  } catch (_) {
+    return false;
+  }
+}
+
+function setOnboardDismissed() {
+  try {
+    localStorage.setItem(ONBOARD_DISMISS_KEY, "1");
+  } catch (_) {
+    /* private mode */
+  }
+}
+
+function shouldOfferOnboard() {
+  return !isOnboardDismissed() && !onboardSessionDone;
+}
+
+function isOnboardOpen() {
+  const el = document.getElementById("onboard");
+  return !!(el && el.classList.contains("is-open") && !el.hidden);
+}
+
+function onboardPersistChecked() {
+  return !!document.getElementById("onboard-persist")?.checked;
+}
+
+/* ── How step: sequential card reveal + cursor ───── */
+
+let howRevealTimer = null;
+let howRevealGen = 0;
+let howPaused = false;
+/** @type {Array<() => void>} */
+let howPauseWaiters = [];
+
+function clearHowRevealTimer() {
+  if (howRevealTimer) {
+    clearTimeout(howRevealTimer);
+    howRevealTimer = null;
+  }
+}
+
+function setHowPaused(paused) {
+  howPaused = !!paused;
+  if (!howPaused) {
+    const waiters = howPauseWaiters.splice(0, howPauseWaiters.length);
+    waiters.forEach((fn) => fn());
+  }
+  syncOnboardTransport();
+}
+
+function clearHowCardClasses() {
+  clearHowHitChrome();
+  document.querySelectorAll("#cards [data-card]").forEach((card) => {
+    card.classList.remove("is-blank", "is-lit", "is-click", "out");
+  });
+}
+
+function stopHowRevealAnim() {
+  howRevealGen += 1;
+  clearHowRevealTimer();
+  howPaused = false;
+  const waiters = howPauseWaiters.splice(0, howPauseWaiters.length);
+  waiters.forEach((fn) => fn());
+  const cursor = document.getElementById("how-cursor");
+  if (cursor) {
+    cursor.hidden = true;
+    cursor.classList.remove("is-press");
+    cursor.dataset.mode = "pointer";
+  }
+  /* Leave cards in a clean state for Viewport mode */
+  clearHowCardClasses();
+}
+
+/**
+ * Resolve the mock hit element inside a card (not the panel itself).
+ * @param {number} n 1..4
+ * @param {'center'|'header'|'toc'|'link'|'select'|'article'|'note'|'body'} [aim]
+ * @returns {Element|null}
+ */
+function howHitEl(n, aim = "center") {
+  const card = document.querySelector(`#cards [data-card="${n}"]`);
+  if (!card) return null;
+  if (aim === "header") return card.querySelector(".onboard-card-head");
+  if (aim === "toc") return card.querySelector('[data-how-hit="toc"]');
+  if (aim === "link") return card.querySelector('[data-how-hit="link"]');
+  if (aim === "select" || aim === "body")
+    return card.querySelector('[data-how-hit="select"]');
+  if (aim === "article") return card.querySelector('[data-how-hit="article"]');
+  if (aim === "note") return card.querySelector('[data-how-hit="note"]');
+  return card.querySelector("[data-how-hit]") || card;
+}
+
+/**
+ * @param {number} n 1..4
+ * @param {'center'|'header'|'toc'|'link'|'select'|'article'|'note'|'body'} [aim]
+ */
+function howCardPoint(n, aim = "center") {
+  const stage = document.getElementById("cards-stage");
+  const target = howHitEl(n, aim);
+  if (!stage || !target) return { x: 0, y: 0 };
+  const sr = stage.getBoundingClientRect();
+  const box = target.getBoundingClientRect();
+  const x = box.left - sr.left + box.width * 0.5;
+  const y = box.top - sr.top + box.height * 0.5;
+  return { x, y };
+}
+
+function clearHowHitChrome() {
+  document.querySelectorAll(".onboard-mock-hit").forEach((el) => {
+    el.classList.remove("is-click", "is-selected");
+  });
+}
+
+function placeHowCursor(x, y) {
+  const cursor = document.getElementById("how-cursor");
+  if (!cursor) return;
+  cursor.style.left = `${x}px`;
+  cursor.style.top = `${y}px`;
+}
+
+function setHowCursorMode(mode) {
+  const cursor = document.getElementById("how-cursor");
+  if (!cursor) return;
+  cursor.dataset.mode = mode;
+  cursor.querySelectorAll(".how-cursor-glyph").forEach((g) => {
+    g.hidden = true;
+  });
+  const map = {
+    pointer: ".how-cursor-pointer",
+    link: ".how-cursor-link",
+    text: ".how-cursor-text",
+  };
+  const sel = map[mode] || map.pointer;
+  const glyph = cursor.querySelector(sel);
+  if (glyph) glyph.hidden = false;
+}
+
+function lightHowCard(n) {
+  const card = document.querySelector(
+    `#cards [data-card="${n}"]`,
+  );
+  if (!card) return;
+  card.classList.remove("is-blank");
+  card.classList.add("is-lit");
+}
+
+function blankAllHowCards() {
+  clearHowHitChrome();
+  document.querySelectorAll("#cards [data-card]").forEach((card) => {
+    card.classList.add("is-blank");
+    card.classList.remove("is-lit", "is-click", "out");
+  });
+}
+
+/**
+ * @param {number} gen
+ * @param {number} ms
+ */
+async function howWait(gen, ms) {
+  let left = ms;
+  while (left > 0) {
+    if (gen !== howRevealGen) return false;
+    while (howPaused) {
+      await new Promise((resolve) => {
+        howPauseWaiters.push(resolve);
+      });
+      if (gen !== howRevealGen) return false;
+    }
+    const slice = Math.min(left, 80);
+    const ok = await new Promise((resolve) => {
+      clearHowRevealTimer();
+      howRevealTimer = setTimeout(() => {
+        howRevealTimer = null;
+        resolve(gen === howRevealGen);
+      }, slice);
+    });
+    if (!ok) return false;
+    left -= slice;
+  }
+  return gen === howRevealGen;
+}
+
+/**
+ * Move cursor to a card (optional mode). Does not click.
+ * @param {number} gen
+ * @param {number} card
+ * @param {'pointer'|'link'|'text'} [mode]
+ * @param {'center'|'header'|'toc'|'body'|'article'|'note'} [aim]
+ */
+async function howCursorMoveTo(gen, card, mode = "pointer", aim = "center") {
+  const cursor = document.getElementById("how-cursor");
+  if (!cursor) return false;
+  cursor.hidden = false;
+  setHowCursorMode(mode === "text" ? "pointer" : mode);
+  const pt = howCardPoint(card, aim);
+  placeHowCursor(pt.x, pt.y);
+  if (!(await howWait(gen, 580))) return false;
+  if (mode === "text" || mode === "link") {
+    setHowCursorMode(mode);
+    if (!(await howWait(gen, 280))) return false;
+  }
+  return true;
+}
+
+/**
+ * Press on a mock hit inside clickCard; optionally light lightCard.
+ * @param {number} gen
+ * @param {number} clickCard
+ * @param {number|null} lightCard
+ * @param {'link'|'text'|'pointer'} mode
+ * @param {'toc'|'link'|'select'|'article'|'note'} aim
+ */
+async function howCursorPress(gen, clickCard, lightCard, mode, aim) {
+  const cursor = document.getElementById("how-cursor");
+  const hit = howHitEl(clickCard, aim);
+  if (!cursor || !hit) return false;
+
+  setHowCursorMode(mode);
+  if (!(await howWait(gen, 200))) return false;
+
+  cursor.classList.add("is-press");
+  hit.classList.add("is-click");
+  if (mode === "text") hit.classList.add("is-selected");
+  if (!(await howWait(gen, 180))) return false;
+
+  cursor.classList.remove("is-press");
+  hit.classList.remove("is-click");
+  /* keep is-selected on the phrase after text-select click */
+  if (lightCard != null) lightHowCard(lightCard);
+  if (!(await howWait(gen, 420))) return false;
+  return true;
+}
+
+/**
+ * Move onto mock hit, switch mode, press; light lightCard.
+ * @param {number} gen
+ * @param {number} clickCard
+ * @param {number|null} lightCard
+ * @param {'link'|'text'} mode
+ * @param {'toc'|'link'|'select'|'article'|'note'} aim
+ */
+async function howCursorClickReveal(gen, clickCard, lightCard, mode, aim) {
+  if (!(await howCursorMoveTo(gen, clickCard, mode, aim))) return false;
+  return howCursorPress(gen, clickCard, lightCard, mode, aim);
+}
+
+async function runHowRevealLoop(gen) {
+  const cursor = document.getElementById("how-cursor");
+  const stage = document.getElementById("cards-stage");
+  if (!cursor || !stage) return;
+
+  blankAllHowCards();
+  cursor.hidden = true;
+  cursor.classList.remove("is-press");
+  setHowCursorMode("pointer");
+  if (!(await howWait(gen, 350))) return;
+
+  /* 1 · Ache lights on its own (TOC visible) */
+  lightHowCard(1);
+  if (!(await howWait(gen, 700))) return;
+
+  /* click Ipsum TOC → light #2 */
+  if (!(await howCursorClickReveal(gen, 1, 2, "link", "toc"))) return;
+
+  /* click ipsum link in #2 → light #3 (article) */
+  if (!(await howCursorClickReveal(gen, 2, 3, "link", "link"))) return;
+
+  /* travel to #3 (focus only — no click), then back to #2 */
+  if (!(await howCursorMoveTo(gen, 3, "pointer", "article"))) return;
+  if (!(await howWait(gen, 500))) return;
+
+  /* text-select second ipsum in #2 → light #4 note */
+  if (!(await howCursorClickReveal(gen, 2, 4, "text", "select"))) return;
+
+  /* settle on note in #4 */
+  if (!(await howCursorMoveTo(gen, 4, "pointer", "note"))) return;
+
+  /* One cycle only — pause on final frame */
+  if (gen !== howRevealGen) return;
+  if (!(await howWait(gen, 800))) return;
+  setHowPaused(true);
+}
+
+function startHowRevealAnim() {
+  /* Cancel any prior loop, reset cards, then run */
+  howRevealGen += 1;
+  clearHowRevealTimer();
+  howPaused = false;
+  const waiters = howPauseWaiters.splice(0, howPauseWaiters.length);
+  waiters.forEach((fn) => fn());
+  const myGen = howRevealGen;
+  blankAllHowCards();
+  const cursor = document.getElementById("how-cursor");
+  if (cursor) {
+    cursor.hidden = true;
+    cursor.classList.remove("is-press");
+    setHowCursorMode("pointer");
+  }
+  hydrateIcons(document.getElementById("cards-stage"));
+  syncOnboardTransport();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (myGen !== howRevealGen) return;
+      runHowRevealLoop(myGen);
+    });
+  });
+}
+
+function setOnboardStep(step) {
+  const el = document.getElementById("onboard");
+  if (!el) return;
+  const next = step === "how" ? "how" : "where";
+  if (el.dataset.step === next && el.classList.contains("is-open")) {
+    /* Re-tapping active pill: restart that mode’s animation */
+    if (next === "where") {
+      clearHowToInvite();
+      stopHowRevealAnim();
+      syncViewportRatio();
+      startViewportAnim();
+    } else {
+      clearHowToInvite();
+      stopViewportAnim();
+      startHowRevealAnim();
+    }
+    syncOnboardTransport();
+    return;
+  }
+  el.dataset.step = next;
+  if (next === "how") clearHowToInvite();
+
+  const title = document.getElementById("onboard-title");
+  if (title) {
+    const key = next === "how" ? "onboard.titleHow" : "onboard.title";
+    title.setAttribute("data-i18n", key);
+    title.textContent = t(key);
+  }
+
+  if (next === "where") {
+    stopHowRevealAnim();
+    syncViewportRatio();
+    startViewportAnim();
+  } else {
+    stopViewportAnim();
+    const frame = document.getElementById("viewport-frame");
+    if (frame) frame.classList.remove("is-on");
+    startHowRevealAnim();
+  }
+  syncOnboardTransport();
+}
+
+/** Sync play/pause glyphs, and Viewport | How to pill. */
+function syncOnboardTransport() {
+  const el = document.getElementById("onboard");
+  const play = document.getElementById("onboard-play");
+  if (!el || !play) return;
+
+  const step = el.dataset.step === "how" ? "how" : "where";
+
+  const paused = step === "where" ? viewportPaused : howPaused;
+  play.classList.toggle("is-playing", !paused);
+  play.classList.toggle("is-paused", paused);
+  /* Icons flip via CSS (.is-playing / .is-paused) — one visible at a time */
+  const ariaKey = paused ? "onboard.play" : "onboard.pause";
+  play.setAttribute("data-i18n-aria", ariaKey);
+  play.setAttribute("aria-label", t(ariaKey));
+
+  el.querySelectorAll("[data-onboard-mode]").forEach((btn) => {
+    const on = btn.getAttribute("data-onboard-mode") === step;
+    btn.setAttribute("aria-selected", on ? "true" : "false");
+  });
+}
+
+function onboardTransportTogglePause() {
+  const el = document.getElementById("onboard");
+  if (!el) return;
+  if (el.dataset.step === "how") {
+    /* After a finished cycle, play = restart How to */
+    if (howPaused && !document.getElementById("how-cursor")?.hidden) {
+      const allLit = document.querySelectorAll("#cards [data-card].is-lit").length;
+      if (allLit >= 4) {
+        startHowRevealAnim();
+        return;
+      }
+    }
+    setHowPaused(!howPaused);
+  } else {
+    /* After Device finished on Mobile, play = restart Device */
+    if (
+      viewportPaused &&
+      viewportStep >= VIEWPORT_STEPS.length - 1
+    ) {
+      clearHowToInvite();
+      startViewportAnim();
+      return;
+    }
+    setViewportPaused(!viewportPaused);
+  }
+}
+
+function openOnboard() {
+  const el = document.getElementById("onboard");
+  if (!el || !shouldOfferOnboard()) return;
+
+  /* Close help/settings; keep orient closed while onboard owns scrim */
+  MODAL_IDS.forEach((id) => {
+    const o = document.getElementById(id);
+    if (o) {
+      o.classList.remove("is-open", "is-closing");
+      o.hidden = true;
+    }
+  });
+  const orient = document.getElementById("orient");
+  if (orient) closeOrientGate(orient);
+
+  const scrim = document.getElementById("scrim");
+  el.hidden = false;
+  el.classList.remove("is-closing");
+  if (scrim) {
+    scrim.hidden = false;
+    scrim.classList.remove("is-closing");
+  }
+  setOnboardStep("where");
+  hydrateIcons(el);
+  applyI18n();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      el.classList.add("is-open");
+      if (scrim) scrim.classList.add("is-open");
+      syncViewportRatio();
+      startViewportAnim();
+    });
+  });
+}
+
+function closeOnboard(onDone) {
+  const el = document.getElementById("onboard");
+  stopViewportAnim();
+  stopHowRevealAnim();
+  if (!el) {
+    onDone?.();
+    return;
+  }
+  const scrim = document.getElementById("scrim");
+  const finish = () => {
+    el.classList.remove("is-open", "is-closing");
+    el.hidden = true;
+    if (scrim) {
+      scrim.classList.remove("is-open", "is-closing");
+      scrim.hidden = true;
+    }
+    onDone?.();
+    /* Reduced-study gate may need to appear after onboard */
+    try {
+      updateOrientLock();
+    } catch (_) {
+      /* ignore */
+    }
+  };
+  if (!el.classList.contains("is-open")) {
+    finish();
+    return;
+  }
+  let done = false;
+  const end = () => {
+    if (done) return;
+    done = true;
+    el.removeEventListener("transitionend", onEnd);
+    finish();
+  };
+  const onEnd = (ev) => {
+    if (
+      ev.target === el &&
+      (ev.propertyName === "opacity" || ev.propertyName === "transform")
+    )
+      end();
+  };
+  el.classList.remove("is-open");
+  el.classList.add("is-closing");
+  if (scrim) {
+    scrim.classList.remove("is-open");
+    scrim.classList.add("is-closing");
+  }
+  el.addEventListener("transitionend", onEnd);
+  setTimeout(end, 280);
+}
+
+/**
+ * @param {{ persist?: boolean, persistIfChecked?: boolean }} [opts]
+ * persist: always write localStorage
+ * persistIfChecked: write only if the checkbox is on (default true for skip/X/done)
+ */
+function dismissOnboard(opts = {}) {
+  const checkBox = opts.persistIfChecked !== false;
+  if (opts.persist === true || (checkBox && onboardPersistChecked())) {
+    setOnboardDismissed();
+  }
+  onboardSessionDone = true;
+  closeOnboard();
+}
+
+function initOnboard() {
+  const el = document.getElementById("onboard");
+  if (!el) return;
+
+  document
+    .getElementById("onboard-play")
+    ?.addEventListener("click", onboardTransportTogglePause);
+
+  el.querySelectorAll("[data-onboard-mode]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const mode = btn.getAttribute("data-onboard-mode");
+      setOnboardStep(mode === "how" ? "how" : "where");
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    if (!isOnboardOpen()) return;
+    syncViewportRatio();
+    if (el.dataset.step === "where") applyViewportStep(viewportStep);
+    /* How: re-place cursor if visible after aspect change */
+    if (el.dataset.step === "how") {
+      const lit = document.querySelectorAll("#cards [data-card].is-lit");
+      const last = lit[lit.length - 1];
+      const cursor = document.getElementById("how-cursor");
+      if (last && cursor && !cursor.hidden) {
+        const n = Number(last.getAttribute("data-card"));
+        const pt = howCardPoint(n);
+        placeHowCursor(pt.x, pt.y);
+      }
+    }
+  });
+
+  if (shouldOfferOnboard()) {
+    /* After first paint so library is behind the scrim */
+    requestAnimationFrame(() => openOnboard());
+  }
+}
+
 const MODAL_IDS = ["help", "settings"];
 
 function openDrawer(id) {
-  /* Study gate owns the scrim while open */
+  /* Study gate / first-visit onboard own the scrim while open */
   const orient = document.getElementById("orient");
   if (orient && orient.classList.contains("is-open")) return;
+  if (isOnboardOpen()) return;
 
   MODAL_IDS.forEach((other) => {
     if (other === id) return;
@@ -3023,6 +3653,12 @@ function updateOrientLock() {
 
   applyStudySurface();
 
+  /* First-visit onboard wins over the reduced-study gate */
+  if (isOnboardOpen() || shouldOfferOnboard()) {
+    if (el.classList.contains("is-open") || !el.hidden) closeOrientGate(el);
+    return;
+  }
+
   const constrained = isStudyConstrained();
   const show = constrained && !isOrientDismissed();
   const open = el.classList.contains("is-open") && !el.hidden;
@@ -3076,6 +3712,12 @@ async function boot() {
     console.info("[POC] flavor", getFlavorId());
   } catch (err) {
     console.warn("[POC] flavor", err);
+  }
+
+  try {
+    initOnboard();
+  } catch (err) {
+    console.warn("[POC] onboard", err);
   }
 
   try {
