@@ -22,10 +22,9 @@ const GUIDE_KEY = "librus-color-guide";
 /** @type {'full'|'soft'|'min'} */
 let colorGuide = "full";
 const LANG_KEY = "librus-lang";
-const ORIENT_DISMISS_KEY = "librus-orient-dismiss";
 /** First-visit onboard; persist only when “don’t show again” is checked. */
 const ONBOARD_DISMISS_KEY = "librus-onboard-dismiss";
-/** Below this width: reduced study (no Consulte panel / consult links). */
+/** Below this width: study gate blocks until the viewport is larger. */
 const STUDY_REDUCED_MAX_W = 920;
 const APP_VERSION = "0.9.0";
 
@@ -79,7 +78,7 @@ const I18N = {
     "tip.ctx.reload": "Recarregar página de consulta",
     "tip.close": "Fechar",
     "tip.home": "Biblioteca",
-    "tip.orient.dismiss": "Continuar em modo reduzido",
+
     "tip.density": "Densidade de ligações",
     "tip.link.luz": "Mostrar / ocultar ligações Luz",
     "tip.link.encyc": "Mostrar / ocultar ligações enciclopédia",
@@ -101,7 +100,7 @@ const I18N = {
       "Notas abrem na barra lateral do Hypothesis (ícone no canto).",
     "notes.off": "Hypothesis desligado neste build.",
     "set.title": "Ajustes",
-    "set.hint": "Idioma e tema: botões na barra inferior.",
+    "set.hint": "Tema claro/escuro: botão na barra inferior.",
     "set.guide": "Guia de cor",
     "set.guideHint":
       "Cores do chrome do leitor (abas e barras). O tema claro/escuro fica na barra inferior.",
@@ -126,10 +125,9 @@ const I18N = {
       "Sumário e busca no painel esquerdo (ou abas dobradas na faixa principal).",
     "help.tagline": "annotate to assimilate",
     "help.pwa": "PWA · Hypothesis · Vite",
-    "orient.title": "Estudo reduzido neste espaço",
+    "orient.title": "Tela pequena demais para estudar",
     "orient.body":
-      "Neste espaço a leitura ativa completa (texto + consulta ao mesmo tempo + anotações) não é possível. O painel de consulta foi removido. Continue apenas se aceitar uma experiência reduzida, ou gire / use uma tela maior para o estudo completo.",
-    "orient.dismiss": "Continuar em modo reduzido",
+      "O estudo ativo completo (ler e consultar ao mesmo tempo, com anotações) precisa de mais espaço. Gire o aparelho para paisagem ou use uma tela maior — não há modo reduzido neste beta.",
     "onboard.title": "Onde você estuda",
     "onboard.titleHow": "Como estudar",
     "onboard.whereBody":
@@ -229,7 +227,7 @@ const I18N = {
     "tip.ctx.reload": "Reload context page",
     "tip.close": "Close",
     "tip.home": "Library",
-    "tip.orient.dismiss": "Continue in reduced mode",
+
     "tip.density": "Link density",
     "tip.link.luz": "Show / hide Luz links",
     "tip.link.encyc": "Show / hide encyclopedia links",
@@ -250,7 +248,7 @@ const I18N = {
     "notes.hint": "Notes open in the Hypothesis sidebar (corner control).",
     "notes.off": "Hypothesis disabled in this build.",
     "set.title": "Settings",
-    "set.hint": "Language and theme: use the bottom bar buttons.",
+    "set.hint": "Light/dark theme: use the bottom bar button.",
     "set.guide": "Color guide",
     "set.guideHint":
       "Reader chrome colors (tabs and toolbars). Light/dark theme stays on the bottom bar.",
@@ -275,10 +273,9 @@ const I18N = {
       "TOC and search live in the left pane (or folded tabs on the main strip).",
     "help.tagline": "annotate to assimilate",
     "help.pwa": "PWA · Hypothesis · Vite",
-    "orient.title": "Reduced study on this screen",
+    "orient.title": "Screen too small to study",
     "orient.body":
-      "Full active study (text + simultaneous consultation + notes) is not possible here. The consult panel has been removed. Continue only if you accept a reduced experience, or rotate / use a larger screen for the complete instrument.",
-    "orient.dismiss": "Continue in reduced mode",
+      "Full active study (reading and consulting at once, with notes) needs more space. Rotate to landscape or use a larger screen — there is no reduced mode in this beta.",
     "onboard.title": "Where you study",
     "onboard.titleHow": "How to study",
     "onboard.whereBody":
@@ -509,8 +506,6 @@ function tipForButton(btn) {
   if (btn.getAttribute("data-open") === "help") return t("bar.help");
   if (btn.getAttribute("data-open") === "settings") return t("bar.settings");
   if (btn.hasAttribute("data-close")) return t("tip.close");
-  if (btn.id === "orient-dismiss") return t("tip.orient.dismiss");
-
   /* Visible text / i18n span */
   const i18n = btn.querySelector("[data-i18n]");
   if (i18n) {
@@ -570,22 +565,9 @@ function syncTooltips(root = document) {
   }
 }
 
-/** Update bottom-bar cycler labels (lang + theme). */
+/** Update bottom-bar cycler labels (theme) + settings lang radios. */
 function syncChromeBar() {
-  /* Lang: path glyphs (lang-pt / lang-en) — same stroke as other bar icons */
-  const langIconName = currentLang === "en" ? "lang-en" : "lang-pt";
-  const langHost = document.getElementById("bar-lang-icon");
-  if (langHost) {
-    langHost.setAttribute("data-icon", langIconName);
-    langHost.innerHTML = "";
-    hydrateIcons(langHost.parentElement || langHost);
-  }
-  const langBtn = document.getElementById("bar-lang");
-  if (langBtn) {
-    const langName = currentLang === "en" ? "English" : "Português";
-    langBtn.title = t("bar.lang") + " · " + langName;
-    langBtn.setAttribute("aria-label", t("bar.lang") + " · " + langName);
-  }
+  syncLangInputs();
 
   /* Theme: monitor (system) · sun (light) · moon (dark) */
   const themeIcon =
@@ -695,6 +677,14 @@ function syncColorGuideInputs() {
   });
 }
 
+function syncLangInputs() {
+  document.querySelectorAll('input[name="ui-lang"]').forEach((el) => {
+    if (el instanceof HTMLInputElement) {
+      el.checked = el.value === currentLang;
+    }
+  });
+}
+
 function setLang(lang, { persist = true } = {}) {
   currentLang = lang === "en" ? "en" : "pt";
   if (persist) {
@@ -704,6 +694,7 @@ function setLang(lang, { persist = true } = {}) {
       /* ignore */
     }
   }
+  syncLangInputs();
   applyI18n();
   try {
     applyFlavorBrand(getFlavor(), currentLang, currentTheme);
@@ -2591,6 +2582,16 @@ function wire() {
   });
   syncColorGuideInputs();
 
+  /* Language radios (settings) */
+  document.querySelectorAll('input[name="ui-lang"]').forEach((el) => {
+    el.addEventListener("change", () => {
+      if (el instanceof HTMLInputElement && el.checked) {
+        setLang(el.value === "en" ? "en" : "pt");
+      }
+    });
+  });
+  syncLangInputs();
+
   /* Single delegated click owner for chrome navigation */
   document.addEventListener("click", (e) => {
     const t = e.target;
@@ -3256,8 +3257,10 @@ function onboardTransportTogglePause() {
 function openOnboard() {
   const el = document.getElementById("onboard");
   if (!el || !shouldOfferOnboard()) return;
+  /* Small-screen block takes priority — onboard waits until viewport is wide */
+  if (isStudyConstrained()) return;
 
-  /* Close help/settings; keep orient closed while onboard owns scrim */
+  /* Close help/settings; orient should already be clear on a wide screen */
   MODAL_IDS.forEach((id) => {
     const o = document.getElementById(id);
     if (o) {
@@ -3288,7 +3291,11 @@ function openOnboard() {
   });
 }
 
-function closeOnboard(onDone) {
+/**
+ * @param {(() => void)|undefined} [onDone]
+ * @param {{ skipOrient?: boolean }} [opts] skipOrient: closing to yield to the size gate
+ */
+function closeOnboard(onDone, opts = {}) {
   const el = document.getElementById("onboard");
   stopViewportAnim();
   stopHowRevealAnim();
@@ -3305,11 +3312,13 @@ function closeOnboard(onDone) {
       scrim.hidden = true;
     }
     onDone?.();
-    /* Reduced-study gate may need to appear after onboard */
-    try {
-      updateOrientLock();
-    } catch (_) {
-      /* ignore */
+    /* After a normal dismiss, size gate may need to appear */
+    if (!opts.skipOrient) {
+      try {
+        updateOrientLock();
+      } catch (_) {
+        /* ignore */
+      }
     }
   };
   if (!el.classList.contains("is-open")) {
@@ -3496,41 +3505,12 @@ function isStudyReduced() {
   return document.documentElement.dataset.study === "reduced";
 }
 
-function isOrientDismissed() {
-  try {
-    return sessionStorage.getItem(ORIENT_DISMISS_KEY) === "1";
-  } catch (_) {
-    return false;
-  }
-}
-
-function setOrientDismissed() {
-  try {
-    sessionStorage.setItem(ORIENT_DISMISS_KEY, "1");
-  } catch (_) {
-    /* private mode */
-  }
-  const el = document.getElementById("orient");
-  if (el) el.dataset.dismissed = "1";
-}
-
-function clearOrientDismissed() {
-  try {
-    sessionStorage.removeItem(ORIENT_DISMISS_KEY);
-  } catch (_) {
-    /* ignore */
-  }
-  const el = document.getElementById("orient");
-  if (el) delete el.dataset.dismissed;
-}
-
 /**
- * Apply full vs reduced study surface.
+ * Apply full vs reduced study surface (defense while gated).
  * Reduced: hide Consulte (p3), suppress consult links/controls; keep Leia + Anote.
  */
 function applyStudySurface() {
   const reduced = isStudyConstrained();
-  const prev = document.documentElement.dataset.study;
   document.documentElement.dataset.study = reduced ? "reduced" : "full";
   document.body.dataset.study = reduced ? "reduced" : "full";
 
@@ -3542,11 +3522,6 @@ function applyStudySurface() {
     } else {
       p3.removeAttribute("aria-hidden");
     }
-  }
-
-  /* Leaving reduced → allow gate again next time width shrinks */
-  if (prev === "reduced" && !reduced) {
-    clearOrientDismissed();
   }
 
   if (reduced) {
@@ -3653,37 +3628,32 @@ function updateOrientLock() {
 
   applyStudySurface();
 
-  /* First-visit onboard wins over the reduced-study gate */
-  if (isOnboardOpen() || shouldOfferOnboard()) {
-    if (el.classList.contains("is-open") || !el.hidden) closeOrientGate(el);
+  const constrained = isStudyConstrained();
+  const open = el.classList.contains("is-open") && !el.hidden;
+
+  /* Blocking gate first: no dismiss — only a wider viewport clears it.
+     Onboarding waits until the screen is large enough. */
+  if (constrained) {
+    if (isOnboardOpen()) {
+      /* Soft-close — do not mark onboard as done; yield scrim to the size gate */
+      closeOnboard(undefined, { skipOrient: true });
+    }
+    if (!open) openOrientGate(el);
+    delete el.dataset.dismissed;
     return;
   }
 
-  const constrained = isStudyConstrained();
-  const show = constrained && !isOrientDismissed();
-  const open = el.classList.contains("is-open") && !el.hidden;
+  if (open || !el.hidden) closeOrientGate(el);
+  delete el.dataset.dismissed;
 
-  if (show && !open) {
-    openOrientGate(el);
-  } else if (!show && (open || !el.hidden)) {
-    closeOrientGate(el);
+  /* After the block clears, show first-visit onboard if still pending */
+  if (shouldOfferOnboard() && !isOnboardOpen()) {
+    requestAnimationFrame(() => openOnboard());
   }
-
-  if (isOrientDismissed()) el.dataset.dismissed = "1";
-  else delete el.dataset.dismissed;
 }
 
 function initOrientLock() {
-  if (isOrientDismissed()) {
-    const el = document.getElementById("orient");
-    if (el) el.dataset.dismissed = "1";
-  }
   updateOrientLock();
-
-  document.getElementById("orient-dismiss")?.addEventListener("click", () => {
-    setOrientDismissed();
-    updateOrientLock();
-  });
 
   window.addEventListener("resize", updateOrientLock);
   window.addEventListener("orientationchange", () => {
@@ -3715,15 +3685,16 @@ async function boot() {
   }
 
   try {
-    initOnboard();
-  } catch (err) {
-    console.warn("[POC] onboard", err);
-  }
-
-  try {
+    /* Orient before onboard so a small screen blocks first */
     initOrientLock();
   } catch (err) {
     console.warn("[POC] orient", err);
+  }
+
+  try {
+    initOnboard();
+  } catch (err) {
+    console.warn("[POC] onboard", err);
   }
 
   try {

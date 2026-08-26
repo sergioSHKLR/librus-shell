@@ -57,7 +57,7 @@ doutrina-content  →  librus-linker  →  librus-shell  →  host Pages
 2. [doutrina.org](https://doutrina.org) — Kardec codification  
 3. [centro.doutrina.org](https://centro.doutrina.org) — center + codification  
 
-Status: **BETA** — active-study UX; narrow screens use reduced mode (Consulte removed on purpose).
+Status: **BETA** — active-study UX; narrow screens are **blocked** until landscape / a wider viewport (no reduced-mode bypass).
 
 ## 🧱 What this repo owns
 
@@ -139,7 +139,7 @@ SPA Vite em vanilla: biblioteca + leitor em quatro painéis (Ache · Leia · Con
 2. [doutrina.org](https://doutrina.org)  
 3. [centro.doutrina.org](https://centro.doutrina.org)  
 
-Estado: **BETA** — UX de estudo ativo; telas estreitas usam modo reduzido (Consulte removido de propósito).
+Estado: **BETA** — UX de estudo ativo; telas estreitas ficam **bloqueadas** até paisagem / viewport mais larga (sem atalho de modo reduzido).
 
 ## 🧱 O que este repo possui
 

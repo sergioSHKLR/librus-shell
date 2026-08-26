@@ -2021,7 +2021,11 @@ html.is-portrait-blocked body {
   overflow: hidden !important;
 }
 
-/* Gate open: keep scrim above chrome but below gate card */
+/* Hard block: near-opaque backdrop (Help/Settings/onboard keep 40% scrim) */
+html.is-portrait-blocked #scrim {
+  background: rgba(10, 10, 10, 0.94);
+}
+
 html.is-portrait-blocked #scrim.is-open {
   z-index: 535;
   pointer-events: auto;
@@ -2080,25 +2084,7 @@ html.is-portrait-blocked #scrim.is-open {
   width: 100%;
 }
 
-#orient-dismiss {
-  margin-top: 0.15rem;
-  align-self: stretch;
-  padding: 0.65rem 1.1rem;
-  border-radius: 8px;
-  border: 2px solid #ffcc00;
-  background: #ffcc00;
-  color: #3a0a10;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-#orient-dismiss:hover {
-  border-color: #ffe066;
-  background: #ffe066;
-  color: #2a060c;
-}
-
-/* ========== First-visit onboard (Where → How) ========== */
+/* ========== First-visit onboard (Device / How to) ========== */
 #onboard.modal,
 #onboard {
   z-index: 545;
