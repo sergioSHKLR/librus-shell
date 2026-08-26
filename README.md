@@ -100,8 +100,8 @@ npm run dev:centro     # http://localhost:5176
 2. Flavor resolution order:  
 
    1. `?flavor=`  
-   2. `localStorage.librus-flavor`  
-   3. `VITE_FLAVOR`  
+   2. `VITE_FLAVOR` (per `dev:*` / deploy)  
+   3. `localStorage.librus-flavor` (sticky only when env unset)  
    4. hostname map  
    5. `default`  
 
@@ -184,7 +184,7 @@ npm run dev:centro     # http://localhost:5176
 ## 🎛️ Sabores e flags
 
 1. Edite **`public/flavors.json`**.  
-2. Ordem de resolução: `?flavor=` → `localStorage` → `VITE_FLAVOR` → hostname → `default`.  
+2. Ordem de resolução: `?flavor=` → `VITE_FLAVOR` → `localStorage` → hostname → `default`.  
 3. Flags padrão: hypo · typo · providers **ligados**; pdf · jaas · profiles **desligados**.  
 
 ## 🤝 Como ajudar

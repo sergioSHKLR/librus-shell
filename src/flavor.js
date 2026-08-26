@@ -3,8 +3,8 @@
  *
  * Resolution order (first match wins):
  *   1. ?flavor=librus|doutrina|centro   (dev / QA)
- *   2. localStorage "librus-flavor"    (optional sticky override)
- *   3. VITE_FLAVOR build env           (single-flavor deploy)
+ *   2. VITE_FLAVOR build/dev env         (per-server scripts + deploys)
+ *   3. localStorage "librus-flavor"     (optional sticky; only if no env)
  *   4. hostname → hosts map in JSON
  *   5. flavors.default
  *
@@ -61,6 +61,10 @@ export function resolveFlavorId(reg) {
     /* ignore */
   }
 
+  /* Dev multi-server (5174/75/76) and single-flavor deploys: env beats sticky LS */
+  const fromEnv = valid(import.meta.env.VITE_FLAVOR);
+  if (fromEnv) return fromEnv;
+
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     const fromStore = valid(stored);
@@ -68,9 +72,6 @@ export function resolveFlavorId(reg) {
   } catch (_) {
     /* ignore */
   }
-
-  const fromEnv = valid(import.meta.env.VITE_FLAVOR);
-  if (fromEnv) return fromEnv;
 
   try {
     const host = (location.hostname || "").toLowerCase();
