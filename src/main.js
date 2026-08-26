@@ -95,6 +95,9 @@ const I18N = {
     "ctx.searching": 'Buscando "{term}" em {provider}',
     "ctx.opening": "Abrindo {provider}…",
     "ctx.loading": "Carregando…",
+    "ctx.hintTitle": "Como consultar",
+    "ctx.hintBody":
+      "Selecione um trecho no painel Leia e toque num provedor acima (Luz, Enciclopédia, Dicionário…). Também pode seguir um link no texto — a consulta abre aqui ao lado.",
     "notes.hypo": "Anotações",
     "notes.hint":
       "Notas abrem na barra lateral do Hypothesis (ícone no canto).",
@@ -120,7 +123,8 @@ const I18N = {
     "help.heading": "Começar",
     "help.s1": "Abra um livro na biblioteca.",
     "help.s2": "Leia no centro; anote com o Hypothesis.",
-    "help.s3": "Em tela larga, consulte fontes à direita.",
+    "help.s3":
+      "Em tela larga, selecione um trecho e consulte fontes à direita.",
     "help.s4":
       "Sumário e busca no painel esquerdo (ou abas dobradas na faixa principal).",
     "help.tagline": "annotate to assimilate",
@@ -244,6 +248,9 @@ const I18N = {
     "ctx.searching": 'Searching for "{term}" on {provider}',
     "ctx.opening": "Opening {provider}…",
     "ctx.loading": "Loading…",
+    "ctx.hintTitle": "How to consult",
+    "ctx.hintBody":
+      "Select a passage in the Read pane and tap a provider above (Luz, Encyclopedia, Dictionary…). You can also follow an in-text link — the result opens here beside the book.",
     "notes.hypo": "Hypothesis",
     "notes.hint": "Notes open in the Hypothesis sidebar (corner control).",
     "notes.off": "Hypothesis disabled in this build.",
@@ -268,7 +275,8 @@ const I18N = {
     "help.heading": "Get started",
     "help.s1": "Open a book from the library.",
     "help.s2": "Read in the center; annotate with Hypothesis.",
-    "help.s3": "On wide screens, consult sources on the right.",
+    "help.s3":
+      "On wide screens, select a passage and consult sources on the right.",
     "help.s4":
       "TOC and search live in the left pane (or folded tabs on the main strip).",
     "help.tagline": "annotate to assimilate",
@@ -812,7 +820,7 @@ const VIEWPORT_STEPS = [
   { key: "tablet", cards: [2, 3] },
   { key: "mobile", cards: [2] },
 ];
-const VIEWPORT_HOLD_MS = 1600;
+const VIEWPORT_HOLD_MS = 2400;
 let viewportStep = 0;
 let viewportTimer = null;
 let viewportRunning = false;
@@ -922,7 +930,13 @@ function startViewportAnim() {
   // Wait for onboard to become visible + reflow after unhiding
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
+      if (!viewportRunning) return;
       kick();
+      /* Clear any stray interval (openOnboard + setOnboardStep can both start) */
+      if (viewportTimer) {
+        clearInterval(viewportTimer);
+        viewportTimer = null;
+      }
       viewportTimer = setInterval(() => {
         if (!viewportRunning || viewportPaused) return;
         /* One cycle only: stop on last device (Mobile), then invite How to */
@@ -945,6 +959,7 @@ function stopViewportAnim() {
     clearInterval(viewportTimer);
     viewportTimer = null;
   }
+  syncOnboardTransport();
 }
 
 function setViewportPaused(paused) {
@@ -989,7 +1004,8 @@ function setView(name) {
     clearTimeout(hypoTimer);
     hypoTimer = null;
   }
-  stopViewportAnim();
+  /* Boot applyRoute → setView("library") must not kill Device onboard anim */
+  if (!isOnboardOpen()) stopViewportAnim();
   syncChromeBar();
 }
 
@@ -2329,10 +2345,19 @@ function setCtxLoading(on, opts = {}) {
   }
 }
 
+function setCtxHintVisible(on) {
+  const hint = document.getElementById("ctx-hint");
+  if (hint) {
+    hint.hidden = !on;
+    hint.setAttribute("aria-hidden", on ? "false" : "true");
+  }
+}
+
 function loadCtx(url, { push = true, term = "", provider = "" } = {}) {
   if (isStudyReduced()) return;
   const frame = ctxEl();
   if (!frame || !url) return;
+  setCtxHintVisible(false);
 
   /* OSM search UI cannot run in iframe — open externally + show embed if we have one */
   if (isMapUrl(url) && !isEmbeddableMapUrl(url)) {
@@ -3245,10 +3270,10 @@ function onboardTransportTogglePause() {
     }
     setHowPaused(!howPaused);
   } else {
-    /* After Device finished on Mobile, play = restart Device */
+    /* Dead anim (boot race) or finished on Mobile → restart Device cycle */
     if (
-      viewportPaused &&
-      viewportStep >= VIEWPORT_STEPS.length - 1
+      !viewportRunning ||
+      (viewportPaused && viewportStep >= VIEWPORT_STEPS.length - 1)
     ) {
       clearHowToInvite();
       startViewportAnim();
@@ -3289,8 +3314,9 @@ function openOnboard() {
     requestAnimationFrame(() => {
       el.classList.add("is-open");
       if (scrim) scrim.classList.add("is-open");
+      /* Relayout only — setOnboardStep already started the Device cycle */
       syncViewportRatio();
-      startViewportAnim();
+      if (viewportRunning) applyViewportStep(viewportStep);
     });
   });
 }
