@@ -26,7 +26,7 @@ const LANG_KEY = "librus-lang";
 const ONBOARD_DISMISS_KEY = "librus-onboard-dismiss";
 /** Below this width: study gate blocks until the viewport is larger. */
 const STUDY_REDUCED_MAX_W = 920;
-const APP_VERSION = "0.9.0";
+const APP_VERSION = "0.9.1";
 
 const I18N = {
   pt: {
@@ -411,6 +411,8 @@ const bookEl = () => document.getElementById("book");
 const tocEl = () => document.getElementById("toc");
 const hitsEl = () => document.getElementById("hits");
 const ctxEl = () => document.getElementById("ctx");
+
+/* ── I18n / chrome bar / theme / lang ───────────── */
 
 function t(key) {
   const pack = I18N[currentLang] || I18N.pt;
@@ -802,7 +804,7 @@ function watchSystemTheme() {
   else if (typeof mq.addListener === "function") mq.addListener(onChange);
 }
 
-/* ── Onboard viewport animation ──────────────────── */
+/* ── Onboard: Device viewport animation ──────────── */
 
 const VIEWPORT_STEPS = [
   { key: "desktop", cards: [1, 2, 3, 4] },
@@ -955,6 +957,8 @@ function setViewportPaused(paused) {
   }
   syncOnboardTransport();
 }
+
+/* ── Routing / views ────────────────────────────── */
 
 function setView(name) {
   /* Only library + reader remain as full screens */
@@ -1729,7 +1733,7 @@ function toggleLinkProvider(key) {
   }
 }
 
-/* ── Catalog / books ─────────────────────────────── */
+/* ── Catalog / books / in-book search ────────────── */
 
 let catalogLoadPromise = null;
 
@@ -2847,7 +2851,7 @@ function wire() {
   }
 }
 
-/* ── First-visit onboard (Where → How) ───────────── */
+/* ── Onboard: open / close / Device|How to chrome ─ */
 
 /** Closed this session (skip/X/done) — may still reappear next visit. */
 let onboardSessionDone = false;
@@ -2881,7 +2885,7 @@ function onboardPersistChecked() {
   return !!document.getElementById("onboard-persist")?.checked;
 }
 
-/* ── How step: sequential card reveal + cursor ───── */
+/* ── Onboard: How to reveal + cursor ─────────────── */
 
 let howRevealTimer = null;
 let howRevealGen = 0;
@@ -3499,7 +3503,7 @@ function closeAllDrawers() {
   }
 }
 
-/* ── Study surface gate (narrow = reduced mode) ──── */
+/* ── Study size gate (blocking narrow viewport) ─── */
 
 /** True when multi-pane active study (incl. simultaneous consult) is not viable. */
 function isStudyConstrained() {

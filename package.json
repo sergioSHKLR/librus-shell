@@ -1,6 +1,6 @@
 {
   "name": "librus-shell",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": true,
   "type": "module",
   "description": "LIBRUS shell — lean multi-flavor reader (librus.app · doutrina.org · centers)",
