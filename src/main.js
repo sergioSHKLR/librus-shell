@@ -97,7 +97,7 @@ const I18N = {
     "ctx.loading": "Carregando…",
     "ctx.hintTitle": "Como consultar",
     "ctx.hintBody":
-      "Selecione um trecho no painel Leia e toque num provedor acima (Luz, Enciclopédia, Dicionário…). Também pode seguir um link no texto — a consulta abre aqui ao lado.",
+      "Selecione um termo no painel Leia e clique num provedor acima (Luz Espírita, Enciclopédia, Dicionário, etc). Também pode usar um link existente — a consulta abre neste painel.",
     "notes.hypo": "Anotações",
     "notes.hint":
       "Notas abrem na barra lateral do Hypothesis (ícone no canto).",
@@ -135,7 +135,7 @@ const I18N = {
     "onboard.title": "Onde você estuda",
     "onboard.titleHow": "Como estudar",
     "onboard.whereBody":
-      "Quatro painéis coloridos. Em telas menores, o contorno mostra o que cabe: desktop → laptop → tablet → mobile.",
+      "Quatro painéis. O contorno mostra o que cabe: desktop → notebook → tablet (bloqueado) → celular (bloqueado).",
     "onboard.howBody":
       "Cursor: Ache → link ipsum → Consulte (foco) → selecione o 2º ipsum → Anote.",
     "onboard.find": "Sumário e busca no livro.",
@@ -146,12 +146,40 @@ const I18N = {
     "onboard.desktop": "Desktop",
     "onboard.laptop": "Notebook",
     "onboard.tablet": "Tablet",
+    "onboard.tabletBlocked": "Tablet (Bloqueado)",
     "onboard.mobile": "Celular",
+    "onboard.mobileBlocked": "Celular (Bloqueado)",
     "onboard.persist": "Não mostrar de novo",
     "onboard.mode.device": "Dispositivo",
     "onboard.mode.how": "Como usar",
     "onboard.play": "Reproduzir",
     "onboard.pause": "Pausar",
+    "onboard.reload": "Reiniciar",
+    "onboard.enter": "Entrar",
+    "onboard.cap.desktop":
+      "Ache, Leia, Consulte e Anote, uso amplo de todas as ferramentas.",
+    "onboard.cap.laptop": "Ache é escamoteado. Uso ainda produtivo.",
+    "onboard.cap.tabletBlocked":
+      "Bloqueado (modo pé). Em versões futuras, um modo reduzido será oferecido.",
+    "onboard.cap.mobileBlocked":
+      "Bloqueado (modos pé e deitado). Em versões futuras, um modo reduzido será oferecido.",
+    "onboard.cap.deviceDone":
+      "Clique em [Como usar], ou [Entrar] para estudar.",
+    "onboard.cap.howStart": "Ache o capítulo no sumário à esquerda.",
+    "onboard.cap.howToc":
+      "Clique no item — a seção abre no painel à direita.",
+    "onboard.cap.howSelectSearch":
+      "Selecione um termo no texto para consultar.",
+    "onboard.cap.howProvider":
+      "Clique num provedor — a consulta abre ao lado.",
+    "onboard.cap.howLink":
+      "Um link no texto também abre a consulta ao lado.",
+    "onboard.cap.howConsult":
+      "A fonte fica ao lado da leitura — sem trocar de tela.",
+    "onboard.cap.howSelectAnnotate":
+      "Selecione um trecho para grifar ou anotar.",
+    "onboard.cap.howNote": "A nota aparece na aba da direita.",
+    "onboard.cap.howDone": "Pronto — Entrar para estudar de verdade.",
     "set.jitsi": "Videoconferência (JaaS)",
     "set.jitsiAppId": "App ID (8x8 JaaS)",
     "set.jitsiRoom": "Sala",
@@ -250,7 +278,7 @@ const I18N = {
     "ctx.loading": "Loading…",
     "ctx.hintTitle": "How to consult",
     "ctx.hintBody":
-      "Select a passage in the Read pane and tap a provider above (Luz, Encyclopedia, Dictionary…). You can also follow an in-text link — the result opens here beside the book.",
+      "Select a term in the Read pane and click a provider above (Luz Espírita, Encyclopedia, Dictionary, etc). You can also use an existing link — the result opens in this pane.",
     "notes.hypo": "Hypothesis",
     "notes.hint": "Notes open in the Hypothesis sidebar (corner control).",
     "notes.off": "Hypothesis disabled in this build.",
@@ -287,7 +315,7 @@ const I18N = {
     "onboard.title": "Where you study",
     "onboard.titleHow": "How to study",
     "onboard.whereBody":
-      "Four colored panes. On smaller screens the outline shows what fits: desktop → laptop → tablet → mobile.",
+      "Four panes. The outline shows what fits: desktop → laptop → tablet (blocked) → mobile (blocked).",
     "onboard.howBody":
       "Cursor: Find → ipsum link → Consult (focus) → select the 2nd ipsum → Annotate.",
     "onboard.find": "Contents and in-book search.",
@@ -298,12 +326,39 @@ const I18N = {
     "onboard.desktop": "Desktop",
     "onboard.laptop": "Laptop",
     "onboard.tablet": "Tablet",
+    "onboard.tabletBlocked": "Tablet (Blocked)",
     "onboard.mobile": "Mobile",
+    "onboard.mobileBlocked": "Mobile (Blocked)",
     "onboard.persist": "Don’t show again",
     "onboard.mode.device": "Device",
     "onboard.mode.how": "How to",
     "onboard.play": "Play",
     "onboard.pause": "Pause",
+    "onboard.reload": "Reload",
+    "onboard.enter": "Enter",
+    "onboard.cap.desktop":
+      "Find, Read, Consult and Annotate, ample use of all tools.",
+    "onboard.cap.laptop": "Find is hidden. Usage not compromised.",
+    "onboard.cap.tabletBlocked":
+      "Blocked (portrait). Future versions will offer a limited mode.",
+    "onboard.cap.mobileBlocked":
+      "Blocked (portrait and landscape). Future versions will offer a limited mode.",
+    "onboard.cap.deviceDone": "click on [How to], or [Enter] to study.",
+    "onboard.cap.howStart": "Find chapter or search book text.",
+    "onboard.cap.howToc":
+      "Choose an item — it opens in the panel to the right.",
+    "onboard.cap.howSelectSearch":
+      "Select a term in the text to look it up.",
+    "onboard.cap.howProvider":
+      "Click a provider — results open beside the reading.",
+    "onboard.cap.howLink":
+      "An in-text link also opens consult beside the reading.",
+    "onboard.cap.howConsult":
+      "The source sits beside the reading — no screen switch.",
+    "onboard.cap.howSelectAnnotate":
+      "Select a passage to highlight or annotate it.",
+    "onboard.cap.howNote": "The note appears in the right margin sidebar.",
+    "onboard.cap.howDone": "Done — Enter to study for real.",
     "set.jitsi": "Video conference (JaaS)",
     "set.jitsiAppId": "App ID (8x8 JaaS)",
     "set.jitsiRoom": "Room",
@@ -388,6 +443,12 @@ let currentTheme = "light";
 let currentBook = null;
 let currentSlug = "";
 let pageIndex = 0;
+/**
+ * PDF folio list for single-blob books with in-body page anchors
+ * (pages.json → #page-N / .pdf-page-start). Empty = not folio-paged.
+ * @type {number[]}
+ */
+let folioPages = [];
 let fontSize = 1;
 let lineHeight = 1.65;
 let measure = "medium";
@@ -815,10 +876,11 @@ function watchSystemTheme() {
 /* ── Onboard: Device viewport animation ──────────── */
 
 const VIEWPORT_STEPS = [
-  { key: "desktop", cards: [1, 2, 3, 4] },
-  { key: "laptop", cards: [2, 3, 4] },
-  { key: "tablet", cards: [2, 3] },
-  { key: "mobile", cards: [2] },
+  { key: "desktop", cards: [1, 2, 3, 4], blocked: false },
+  { key: "laptop", cards: [2, 3, 4], blocked: false },
+  /* Narrow / tablet+phone: outline what would fit, but greyed — real gate blocks study */
+  { key: "tablet", cards: [2, 3], blocked: true },
+  { key: "mobile", cards: [2], blocked: true },
 ];
 const VIEWPORT_HOLD_MS = 2400;
 let viewportStep = 0;
@@ -838,15 +900,17 @@ function syncViewportRatio() {
 
 /**
  * @param {number[]} cardNums
- * @param {{ snap?: boolean }} [opts] snap: skip size tween (initial Desktop)
+ * @param {{ snap?: boolean, blocked?: boolean }} [opts]
  */
 function layoutViewportFrame(cardNums, opts = {}) {
   const stage = document.getElementById("cards-stage");
   const frame = document.getElementById("viewport-frame");
   const deviceLabel = document.getElementById("viewport-label-device");
   const cardsRoot = document.getElementById("cards");
+  const onboard = document.getElementById("onboard");
   if (!stage || !frame || !cardsRoot) return false;
 
+  const blocked = !!opts.blocked;
   const articles = [...cardsRoot.querySelectorAll("[data-card]")];
   const active = articles.filter((el) =>
     cardNums.includes(Number(el.dataset.card)),
@@ -856,9 +920,11 @@ function layoutViewportFrame(cardNums, opts = {}) {
   const stageBox = stage.getBoundingClientRect();
   /* Onboard not visible / zero layout yet */
   if (stageBox.width < 4 || stageBox.height < 4) {
-    frame.classList.remove("is-on");
+    frame.classList.remove("is-on", "is-blocked");
     return false;
   }
+
+  if (onboard) onboard.dataset.viewport = blocked ? "blocked" : "fit";
 
   let minL = Infinity;
   let minT = Infinity;
@@ -892,24 +958,44 @@ function layoutViewportFrame(cardNums, opts = {}) {
   frame.style.width = maxR - minL + pad * 2 + "px";
   frame.style.height = maxB - minT + pad * 2 + "px";
   frame.classList.add("is-on");
+  frame.classList.toggle("is-blocked", blocked);
   if (snap) {
     /* Force reflow so later steps still animate */
     void frame.offsetWidth;
     frame.classList.remove("no-motion");
   }
 
+  /*
+   * Outside the outline: always greyed.
+   * Inside the outline: greyed too when this viewport is blocked (tablet/mobile).
+   */
   articles.forEach((el) => {
     const n = Number(el.dataset.card);
-    el.classList.toggle("out", !cardNums.includes(n));
+    const inViewport = cardNums.includes(n);
+    el.classList.toggle("out", blocked || !inViewport);
   });
 
   if (deviceLabel) {
     const step = VIEWPORT_STEPS.find((s) => s.cards.join() === cardNums.join());
-    const key = step ? "onboard." + step.key : "onboard.desktop";
+    let key = "onboard.desktop";
+    if (step) {
+      key =
+        step.blocked && (step.key === "tablet" || step.key === "mobile")
+          ? "onboard." + step.key + "Blocked"
+          : "onboard." + step.key;
+    }
     deviceLabel.setAttribute("data-i18n", key);
     deviceLabel.textContent = t(key);
   }
   return true;
+}
+
+/** Sync caption under the cards (Device / How-to narration, text-only). */
+function setOnboardCaption(key) {
+  const el = document.getElementById("onboard-caption");
+  if (!el || !key) return;
+  el.setAttribute("data-i18n", key);
+  el.textContent = t(key);
 }
 
 function applyViewportStep(index, opts = {}) {
@@ -917,11 +1003,22 @@ function applyViewportStep(index, opts = {}) {
     ((index % VIEWPORT_STEPS.length) + VIEWPORT_STEPS.length) %
     VIEWPORT_STEPS.length;
   const step = VIEWPORT_STEPS[viewportStep];
-  return layoutViewportFrame(step.cards, opts);
+  const ok = layoutViewportFrame(step.cards, {
+    ...opts,
+    blocked: !!step.blocked,
+  });
+  if (ok) {
+    const capKey = step.blocked
+      ? "onboard.cap." + step.key + "Blocked"
+      : "onboard.cap." + step.key;
+    setOnboardCaption(capKey);
+  }
+  return ok;
 }
 
 function inviteHowToPill() {
   document.getElementById("onboard-mode-how")?.classList.add("is-invite");
+  setOnboardCaption("onboard.cap.deviceDone");
 }
 
 function clearHowToInvite() {
@@ -959,7 +1056,7 @@ function startViewportAnim() {
     }
     viewportTimer = setInterval(() => {
       if (!viewportRunning || viewportPaused) return;
-      /* One cycle only: stop on last device (Mobile), then invite How to */
+      /* One cycle only: stop on last step (Mobile blocked), then invite How to */
       if (viewportStep >= VIEWPORT_STEPS.length - 1) {
         setViewportPaused(true);
         inviteHowToPill();
@@ -1080,6 +1177,8 @@ function setView(name) {
     /* ignore */
   }
   if (name === "reader") {
+    /* Soft-close onboard — don’t mark done; it can return on Library */
+    if (isOnboardOpen()) closeOnboard();
     scheduleHypothesis();
     try {
       hydrateIcons(document.getElementById("reader"));
@@ -1090,8 +1189,17 @@ function setView(name) {
     clearTimeout(hypoTimer);
     hypoTimer = null;
   }
-  /* Boot applyRoute → setView("library") must not kill Device onboard anim */
+  /* Boot applyRoute → setView("library") must not kill an open How-to anim */
   if (!isOnboardOpen()) stopViewportAnim();
+  /* Back on Library with first-visit still pending */
+  if (
+    name === "library" &&
+    shouldOfferOnboard() &&
+    !isOnboardOpen() &&
+    !isStudyConstrained()
+  ) {
+    requestAnimationFrame(() => openOnboard());
+  }
   syncChromeBar();
 }
 
@@ -1163,7 +1271,15 @@ async function applyRoute() {
 /** Load book, paint TOC + page, set reader chrome — single path for open + route */
 async function enterReader(slug, page = 0) {
   await loadBook(slug);
-  pageIndex = Math.max(0, Math.min((currentBook.pages?.length || 1) - 1, page));
+  if (isFolioPaged()) {
+    /* URL page is 0-based; +1 = PDF folio number from pages.json */
+    pageIndex = folioIndexForNumber(page + 1);
+  } else {
+    pageIndex = Math.max(
+      0,
+      Math.min((currentBook.pages?.length || 1) - 1, page),
+    );
+  }
   setView("reader");
   setMode("find", "toc");
   setMode("read", "typo");
@@ -1908,6 +2024,61 @@ function renderLibrary() {
   });
 }
 
+async function loadFolioPages(id) {
+  folioPages = [];
+  if (!id) return;
+  try {
+    const res = await fetch("/books/" + id + "/pages.json", {
+      cache: "no-cache",
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const list = Array.isArray(data?.pages) ? data.pages : [];
+    folioPages = list
+      .map((n) => Number(n))
+      .filter((n) => Number.isFinite(n) && n > 0);
+  } catch (_) {
+    folioPages = [];
+  }
+}
+
+function isFolioPaged() {
+  return folioPages.length > 1;
+}
+
+function isHardPages() {
+  const pages = currentBook?.pages || [];
+  return pages.length > 1 || currentBook?.paged === true || isFolioPaged();
+}
+
+function scrollToFolio(folioNum, { smooth = false } = {}) {
+  const root = bookEl();
+  if (!root || !folioNum) return;
+  const sel =
+    "#page-" +
+    CSS.escape(String(folioNum)) +
+    ', .pdf-page-start[data-page="' +
+    CSS.escape(String(folioNum)) +
+    '"]';
+  const target = root.querySelector(sel);
+  /* auto: large jumps (e.g. 3→100) finish reliably; smooth optional for ±1 */
+  target?.scrollIntoView({
+    block: "start",
+    behavior: smooth ? "smooth" : "auto",
+  });
+}
+
+function folioIndexForNumber(folioNum) {
+  const n = Number(folioNum);
+  let idx = folioPages.indexOf(n);
+  if (idx >= 0) return idx;
+  /* Nearest folio at or before n */
+  for (let i = folioPages.length - 1; i >= 0; i--) {
+    if (folioPages[i] <= n) return i;
+  }
+  return 0;
+}
+
 async function loadBook(slug) {
   let id = slug || currentSlug;
   if (!id) throw new Error("no book id");
@@ -1920,6 +2091,7 @@ async function loadBook(slug) {
   if (BOOK_CACHE[id]) {
     currentBook = BOOK_CACHE[id];
     currentSlug = id;
+    await loadFolioPages(id);
     return currentBook;
   }
   const entry =
@@ -1932,6 +2104,7 @@ async function loadBook(slug) {
   BOOK_CACHE[id] = book;
   currentBook = book;
   currentSlug = id;
+  await loadFolioPages(id);
   return book;
 }
 
@@ -2009,22 +2182,52 @@ function renderPage() {
     return;
   }
   const pages = currentBook.pages || [];
-  const page = pages[pageIndex] || pages[0];
+  const folioMode = isFolioPaged();
+  const page = folioMode
+    ? pages[0] || pages[pageIndex]
+    : pages[pageIndex] || pages[0];
   const html = page?.html || page?.body || "";
-  el.innerHTML =
-    html ||
-    "<p class='chrome-hint'>" +
-      (currentLang === "en" ? "Empty page." : "Página vazia.") +
-      "</p>";
+
+  if (folioMode) {
+    /* Keep one blob mounted; only re-inject when switching books */
+    if (el.dataset.folioBook !== currentSlug) {
+      el.innerHTML =
+        html ||
+        "<p class='chrome-hint'>" +
+          (currentLang === "en" ? "Empty page." : "Página vazia.") +
+          "</p>";
+      el.dataset.folioBook = currentSlug || "";
+    }
+  } else {
+    delete el.dataset.folioBook;
+    el.innerHTML =
+      html ||
+      "<p class='chrome-hint'>" +
+        (currentLang === "en" ? "Empty page." : "Página vazia.") +
+        "</p>";
+  }
+
   const input = document.getElementById("page-n");
   const total = document.getElementById("page-total");
-  if (input) {
-    input.value = String(pageIndex + 1);
-    input.max = String(Math.max(1, pages.length));
+  const hardPages = isHardPages();
+  if (folioMode) {
+    const folio = folioPages[pageIndex] || folioPages[0] || 1;
+    const folioMax = folioPages[folioPages.length - 1] || folio;
+    if (input) {
+      input.value = String(folio);
+      input.min = String(folioPages[0] || 1);
+      input.max = String(folioMax);
+    }
+    if (total) total.textContent = "/ " + folioMax;
+  } else {
+    if (input) {
+      input.value = String(pageIndex + 1);
+      input.min = "1";
+      input.max = String(Math.max(1, pages.length));
+    }
+    if (total) total.textContent = "/ " + Math.max(1, pages.length);
   }
-  if (total) total.textContent = "/ " + Math.max(1, pages.length);
-  /* Hard pages only — single HTML blob books hide the whole ‹ n / X › cluster */
-  const hardPages = pages.length > 1 || currentBook?.paged === true;
+  /* Hard pages OR folio-anchored blob — show ‹ n / X › cluster */
   document.querySelectorAll("[data-page-nav]").forEach((nav) => {
     nav.hidden = !hardPages;
     nav.classList.toggle("is-disabled", !hardPages);
@@ -2035,11 +2238,29 @@ function renderPage() {
   });
   if (input) input.disabled = !hardPages;
   document.body.dataset.hardPages = hardPages ? "1" : "0";
+  document.body.dataset.folioPages = folioMode ? "1" : "0";
   applyTypography();
   applyLinkFilters();
+  if (folioMode) {
+    const folio = folioPages[pageIndex] || folioPages[0];
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => scrollToFolio(folio));
+    });
+  }
 }
 
 function goToPage(index) {
+  if (isFolioPaged()) {
+    if (index < 0 || index >= folioPages.length) return;
+    pageIndex = index;
+    const folio = folioPages[pageIndex];
+    renderPage();
+    navigate(pathFor("reader", { slug: currentSlug, page: folio - 1 }), {
+      replace: true,
+      skip: true,
+    });
+    return;
+  }
   const pages = currentBook?.pages || [];
   if (index < 0 || index >= pages.length) return;
   pageIndex = index;
@@ -2797,7 +3018,9 @@ function wire() {
 
   document.getElementById("page-n")?.addEventListener("change", function () {
     const n = parseInt(this.value, 10);
-    if (n >= 1) goToPage(n - 1);
+    if (!(n >= 1)) return;
+    if (isFolioPaged()) goToPage(folioIndexForNumber(n));
+    else goToPage(n - 1);
   });
 
   function syncInputClear(inputId) {
@@ -2987,6 +3210,10 @@ function shouldOfferOnboard() {
   return !isOnboardDismissed() && !onboardSessionDone;
 }
 
+function isLibraryView() {
+  return (document.body.dataset.view || "library") === "library";
+}
+
 function isOnboardOpen() {
   const el = document.getElementById("onboard");
   return !!(el && el.classList.contains("is-open") && !el.hidden);
@@ -3055,16 +3282,27 @@ function howHitEl(n, aim = "center") {
   if (aim === "header") return card.querySelector(".onboard-card-head");
   if (aim === "toc") return card.querySelector('[data-how-hit="toc"]');
   if (aim === "link") return card.querySelector('[data-how-hit="link"]');
-  if (aim === "select" || aim === "body")
-    return card.querySelector('[data-how-hit="select"]');
-  if (aim === "article") return card.querySelector('[data-how-hit="article"]');
+  if (aim === "select" || aim === "select-search" || aim === "body")
+    return (
+      card.querySelector('[data-how-hit="select-search"]') ||
+      card.querySelector('[data-how-hit="select"]')
+    );
+  if (aim === "select-annotate")
+    return card.querySelector('[data-how-hit="select-annotate"]');
+  if (aim === "provider")
+    return card.querySelector('[data-how-hit="provider"]');
+  if (aim === "article")
+    return (
+      card.querySelector(".how-consult-result:not([hidden])") ||
+      card.querySelector('[data-how-hit="article"]')
+    );
   if (aim === "note") return card.querySelector('[data-how-hit="note"]');
   return card.querySelector("[data-how-hit]") || card;
 }
 
 /**
  * @param {number} n 1..4
- * @param {'center'|'header'|'toc'|'link'|'select'|'article'|'note'|'body'} [aim]
+ * @param {'center'|'header'|'toc'|'link'|'select'|'select-search'|'select-annotate'|'provider'|'article'|'note'|'body'} [aim]
  */
 function howCardPoint(n, aim = "center") {
   const stage = document.getElementById("cards-stage");
@@ -3080,6 +3318,22 @@ function howCardPoint(n, aim = "center") {
 function clearHowHitChrome() {
   document.querySelectorAll(".onboard-mock-hit").forEach((el) => {
     el.classList.remove("is-click", "is-selected");
+  });
+}
+
+/** Consulte mock: show search («termo») or link («ipsum») result card. */
+function setHowConsultResult(kind) {
+  const card = document.querySelector('#cards [data-card="3"]');
+  if (!card) return;
+  card.querySelectorAll("[data-how-result]").forEach((el) => {
+    const on = el.getAttribute("data-how-result") === kind;
+    el.hidden = !on;
+  });
+}
+
+function clearHowConsultResult() {
+  document.querySelectorAll("#cards [data-how-result]").forEach((el) => {
+    el.hidden = true;
   });
 }
 
@@ -3118,6 +3372,7 @@ function lightHowCard(n) {
 
 function blankAllHowCards() {
   clearHowHitChrome();
+  clearHowConsultResult();
   document.querySelectorAll("#cards [data-card]").forEach((card) => {
     card.classList.add("is-blank");
     card.classList.remove("is-lit", "is-click", "out");
@@ -3126,10 +3381,10 @@ function blankAllHowCards() {
 
 /**
  * @param {number} gen
- * @param {number} ms
+ * @param {number} ms base duration — scaled 25% slower for readability
  */
 async function howWait(gen, ms) {
-  let left = ms;
+  let left = Math.round(ms * 1.25);
   while (left > 0) {
     if (gen !== howRevealGen) return false;
     while (howPaused) {
@@ -3225,31 +3480,58 @@ async function runHowRevealLoop(gen) {
   cursor.hidden = true;
   cursor.classList.remove("is-press");
   setHowCursorMode("pointer");
+  setOnboardCaption("onboard.cap.howStart");
   if (!(await howWait(gen, 350))) return;
 
-  /* 1 · Ache lights on its own (TOC visible) */
+  /* 1 · Ache lights (TOC visible) */
   lightHowCard(1);
+  setOnboardCaption("onboard.cap.howStart");
   if (!(await howWait(gen, 700))) return;
 
-  /* click Ipsum TOC → light #2 */
+  /* 1 click TOC → light #2 */
+  setOnboardCaption("onboard.cap.howToc");
   if (!(await howCursorClickReveal(gen, 1, 2, "link", "toc"))) return;
 
-  /* click ipsum link in #2 → light #3 (article) */
-  if (!(await howCursorClickReveal(gen, 2, 3, "link", "link"))) return;
+  /* 2 select term (select-to-search) */
+  setOnboardCaption("onboard.cap.howSelectSearch");
+  if (!(await howCursorClickReveal(gen, 2, null, "text", "select-search")))
+    return;
 
-  /* travel to #3 (focus only — no click), then back to #2 */
+  /* 3 click provider → Consulte lights + «termo» article (any provider) */
+  lightHowCard(3);
+  setOnboardCaption("onboard.cap.howProvider");
+  if (!(await howCursorClickReveal(gen, 3, null, "pointer", "provider")))
+    return;
+  setHowConsultResult("termo");
+  if (!(await howWait(gen, 500))) return;
+
+  /* 2 link → consult via existing link; article becomes «ipsum» */
+  clearHowHitChrome();
+  setOnboardCaption("onboard.cap.howLink");
+  if (!(await howCursorClickReveal(gen, 2, null, "link", "link"))) return;
+  setHowConsultResult("ipsum");
+
+  /* 3 focus ipsum article */
+  setOnboardCaption("onboard.cap.howConsult");
   if (!(await howCursorMoveTo(gen, 3, "pointer", "article"))) return;
   if (!(await howWait(gen, 500))) return;
 
-  /* text-select second ipsum in #2 → light #4 note */
-  if (!(await howCursorClickReveal(gen, 2, 4, "text", "select"))) return;
+  /* 2 select-to-annotate → light #4 */
+  clearHowHitChrome();
+  setOnboardCaption("onboard.cap.howSelectAnnotate");
+  if (
+    !(await howCursorClickReveal(gen, 2, 4, "text", "select-annotate"))
+  )
+    return;
 
-  /* settle on note in #4 */
+  /* 4 note */
+  setOnboardCaption("onboard.cap.howNote");
   if (!(await howCursorMoveTo(gen, 4, "pointer", "note"))) return;
 
   /* One cycle only — pause on final frame */
   if (gen !== howRevealGen) return;
   if (!(await howWait(gen, 800))) return;
+  setOnboardCaption("onboard.cap.howDone");
   setHowPaused(true);
 }
 
@@ -3262,6 +3544,7 @@ function startHowRevealAnim() {
   waiters.forEach((fn) => fn());
   const myGen = howRevealGen;
   blankAllHowCards();
+  setOnboardCaption("onboard.cap.howStart");
   const cursor = document.getElementById("how-cursor");
   if (cursor) {
     cursor.hidden = true;
@@ -3314,25 +3597,46 @@ function setOnboardStep(step) {
   } else {
     stopViewportAnim();
     const frame = document.getElementById("viewport-frame");
-    if (frame) frame.classList.remove("is-on");
+    if (frame) frame.classList.remove("is-on", "is-blocked");
+    delete el.dataset.viewport;
     startHowRevealAnim();
   }
   syncOnboardTransport();
 }
 
 /** Sync play/pause glyphs, and Viewport | How to pill. */
+function isViewportCycleDone() {
+  return (
+    viewportPaused &&
+    viewportRunning &&
+    viewportStep >= VIEWPORT_STEPS.length - 1
+  );
+}
+
+function isHowCycleDone() {
+  if (!howPaused) return false;
+  const lit = document.querySelectorAll("#cards [data-card].is-lit").length;
+  return lit >= 4;
+}
+
 function syncOnboardTransport() {
   const el = document.getElementById("onboard");
   const play = document.getElementById("onboard-play");
   if (!el || !play) return;
 
   const step = el.dataset.step === "how" ? "how" : "where";
-
   const paused = step === "where" ? viewportPaused : howPaused;
-  play.classList.toggle("is-playing", !paused);
-  play.classList.toggle("is-paused", paused);
-  /* Icons flip via CSS (.is-playing / .is-paused) — one visible at a time */
-  const ariaKey = paused ? "onboard.play" : "onboard.pause";
+  const done = step === "where" ? isViewportCycleDone() : isHowCycleDone();
+
+  /* Pause while running · Play while mid-pause · Reload after a finished cycle */
+  play.classList.toggle("is-playing", !paused && !done);
+  play.classList.toggle("is-paused", paused && !done);
+  play.classList.toggle("is-reload", done);
+  const ariaKey = done
+    ? "onboard.reload"
+    : paused
+      ? "onboard.play"
+      : "onboard.pause";
   play.setAttribute("data-i18n-aria", ariaKey);
   play.setAttribute("aria-label", t(ariaKey));
 
@@ -3346,21 +3650,15 @@ function onboardTransportTogglePause() {
   const el = document.getElementById("onboard");
   if (!el) return;
   if (el.dataset.step === "how") {
-    /* After a finished cycle, play = restart How to */
-    if (howPaused && !document.getElementById("how-cursor")?.hidden) {
-      const allLit = document.querySelectorAll("#cards [data-card].is-lit").length;
-      if (allLit >= 4) {
-        startHowRevealAnim();
-        return;
-      }
+    /* Finished cycle → reload How to */
+    if (isHowCycleDone()) {
+      startHowRevealAnim();
+      return;
     }
     setHowPaused(!howPaused);
   } else {
-    /* Dead anim (boot race) or finished on Mobile → restart Device cycle */
-    if (
-      !viewportRunning ||
-      (viewportPaused && viewportStep >= VIEWPORT_STEPS.length - 1)
-    ) {
+    /* Dead anim or finished cycle → reload Device */
+    if (!viewportRunning || isViewportCycleDone()) {
       clearHowToInvite();
       startViewportAnim();
       return;
@@ -3369,9 +3667,15 @@ function onboardTransportTogglePause() {
   }
 }
 
+function onboardEnter() {
+  dismissOnboard({ persistIfChecked: true });
+}
+
 function openOnboard() {
   const el = document.getElementById("onboard");
   if (!el || !shouldOfferOnboard()) return;
+  /* Library only — never overlay the reader */
+  if (!isLibraryView()) return;
   /* Small-screen block takes priority — onboard waits until viewport is wide */
   if (isStudyConstrained()) return;
 
@@ -3393,16 +3697,14 @@ function openOnboard() {
     scrim.hidden = false;
     scrim.classList.remove("is-closing");
   }
-  setOnboardStep("where");
+  /* How to only — Device cycle hid half-blocked story from first visit */
+  setOnboardStep("how");
   hydrateIcons(el);
   applyI18n();
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       el.classList.add("is-open");
       if (scrim) scrim.classList.add("is-open");
-      /* Relayout after open — startViewportAnim retries until boxes exist */
-      syncViewportRatio();
-      if (viewportRunning) applyViewportStep(viewportStep, { snap: true });
     });
   });
 }
@@ -3492,6 +3794,7 @@ function initOnboard() {
   document
     .getElementById("onboard-play")
     ?.addEventListener("click", onboardTransportTogglePause);
+  document.getElementById("onboard-enter")?.addEventListener("click", onboardEnter);
 
   el.querySelectorAll("[data-onboard-mode]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -3768,8 +4071,8 @@ function updateOrientLock() {
   if (open || !el.hidden) closeOrientGate(el);
   delete el.dataset.dismissed;
 
-  /* After the block clears, show first-visit onboard if still pending */
-  if (shouldOfferOnboard() && !isOnboardOpen()) {
+  /* After the block clears, show first-visit onboard on Library if still pending */
+  if (shouldOfferOnboard() && !isOnboardOpen() && isLibraryView()) {
     requestAnimationFrame(() => openOnboard());
   }
 }

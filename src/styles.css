@@ -64,6 +64,9 @@
   --pane-aux: #f5f5f5;
   /* In-book + sidebar current search hit */
   --hit-focus: #e67e00;
+  /* Semantic “go” — Enter CTA across all flavors (not brand accent) */
+  --go: #0a8f0a;
+  --go-fg: #fff;
 }
 
 html[data-theme="dark"] {
@@ -88,6 +91,8 @@ html[data-theme="dark"] {
   --bar: #000;
   --bar-fg: #fff;
   --accent: #62a0ea;
+  --go: #22c55e;
+  --go-fg: #fff;
   color-scheme: dark;
 }
 
@@ -1702,7 +1707,8 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
   min-width: 0;
   align-self: center;
   margin: 0;
-  padding: 0 0.5rem 0 0.15rem;
+  /* Clear air after accent home square (DOUTRINA / LIBRUS / CENTRO) */
+  padding: 0 0.5rem 0 0.85rem;
   font-family: var(--sans);
   font-size: 0.9rem;
   font-weight: 700;
@@ -1759,6 +1765,20 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
 #bar button:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: transparent;
+}
+
+/* Home → library: accent-filled square; icon in contrasting ink */
+#bar [data-go="library"] {
+  background: var(--accent);
+  color: #fff;
+  min-width: var(--ctrl-h);
+  padding: 0;
+}
+
+#bar [data-go="library"]:hover {
+  background: var(--accent);
+  color: #fff;
+  filter: brightness(1.12);
 }
 
 #bar-lang,
@@ -2129,8 +2149,8 @@ html.is-portrait-blocked #scrim.is-open {
 #onboard {
   z-index: 545;
   /* Leave clear air above the bottom chrome bar; match window aspect */
-  --onboard-max-w: 90vw;
-  --onboard-max-h: calc(100dvh - var(--chrome) - 2.75rem);
+  --onboard-max-w: 81vw; /* 90vw × 0.9 */
+  --onboard-max-h: calc((100dvh - var(--chrome) - 2.75rem) * 0.9);
   --onboard-r: var(--vp-ratio, 1.5);
   width: min(
     var(--onboard-max-w),
@@ -2345,9 +2365,21 @@ html.is-portrait-blocked #scrim.is-open {
   min-height: 0;
   overflow: auto;
   margin-top: 1.15em; /* blank line under header */
-  font-size: 0.78rem;
-  line-height: 1.4;
+  font-size: 1rem;
+  line-height: 1.45;
   color: var(--fg);
+}
+
+#onboard[data-step="how"] .onboard-filler-label {
+  font-size: 0.78rem;
+}
+
+#onboard[data-step="how"] .onboard-ipsum-article h4 {
+  font-size: 1.05rem;
+}
+
+#onboard[data-step="how"] .onboard-note strong {
+  font-size: 0.95rem;
 }
 
 .onboard-filler-label {
@@ -2395,6 +2427,31 @@ html.is-portrait-blocked #scrim.is-open {
 
 .onboard-mock-select {
   border-radius: 2px;
+}
+
+.onboard-mock-prov-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0 0 0.55rem;
+}
+
+.onboard-mock-provider {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.85em;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--fg);
+}
+
+.onboard-mock-provider.is-idle {
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .onboard-mock-hit.is-click {
@@ -2518,9 +2575,37 @@ a.onboard-mock-link {
   opacity: 1;
 }
 
+/* Tablet/Mobile blocked: keep outline, warn color, cards inside stay greyed via .out */
+#viewport-frame.is-blocked {
+  border-style: dashed;
+  border-color: #b45309;
+  background: color-mix(in srgb, #b45309 8%, transparent);
+}
+
+#viewport-frame.is-blocked #viewport-label-top,
+#viewport-frame.is-blocked #viewport-label-device {
+  color: #92400e;
+  background: var(--surface);
+}
+
+html[data-theme="dark"] #viewport-frame.is-blocked {
+  border-color: #fbbf24;
+  background: color-mix(in srgb, #fbbf24 10%, transparent);
+}
+
+html[data-theme="dark"] #viewport-frame.is-blocked #viewport-label-top,
+html[data-theme="dark"] #viewport-frame.is-blocked #viewport-label-device {
+  color: #fbbf24;
+}
+
 /* First Desktop snap: no tween from 0×0 (that looked like a hung misaligned frame) */
 #viewport-frame.no-motion {
   transition: opacity 0.2s ease !important;
+}
+
+/* Legacy full-stage block cue — unused; kept hidden */
+.viewport-blocked {
+  display: none !important;
 }
 
 #viewport-label-top,
@@ -2560,9 +2645,9 @@ a.onboard-mock-link {
   color: #111;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
   transition:
-    top 0.55s cubic-bezier(0.4, 0, 0.2, 1),
-    left 0.55s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.12s ease;
+    top 0.69s cubic-bezier(0.4, 0, 0.2, 1),
+    left 0.69s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.15s ease;
   transform: translate(-4px, -2px);
 }
 
@@ -2602,7 +2687,20 @@ a.onboard-mock-link {
   transform: translate(-10px, -14px) scale(0.85);
 }
 
+.onboard-caption {
+  margin: 0;
+  padding: 0.35rem 0.75rem 0.15rem;
+  min-height: 2.6em;
+  text-align: center;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--fg);
+  flex-shrink: 0;
+}
+
 .onboard-footer {
+  /* Persist left · transport centered · Enter extreme right */
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -2631,6 +2729,31 @@ a.onboard-mock-link {
   justify-self: center;
 }
 
+.onboard-enter {
+  grid-column: 3;
+  justify-self: end;
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: var(--go);
+  color: var(--go-fg);
+  cursor: pointer;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.onboard-enter:hover {
+  filter: brightness(1.08);
+}
+
+.onboard-enter:focus-visible {
+  outline: 2px solid var(--go);
+  outline-offset: 2px;
+}
+
 .onboard-mode-pill {
   display: inline-flex;
   align-items: stretch;
@@ -2639,6 +2762,11 @@ a.onboard-mock-link {
   overflow: visible; /* invite glow radiates past the pill */
   background: var(--pane-aux, #f0f0f0);
   flex-shrink: 0;
+}
+
+/* Author display would otherwise override the hidden attribute */
+.onboard-mode-pill[hidden] {
+  display: none !important;
 }
 
 .onboard-mode-pill > button {
@@ -2741,18 +2869,19 @@ a.onboard-mock-link {
   background: color-mix(in srgb, var(--fg) 6%, var(--surface));
 }
 
+/* Neutral transport — Enter owns the green CTA */
 .onboard-footer-center #onboard-play {
   width: 2.85rem;
   height: 2.85rem;
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--fg);
   position: relative;
 }
 
 .onboard-footer-center #onboard-play:hover {
-  filter: brightness(1.08);
-  background: var(--accent);
+  background: color-mix(in srgb, var(--fg) 6%, var(--surface));
+  filter: none;
 }
 
 .onboard-footer-center [data-icon],
@@ -2767,9 +2896,10 @@ a.onboard-mock-link {
   height: 1.25rem;
 }
 
-/* Only one glyph: pause while playing, play while paused. */
+/* One glyph: pause · play · reload after cycle ends */
 .onboard-footer-center #onboard-play .onboard-ico-pause,
-.onboard-footer-center #onboard-play .onboard-ico-play {
+.onboard-footer-center #onboard-play .onboard-ico-play,
+.onboard-footer-center #onboard-play .onboard-ico-reload {
   display: none !important;
 }
 
@@ -2778,6 +2908,10 @@ a.onboard-mock-link {
 }
 
 .onboard-footer-center #onboard-play.is-paused .onboard-ico-play {
+  display: inline-flex !important;
+}
+
+.onboard-footer-center #onboard-play.is-reload .onboard-ico-reload {
   display: inline-flex !important;
 }
 
@@ -2790,14 +2924,22 @@ a.onboard-mock-link {
   .onboard-footer {
     grid-template-columns: 1fr;
     justify-items: center;
+    gap: 0.65rem;
   }
 
   .onboard-persist {
     justify-self: center;
+    grid-column: 1;
   }
 
   .onboard-footer-center {
     grid-column: 1;
+  }
+
+  .onboard-enter {
+    grid-column: 1;
+    justify-self: center;
+    min-width: 8rem;
   }
 }
 
