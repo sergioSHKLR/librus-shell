@@ -1360,6 +1360,12 @@ html[data-theme="dark"] .ctx-hint {
   font-family: var(--book-sans);
 }
 
+/* Column 2 figures — cap width inside the measured reading column */
+#book img {
+  max-width: 80%;
+  height: auto;
+}
+
 /*
  * Face toggle — reading faces only (never UI Quicksand).
  * data-font matches button label: serif ↔ book-serif, sans ↔ book-sans.
