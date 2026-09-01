@@ -133,7 +133,7 @@ const I18N = {
     "orient.body":
       "O estudo ativo completo (ler e consultar ao mesmo tempo, com anotações) precisa de mais espaço. Gire o aparelho para paisagem ou use uma tela maior — não há modo reduzido neste beta.",
     "onboard.title": "Onde você estuda",
-    "onboard.titleHow": "Como estudar",
+    "onboard.titleHow": "Como utilizar",
     "onboard.whereBody":
       "Quatro painéis. O contorno mostra o que cabe: desktop → notebook → tablet (bloqueado) → celular (bloqueado).",
     "onboard.howBody":
@@ -155,6 +155,8 @@ const I18N = {
     "onboard.play": "Reproduzir",
     "onboard.pause": "Pausar",
     "onboard.reload": "Reiniciar",
+    "onboard.mute": "Silenciar",
+    "onboard.unmute": "Ativar som",
     "onboard.enter": "Entrar",
     "onboard.cap.desktop":
       "Ache, Leia, Consulte e Anote, uso amplo de todas as ferramentas.",
@@ -165,21 +167,26 @@ const I18N = {
       "Bloqueado (modos pé e deitado). Em versões futuras, um modo reduzido será oferecido.",
     "onboard.cap.deviceDone":
       "Clique em [Como usar], ou [Entrar] para estudar.",
-    "onboard.cap.howStart": "Ache o capítulo no sumário à esquerda.",
+    "onboard.cap.howControls":
+      "Use os botões abaixo para controlar a exibição",
+    "onboard.cap.howStart":
+      "Ao escolher um volume, você é levado ao Estudo",
+    "onboard.cap.howCol1":
+      "Na coluna 1, escolha ou ache a seção desejada.",
     "onboard.cap.howToc":
-      "Clique no item — a seção abre no painel à direita.",
+      "Clique no item — a seção abre na coluna 2.",
     "onboard.cap.howSelectSearch":
-      "Selecione um termo no texto para consultar.",
+      "Na coluna 2, selecione um termo para consultar.",
     "onboard.cap.howProvider":
-      "Clique num provedor — a consulta abre ao lado.",
+      "Na coluna 3, escolha um provedor de consulta.",
+    "onboard.cap.howResults": "Os resultados aparecem na mesma coluna.",
     "onboard.cap.howLink":
-      "Um link no texto também abre a consulta ao lado.",
-    "onboard.cap.howConsult":
-      "A fonte fica ao lado da leitura — sem trocar de tela.",
+      "Na coluna 2, pode-se também clicar em links existentes.",
     "onboard.cap.howSelectAnnotate":
-      "Selecione um trecho para grifar ou anotar.",
-    "onboard.cap.howNote": "A nota aparece na aba da direita.",
-    "onboard.cap.howDone": "Pronto — Entrar para estudar de verdade.",
+      "Na mesma coluna, selecione um termo ou trecho para grifar/anotar.",
+    "onboard.cap.howNote":
+      "Os grifos/notas ficam salvos na coluna 4 (requer conta).",
+    "onboard.cap.howDone": "Bom proveito nos seus estudos!",
     "set.jitsi": "Videoconferência (JaaS)",
     "set.jitsiAppId": "App ID (8x8 JaaS)",
     "set.jitsiRoom": "Sala",
@@ -313,7 +320,7 @@ const I18N = {
     "orient.body":
       "Full active study (reading and consulting at once, with notes) needs more space. Rotate to landscape or use a larger screen — there is no reduced mode in this beta.",
     "onboard.title": "Where you study",
-    "onboard.titleHow": "How to study",
+    "onboard.titleHow": "How to use",
     "onboard.whereBody":
       "Four panes. The outline shows what fits: desktop → laptop → tablet (blocked) → mobile (blocked).",
     "onboard.howBody":
@@ -335,6 +342,8 @@ const I18N = {
     "onboard.play": "Play",
     "onboard.pause": "Pause",
     "onboard.reload": "Reload",
+    "onboard.mute": "Mute",
+    "onboard.unmute": "Unmute",
     "onboard.enter": "Enter",
     "onboard.cap.desktop":
       "Find, Read, Consult and Annotate, ample use of all tools.",
@@ -344,21 +353,24 @@ const I18N = {
     "onboard.cap.mobileBlocked":
       "Blocked (portrait and landscape). Future versions will offer a limited mode.",
     "onboard.cap.deviceDone": "click on [How to], or [Enter] to study.",
-    "onboard.cap.howStart": "Find chapter or search book text.",
+    "onboard.cap.howControls": "Use the buttons below to control playback",
+    "onboard.cap.howStart": "Choosing a volume takes you into Study",
+    "onboard.cap.howCol1":
+      "In column 1, choose or find the section you want.",
     "onboard.cap.howToc":
-      "Choose an item — it opens in the panel to the right.",
+      "Click the item — the section opens in column 2.",
     "onboard.cap.howSelectSearch":
-      "Select a term in the text to look it up.",
+      "In column 2, select a term to look up.",
     "onboard.cap.howProvider":
-      "Click a provider — results open beside the reading.",
+      "In column 3, choose a consult provider.",
+    "onboard.cap.howResults": "Results appear in the same column.",
     "onboard.cap.howLink":
-      "An in-text link also opens consult beside the reading.",
-    "onboard.cap.howConsult":
-      "The source sits beside the reading — no screen switch.",
+      "In column 2, you can also click existing links.",
     "onboard.cap.howSelectAnnotate":
-      "Select a passage to highlight or annotate it.",
-    "onboard.cap.howNote": "The note appears in the right margin sidebar.",
-    "onboard.cap.howDone": "Done — Enter to study for real.",
+      "In the same column, select a term or passage to highlight/annotate.",
+    "onboard.cap.howNote":
+      "Highlights/notes are saved in column 4 (account required).",
+    "onboard.cap.howDone": "Enjoy your studies!",
     "set.jitsi": "Video conference (JaaS)",
     "set.jitsiAppId": "App ID (8x8 JaaS)",
     "set.jitsiRoom": "Room",
@@ -990,12 +1002,247 @@ function layoutViewportFrame(cardNums, opts = {}) {
   return true;
 }
 
-/** Sync caption under the cards (Device / How-to narration, text-only). */
+/** Sync caption under the cards (Device / How-to narration). */
 function setOnboardCaption(key) {
   const el = document.getElementById("onboard-caption");
   if (!el || !key) return;
   el.setAttribute("data-i18n", key);
   el.textContent = t(key);
+}
+
+/**
+ * How-to column outline (does not toggle .out — blank/lit owns emphasis).
+ * Walks with CSS size/position tween when already visible; snaps on first show;
+ * hides with opacity only (no collapse-to-0×0 “zoom out”).
+ * @param {number|number[]|null} cardNum 1..4, list of cards, or null to hide
+ */
+function setHowOutline(cardNum) {
+  const stage = document.getElementById("cards-stage");
+  const frame = document.getElementById("viewport-frame");
+  if (!stage || !frame) return;
+
+  if (cardNum == null) {
+    /* Fade out in place — keep geometry so it doesn’t shrink to 0×0 */
+    frame.classList.add("no-motion");
+    frame.classList.remove("is-on", "is-blocked");
+    void frame.offsetWidth;
+    frame.classList.remove("is-how-outline", "no-motion");
+    frame.style.left = "";
+    frame.style.top = "";
+    frame.style.width = "";
+    frame.style.height = "";
+    return;
+  }
+
+  const nums = (Array.isArray(cardNum) ? cardNum : [cardNum])
+    .map((n) => Number(n))
+    .filter((n) => n >= 1 && n <= 4);
+  if (!nums.length) {
+    setHowOutline(null);
+    return;
+  }
+
+  const stageBox = stage.getBoundingClientRect();
+  if (stageBox.width < 4 || stageBox.height < 4) {
+    setHowOutline(null);
+    return;
+  }
+
+  let minL = Infinity;
+  let minT = Infinity;
+  let maxR = -Infinity;
+  let maxB = -Infinity;
+  for (const n of nums) {
+    const el = document.querySelector(`#cards [data-card="${n}"]`);
+    if (!el) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 8 || r.height < 8) continue;
+    minL = Math.min(minL, r.left);
+    minT = Math.min(minT, r.top);
+    maxR = Math.max(maxR, r.right);
+    maxB = Math.max(maxB, r.bottom);
+  }
+  if (!isFinite(minL) || maxR - minL < 4 || maxB - minT < 4) {
+    setHowOutline(null);
+    return;
+  }
+
+  const pad = 8;
+  const firstShow = !frame.classList.contains("is-how-outline");
+  frame.classList.add("is-how-outline");
+  frame.classList.remove("is-blocked");
+  /* Snap only when appearing; otherwise walk via CSS transition */
+  if (firstShow) frame.classList.add("no-motion");
+  frame.style.left = minL - stageBox.left - pad + "px";
+  frame.style.top = minT - stageBox.top - pad + "px";
+  frame.style.width = maxR - minL + pad * 2 + "px";
+  frame.style.height = maxB - minT + pad * 2 + "px";
+  frame.classList.add("is-on");
+  if (firstShow) {
+    void frame.offsetWidth;
+    frame.classList.remove("no-motion");
+  }
+}
+
+/* ── Onboard caption TTS (PT; mute default; times How-to holds) ─ */
+
+let onboardSpeechToken = 0;
+/** Caption speech off until user unmutes. */
+let onboardSpeechMuted = true;
+
+function cancelOnboardSpeech() {
+  onboardSpeechToken += 1;
+  try {
+    if (typeof speechSynthesis !== "undefined") speechSynthesis.cancel();
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+function setOnboardSpeechMuted(muted) {
+  onboardSpeechMuted = !!muted;
+  if (onboardSpeechMuted) cancelOnboardSpeech();
+  syncOnboardMuteButton();
+}
+
+function syncOnboardMuteButton() {
+  const btn = document.getElementById("onboard-mute");
+  if (!btn) return;
+  btn.classList.toggle("is-muted", onboardSpeechMuted);
+  btn.classList.toggle("is-unmuted", !onboardSpeechMuted);
+  btn.setAttribute("aria-pressed", onboardSpeechMuted ? "true" : "false");
+  const ariaKey = onboardSpeechMuted ? "onboard.unmute" : "onboard.mute";
+  btn.setAttribute("data-i18n-aria", ariaKey);
+  btn.setAttribute("aria-label", t(ariaKey));
+}
+
+function toggleOnboardMute() {
+  setOnboardSpeechMuted(!onboardSpeechMuted);
+}
+
+function pickPtVoice() {
+  try {
+    const voices = speechSynthesis.getVoices?.() || [];
+    return (
+      voices.find((v) => /^pt-BR/i.test(v.lang)) ||
+      voices.find((v) => /^pt/i.test(v.lang)) ||
+      voices.find((v) => /brazil|portug/i.test(v.name || "")) ||
+      null
+    );
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * Speak caption text (pt only). Resolves when utterance ends or is cancelled.
+ * @param {string} text
+ * @returns {Promise<void>}
+ */
+function speakOnboardCaption(text) {
+  const trimmed = String(text || "").trim();
+  if (!trimmed || currentLang !== "pt" || onboardSpeechMuted)
+    return Promise.resolve();
+  if (
+    typeof speechSynthesis === "undefined" ||
+    typeof SpeechSynthesisUtterance === "undefined"
+  )
+    return Promise.resolve();
+
+  cancelOnboardSpeech();
+  const token = onboardSpeechToken;
+
+  return new Promise((resolve) => {
+    const finish = () => resolve();
+    const speakNow = () => {
+      if (token !== onboardSpeechToken) {
+        finish();
+        return;
+      }
+      const u = new SpeechSynthesisUtterance(trimmed);
+      u.lang = "pt-BR";
+      u.rate = 1.05;
+      const voice = pickPtVoice();
+      if (voice) u.voice = voice;
+      u.onend = finish;
+      u.onerror = finish;
+      try {
+        speechSynthesis.speak(u);
+      } catch (_) {
+        finish();
+      }
+    };
+
+    /* Chrome often loads voices asynchronously */
+    const voices = speechSynthesis.getVoices?.() || [];
+    if (!voices.length) {
+      const once = () => {
+        speechSynthesis.removeEventListener("voiceschanged", once);
+        speakNow();
+      };
+      speechSynthesis.addEventListener("voiceschanged", once);
+      /* Fallback if event never fires */
+      setTimeout(() => {
+        speechSynthesis.removeEventListener("voiceschanged", once);
+        speakNow();
+      }, 400);
+    } else {
+      speakNow();
+    }
+  });
+}
+
+/** Gate How-to loop while paused. */
+async function howPauseGate(gen) {
+  while (howPaused && gen === howRevealGen) {
+    await new Promise((resolve) => {
+      howPauseWaiters.push(resolve);
+    });
+  }
+  return gen === howRevealGen;
+}
+
+/** Exact ms hold (no ×1.25); respects pause + gen cancel. */
+async function howWaitExact(gen, ms) {
+  let left = Math.max(0, Math.round(ms));
+  while (left > 0) {
+    if (gen !== howRevealGen) return false;
+    while (howPaused) {
+      await new Promise((resolve) => {
+        howPauseWaiters.push(resolve);
+      });
+      if (gen !== howRevealGen) return false;
+    }
+    const slice = Math.min(left, 80);
+    const ok = await new Promise((resolve) => {
+      clearHowRevealTimer();
+      howRevealTimer = setTimeout(() => {
+        howRevealTimer = null;
+        resolve(gen === howRevealGen);
+      }, slice);
+    });
+    if (!ok) return false;
+    left -= slice;
+  }
+  return gen === howRevealGen;
+}
+
+/**
+ * Update caption; if unmuted PT, speak it; then exactly 1.5s before the next beat.
+ * Muted: no length-based hold — only the 1.5s gap (avoids stacking).
+ * @param {number} gen
+ * @param {string} key
+ */
+async function narrateOnboardCaption(gen, key) {
+  setOnboardCaption(key);
+  if (gen !== howRevealGen) return false;
+  const line = t(key);
+  if (!(onboardSpeechMuted || currentLang !== "pt")) {
+    await speakOnboardCaption(line);
+    if (gen !== howRevealGen) return false;
+  }
+  if (!(await howWaitExact(gen, 1500))) return false;
+  return howPauseGate(gen);
 }
 
 function applyViewportStep(index, opts = {}) {
@@ -3228,6 +3475,8 @@ function onboardPersistChecked() {
 let howRevealTimer = null;
 let howRevealGen = 0;
 let howPaused = false;
+/** False until user hits play — open idle, no auto-start. */
+let howStarted = false;
 /** @type {Array<() => void>} */
 let howPauseWaiters = [];
 
@@ -3240,6 +3489,7 @@ function clearHowRevealTimer() {
 
 function setHowPaused(paused) {
   howPaused = !!paused;
+  if (howPaused) cancelOnboardSpeech();
   if (!howPaused) {
     const waiters = howPauseWaiters.splice(0, howPauseWaiters.length);
     waiters.forEach((fn) => fn());
@@ -3257,7 +3507,9 @@ function clearHowCardClasses() {
 function stopHowRevealAnim() {
   howRevealGen += 1;
   clearHowRevealTimer();
+  cancelOnboardSpeech();
   howPaused = false;
+  howStarted = false;
   const waiters = howPauseWaiters.splice(0, howPauseWaiters.length);
   waiters.forEach((fn) => fn());
   const cursor = document.getElementById("how-cursor");
@@ -3266,8 +3518,32 @@ function stopHowRevealAnim() {
     cursor.classList.remove("is-press");
     cursor.dataset.mode = "pointer";
   }
+  setHowOutline(null);
   /* Leave cards in a clean state for Viewport mode */
   clearHowCardClasses();
+}
+
+/** Idle How-to frame: caption only, play to start (no auto-run). */
+function prepareHowRevealIdle() {
+  howRevealGen += 1;
+  clearHowRevealTimer();
+  cancelOnboardSpeech();
+  howPaused = true;
+  howStarted = false;
+  const waiters = howPauseWaiters.splice(0, howPauseWaiters.length);
+  waiters.forEach((fn) => fn());
+  blankAllHowCards();
+  setHowOutline(null);
+  /* Caption 0 — replaced by howStart as soon as play runs */
+  setOnboardCaption("onboard.cap.howControls");
+  const cursor = document.getElementById("how-cursor");
+  if (cursor) {
+    cursor.hidden = true;
+    cursor.classList.remove("is-press");
+    setHowCursorMode("pointer");
+  }
+  syncOnboardTransport();
+  syncOnboardMuteButton();
 }
 
 /**
@@ -3471,6 +3747,7 @@ async function howCursorClickReveal(gen, clickCard, lightCard, mode, aim) {
   return howCursorPress(gen, clickCard, lightCard, mode, aim);
 }
 
+/* How-to beat list + trim notes: .grok/rules/onboarding-bloat.md */
 async function runHowRevealLoop(gen) {
   const cursor = document.getElementById("how-cursor");
   const stage = document.getElementById("cards-stage");
@@ -3480,58 +3757,68 @@ async function runHowRevealLoop(gen) {
   cursor.hidden = true;
   cursor.classList.remove("is-press");
   setHowCursorMode("pointer");
-  setOnboardCaption("onboard.cap.howStart");
-  if (!(await howWait(gen, 350))) return;
 
-  /* 1 · Ache lights (TOC visible) */
+  /*
+   * Outline map (caption # → card): 1 none, 2→1, 3→1, 4→2, 5→3, 6→3,
+   * 7→2, 8→2, 9→4, 10→[1–4]. Walks between beats; see onboarding-bloat.md
+   */
   lightHowCard(1);
-  setOnboardCaption("onboard.cap.howStart");
-  if (!(await howWait(gen, 700))) return;
+  setHowOutline(null);
+  if (!(await narrateOnboardCaption(gen, "onboard.cap.howStart"))) return;
+
+  setHowOutline(1);
+  if (!(await narrateOnboardCaption(gen, "onboard.cap.howCol1"))) return;
 
   /* 1 click TOC → light #2 */
-  setOnboardCaption("onboard.cap.howToc");
+  setHowOutline(1);
+  if (!(await narrateOnboardCaption(gen, "onboard.cap.howToc"))) return;
   if (!(await howCursorClickReveal(gen, 1, 2, "link", "toc"))) return;
 
   /* 2 select term (select-to-search) */
-  setOnboardCaption("onboard.cap.howSelectSearch");
+  setHowOutline(2);
+  if (!(await narrateOnboardCaption(gen, "onboard.cap.howSelectSearch")))
+    return;
   if (!(await howCursorClickReveal(gen, 2, null, "text", "select-search")))
     return;
 
   /* 3 click provider → Consulte lights + «termo» article (any provider) */
   lightHowCard(3);
-  setOnboardCaption("onboard.cap.howProvider");
+  setHowOutline(3);
+  if (!(await narrateOnboardCaption(gen, "onboard.cap.howProvider"))) return;
   if (!(await howCursorClickReveal(gen, 3, null, "pointer", "provider")))
     return;
   setHowConsultResult("termo");
-  if (!(await howWait(gen, 500))) return;
+  setHowOutline(3);
+  if (!(await narrateOnboardCaption(gen, "onboard.cap.howResults"))) return;
 
   /* 2 link → consult via existing link; article becomes «ipsum» */
   clearHowHitChrome();
-  setOnboardCaption("onboard.cap.howLink");
+  setHowOutline(2);
+  if (!(await narrateOnboardCaption(gen, "onboard.cap.howLink"))) return;
   if (!(await howCursorClickReveal(gen, 2, null, "link", "link"))) return;
   setHowConsultResult("ipsum");
 
-  /* 3 focus ipsum article */
-  setOnboardCaption("onboard.cap.howConsult");
+  /* Brief focus on ipsum article (outline stays on #2 per map beat 7–8) */
   if (!(await howCursorMoveTo(gen, 3, "pointer", "article"))) return;
-  if (!(await howWait(gen, 500))) return;
+  if (!(await howWaitExact(gen, 400))) return;
 
   /* 2 select-to-annotate → light #4 */
   clearHowHitChrome();
-  setOnboardCaption("onboard.cap.howSelectAnnotate");
-  if (
-    !(await howCursorClickReveal(gen, 2, 4, "text", "select-annotate"))
-  )
+  setHowOutline(2);
+  if (!(await narrateOnboardCaption(gen, "onboard.cap.howSelectAnnotate")))
+    return;
+  if (!(await howCursorClickReveal(gen, 2, 4, "text", "select-annotate")))
     return;
 
   /* 4 note */
-  setOnboardCaption("onboard.cap.howNote");
+  setHowOutline(4);
+  if (!(await narrateOnboardCaption(gen, "onboard.cap.howNote"))) return;
   if (!(await howCursorMoveTo(gen, 4, "pointer", "note"))) return;
 
-  /* One cycle only — pause on final frame */
+  /* Closer — brief outline of all four columns (walk expand, not collapse) */
   if (gen !== howRevealGen) return;
-  if (!(await howWait(gen, 800))) return;
-  setOnboardCaption("onboard.cap.howDone");
+  setHowOutline([1, 2, 3, 4]);
+  if (!(await narrateOnboardCaption(gen, "onboard.cap.howDone"))) return;
   setHowPaused(true);
 }
 
@@ -3539,11 +3826,14 @@ function startHowRevealAnim() {
   /* Cancel any prior loop, reset cards, then run */
   howRevealGen += 1;
   clearHowRevealTimer();
+  cancelOnboardSpeech();
   howPaused = false;
+  howStarted = true;
   const waiters = howPauseWaiters.splice(0, howPauseWaiters.length);
   waiters.forEach((fn) => fn());
   const myGen = howRevealGen;
   blankAllHowCards();
+  setHowOutline(null);
   setOnboardCaption("onboard.cap.howStart");
   const cursor = document.getElementById("how-cursor");
   if (cursor) {
@@ -3553,6 +3843,13 @@ function startHowRevealAnim() {
   }
   hydrateIcons(document.getElementById("cards-stage"));
   syncOnboardTransport();
+  syncOnboardMuteButton();
+  /* Warm voices list (Chrome) before the first utterance */
+  try {
+    speechSynthesis.getVoices?.();
+  } catch (_) {
+    /* ignore */
+  }
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       if (myGen !== howRevealGen) return;
@@ -3599,7 +3896,8 @@ function setOnboardStep(step) {
     const frame = document.getElementById("viewport-frame");
     if (frame) frame.classList.remove("is-on", "is-blocked");
     delete el.dataset.viewport;
-    startHowRevealAnim();
+    /* Idle until user hits play — no auto-start */
+    prepareHowRevealIdle();
   }
   syncOnboardTransport();
 }
@@ -3614,7 +3912,7 @@ function isViewportCycleDone() {
 }
 
 function isHowCycleDone() {
-  if (!howPaused) return false;
+  if (!howStarted || !howPaused) return false;
   const lit = document.querySelectorAll("#cards [data-card].is-lit").length;
   return lit >= 4;
 }
@@ -3625,16 +3923,17 @@ function syncOnboardTransport() {
   if (!el || !play) return;
 
   const step = el.dataset.step === "how" ? "how" : "where";
-  const paused = step === "where" ? viewportPaused : howPaused;
+  const paused =
+    step === "where" ? viewportPaused : !howStarted || howPaused;
   const done = step === "where" ? isViewportCycleDone() : isHowCycleDone();
 
-  /* Pause while running · Play while mid-pause · Reload after a finished cycle */
-  play.classList.toggle("is-playing", !paused && !done);
-  play.classList.toggle("is-paused", paused && !done);
+  /* Pause while running · Play while idle/mid-pause · Reload after a finished cycle */
+  play.classList.toggle("is-playing", howStarted && !paused && !done);
+  play.classList.toggle("is-paused", (!howStarted || paused) && !done);
   play.classList.toggle("is-reload", done);
   const ariaKey = done
     ? "onboard.reload"
-    : paused
+    : !howStarted || paused
       ? "onboard.play"
       : "onboard.pause";
   play.setAttribute("data-i18n-aria", ariaKey);
@@ -3644,14 +3943,15 @@ function syncOnboardTransport() {
     const on = btn.getAttribute("data-onboard-mode") === step;
     btn.setAttribute("aria-selected", on ? "true" : "false");
   });
+  syncOnboardMuteButton();
 }
 
 function onboardTransportTogglePause() {
   const el = document.getElementById("onboard");
   if (!el) return;
   if (el.dataset.step === "how") {
-    /* Finished cycle → reload How to */
-    if (isHowCycleDone()) {
+    /* Idle or finished → start / reload How to */
+    if (!howStarted || isHowCycleDone()) {
       startHowRevealAnim();
       return;
     }
@@ -3794,7 +4094,11 @@ function initOnboard() {
   document
     .getElementById("onboard-play")
     ?.addEventListener("click", onboardTransportTogglePause);
+  document
+    .getElementById("onboard-mute")
+    ?.addEventListener("click", toggleOnboardMute);
   document.getElementById("onboard-enter")?.addEventListener("click", onboardEnter);
+  syncOnboardMuteButton();
 
   el.querySelectorAll("[data-onboard-mode]").forEach((btn) => {
     btn.addEventListener("click", () => {
