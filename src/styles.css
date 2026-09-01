@@ -1425,6 +1425,11 @@ html[data-theme="dark"] .ctx-hint {
   color: var(--fg);
 }
 
+/* Part / H2 rows (flush level-0: "1. Causas…") */
+#toc button[data-toc-level="0"] {
+  font-weight: 700;
+}
+
 #toc button:hover {
   background: color-mix(in srgb, var(--fg) 12%, transparent);
   color: var(--fg);
