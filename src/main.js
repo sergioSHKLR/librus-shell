@@ -1868,6 +1868,30 @@ function tocLabel(item) {
   return item.label || item.id || "";
 }
 
+/** Part-style label: "1. Causas…" / "0. Pré-textual" (not "1.1. …"). */
+function tocIsPartLabel(label) {
+  return /^\d+\.\s/.test(String(label || "").trim());
+}
+
+/**
+ * Nest depth for indent (2 spaces / 2ch per level).
+ * Parts flush left; chapters under a part indent one step.
+ * Dotted chapter labels ("1.1.") stay flush when the TOC has no parts.
+ */
+function tocLevel(toc, index) {
+  const label = tocLabel(toc[index]);
+  const trimmed = String(label || "").trim();
+  if (tocIsPartLabel(trimmed)) return 0;
+  if (/^\d+\.\d+/.test(trimmed)) {
+    const hasParts = toc.some((it) => tocIsPartLabel(tocLabel(it)));
+    return hasParts ? 1 : 0;
+  }
+  for (let i = index - 1; i >= 0; i--) {
+    if (tocIsPartLabel(tocLabel(toc[i]))) return 1;
+  }
+  return 0;
+}
+
 function renderToc() {
   const nav = tocEl();
   if (!nav) return;
@@ -1877,14 +1901,20 @@ function renderToc() {
     .toLowerCase();
   const toc = currentBook?.toc || [];
   let n = 0;
-  toc.forEach((item) => {
+  toc.forEach((item, index) => {
     const label = tocLabel(item);
     if (!label) return;
     if (q && label.toLowerCase().indexOf(q) === -1) return;
     n += 1;
+    const level = tocLevel(toc, index);
     const btn = document.createElement("button");
     btn.type = "button";
     btn.textContent = label;
+    btn.dataset.tocLevel = String(level);
+    if (level > 0) {
+      /* ~2 spaces per nesting level */
+      btn.style.paddingLeft = `calc(0.5rem + ${level * 2}ch)`;
+    }
     btn.addEventListener("click", () => {
       nav.querySelectorAll("button").forEach((b) => b.classList.remove("on"));
       btn.classList.add("on");

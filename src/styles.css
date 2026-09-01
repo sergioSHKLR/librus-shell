@@ -1416,11 +1416,24 @@ html[data-theme="dark"] .ctx-hint {
   border-radius: 4px;
   padding: 0.4rem 0.5rem;
   font-size: 0.85rem;
+  color: var(--fg);
 }
 
-#toc button:hover,
+#toc button:hover {
+  background: color-mix(in srgb, var(--fg) 12%, transparent);
+  color: var(--fg);
+}
+
+/*
+ * Selected row: beat global button.on (fg/bg invert) which left pale text
+ * on a 10% wash. Find-role tint + inset edge for clear contrast.
+ */
 #toc button.on {
-  background: color-mix(in srgb, var(--fg) 10%, transparent);
+  background: color-mix(in srgb, var(--accent-find) 22%, var(--surface));
+  color: var(--fg);
+  border-color: transparent;
+  box-shadow: inset 3px 0 0 var(--accent-find);
+  font-weight: 600;
 }
 
 #hits {
