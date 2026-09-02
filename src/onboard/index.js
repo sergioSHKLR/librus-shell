@@ -318,9 +318,9 @@ function toggleOnboardMute() {
   }
 }
 
-/** Names that sound robotic / formant-synth — never use for captions. */
+/** Names that sound robotic / formant-synth — never assign explicitly. */
 const ONBOARD_TTS_REJECT =
-  /espeak|festival|native|compact|chromeos|chromebook|android|pico|svox|robot/i;
+  /espeak|festival|native|compact|android|pico|svox|robot/i;
 
 /**
  * Score a Portuguese voice. Premium cloud voices score high; compact/local
@@ -472,39 +472,44 @@ function speakOnboardCaption(text) {
        * Refuse low-quality engines: better silent captions than robotic
        * ChromeOS compact / eSpeak reading Portuguese.
        */
+      /*
+       * ChromeOS often exposes only local system voices to the page (no
+       * "Google …" entry). Prefer a scored premium voice when present;
+       * otherwise speak with lang=pt-BR only and let the OS pick — forcing
+       * a compact/local voice object is what sounded robotic before.
+       */
       const premium =
         voice &&
         (/google|microsoft|neural|natural|wavenet|studio/i.test(
           voice.name || "",
         ) ||
           voice.localService === false);
-      if (!premium) {
-        try {
-          console.info(
-            "[onboard TTS] no Google/Microsoft pt voice; stay silent (avoid robotic). Voices:",
-            (speechSynthesis.getVoices?.() || []).map((v) => ({
-              name: v.name,
-              lang: v.lang,
-              local: v.localService,
-              score: scorePtVoice(v),
-            })),
-          );
-        } catch (_) {
-          /* ignore */
-        }
-        finish();
-        return;
-      }
 
       const u = new SpeechSynthesisUtterance(trimmed);
-      u.lang = voice.lang || "pt-BR";
-      u.voice = voice;
+      u.lang = "pt-BR";
       u.rate = 1;
       u.pitch = 1;
+      if (premium) {
+        u.voice = voice;
+        u.lang = voice.lang || "pt-BR";
+      }
       u.onend = finish;
       u.onerror = finish;
       try {
-        console.info("[onboard TTS] voice", voice.name, voice.lang);
+        const all = (speechSynthesis.getVoices?.() || []).map((v) => ({
+          name: v.name,
+          lang: v.lang,
+          local: v.localService,
+          score: scorePtVoice(v),
+        }));
+        if (premium) {
+          console.info("[onboard TTS] voice", voice.name, voice.lang, all);
+        } else {
+          console.info(
+            "[onboard TTS] lang=pt-BR (no cloud voice; OS default)",
+            all,
+          );
+        }
       } catch (_) {
         /* ignore */
       }
