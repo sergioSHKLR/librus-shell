@@ -269,9 +269,19 @@ function setHowOutline(cardNum) {
 let onboardSpeechToken = 0;
 /** Caption speech off until user unmutes. */
 let onboardSpeechMuted = true;
+/** Chrome often pauses mid-utterance; nudge resume while we own the token. */
+let onboardSpeechResumeTimer = null;
+
+function clearOnboardSpeechResume() {
+  if (onboardSpeechResumeTimer != null) {
+    clearInterval(onboardSpeechResumeTimer);
+    onboardSpeechResumeTimer = null;
+  }
+}
 
 function cancelOnboardSpeech() {
   onboardSpeechToken += 1;
+  clearOnboardSpeechResume();
   try {
     if (typeof speechSynthesis !== "undefined") speechSynthesis.cancel();
   } catch (_) {
@@ -300,15 +310,30 @@ function toggleOnboardMute() {
   setOnboardSpeechMuted(!onboardSpeechMuted);
 }
 
+/**
+ * Prefer real pt-BR voices (Google/Microsoft). Never fall back to an
+ * English/default voice — that reads as robotic wrong-language TTS.
+ * @returns {SpeechSynthesisVoice | null}
+ */
 function pickPtVoice() {
   try {
     const voices = speechSynthesis.getVoices?.() || [];
-    return (
-      voices.find((v) => /^pt-BR/i.test(v.lang)) ||
-      voices.find((v) => /^pt/i.test(v.lang)) ||
-      voices.find((v) => /brazil|portug/i.test(v.name || "")) ||
-      null
-    );
+    /** @type {{ v: SpeechSynthesisVoice, score: number }[]} */
+    const ranked = [];
+    for (const v of voices) {
+      const lang = String(v.lang || "").toLowerCase().replace(/_/g, "-");
+      if (!(lang === "pt" || lang.startsWith("pt-"))) continue;
+      const name = String(v.name || "").toLowerCase();
+      let score = lang.startsWith("pt-br") || lang === "pt_br" ? 100 : 40;
+      if (/google/.test(name)) score += 30;
+      if (/microsoft|luciana|maria|francisca|daniela/.test(name)) score += 20;
+      if (/brasil|brazil/.test(name)) score += 10;
+      /* Remote/cloud voices are usually clearer on ChromeOS than eSpeak-like */
+      if (v.localService === false) score += 8;
+      ranked.push({ v, score });
+    }
+    ranked.sort((a, b) => b.score - a.score);
+    return ranked[0]?.v || null;
   } catch (_) {
     return null;
   }
@@ -316,6 +341,7 @@ function pickPtVoice() {
 
 /**
  * Speak caption text (pt only). Resolves when utterance ends or is cancelled.
+ * Skips when no Portuguese voice is available (avoids English reading PT).
  * @param {string} text
  * @returns {Promise<void>}
  */
@@ -333,42 +359,84 @@ function speakOnboardCaption(text) {
   const token = onboardSpeechToken;
 
   return new Promise((resolve) => {
-    const finish = () => resolve();
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearOnboardSpeechResume();
+      resolve();
+    };
+
     const speakNow = () => {
       if (token !== onboardSpeechToken) {
         finish();
         return;
       }
-      const u = new SpeechSynthesisUtterance(trimmed);
-      u.lang = "pt-BR";
-      u.rate = 1.05;
       const voice = pickPtVoice();
-      if (voice) u.voice = voice;
+      /* No pt voice → stay silent rather than wrong-language robotic speech */
+      if (!voice) {
+        finish();
+        return;
+      }
+      const u = new SpeechSynthesisUtterance(trimmed);
+      u.lang = voice.lang || "pt-BR";
+      u.voice = voice;
+      u.rate = 1;
       u.onend = finish;
       u.onerror = finish;
       try {
-        speechSynthesis.speak(u);
+        /*
+         * Chrome drops utterances spoken in the same turn as cancel().
+         * Defer speak; keep a resume pulse for the mid-sentence pause bug.
+         */
+        setTimeout(() => {
+          if (token !== onboardSpeechToken) {
+            finish();
+            return;
+          }
+          try {
+            speechSynthesis.speak(u);
+            clearOnboardSpeechResume();
+            onboardSpeechResumeTimer = setInterval(() => {
+              if (token !== onboardSpeechToken) {
+                clearOnboardSpeechResume();
+                return;
+              }
+              try {
+                if (speechSynthesis.speaking && speechSynthesis.paused) {
+                  speechSynthesis.resume();
+                }
+              } catch (_) {
+                /* ignore */
+              }
+            }, 250);
+          } catch (_) {
+            finish();
+          }
+        }, 80);
       } catch (_) {
         finish();
       }
     };
 
-    /* Chrome often loads voices asynchronously */
-    const voices = speechSynthesis.getVoices?.() || [];
-    if (!voices.length) {
+    const runWhenVoicesReady = () => {
+      const voices = speechSynthesis.getVoices?.() || [];
+      if (voices.length) {
+        speakNow();
+        return;
+      }
       const once = () => {
         speechSynthesis.removeEventListener("voiceschanged", once);
         speakNow();
       };
       speechSynthesis.addEventListener("voiceschanged", once);
-      /* Fallback if event never fires */
       setTimeout(() => {
         speechSynthesis.removeEventListener("voiceschanged", once);
         speakNow();
-      }, 400);
-    } else {
-      speakNow();
-    }
+      }, 600);
+    };
+
+    runWhenVoicesReady();
   });
 }
 
