@@ -308,28 +308,68 @@ function syncOnboardMuteButton() {
 
 function toggleOnboardMute() {
   setOnboardSpeechMuted(!onboardSpeechMuted);
+  /* Unmute: nudge Chrome to fetch cloud voices (Google pt-BR). */
+  if (!onboardSpeechMuted) {
+    try {
+      speechSynthesis.getVoices?.();
+    } catch (_) {
+      /* ignore */
+    }
+  }
+}
+
+/** Names that sound robotic / formant-synth — never use for captions. */
+const ONBOARD_TTS_REJECT =
+  /espeak|festival|native|compact|chromeos|chromebook|android|pico|svox|robot/i;
+
+/**
+ * Score a Portuguese voice. Premium cloud voices score high; compact/local
+ * ChromeOS engines score ≤0 and must not be used (they sound robotic).
+ * @param {SpeechSynthesisVoice} v
+ * @returns {number}
+ */
+function scorePtVoice(v) {
+  const lang = String(v.lang || "")
+    .toLowerCase()
+    .replace(/_/g, "-");
+  if (!(lang === "pt" || lang.startsWith("pt-"))) return -1;
+  const name = String(v.name || "");
+  if (ONBOARD_TTS_REJECT.test(name)) return -1;
+
+  let score = lang.startsWith("pt-br") ? 50 : 10;
+  /* Google TTS (network) — natural on Chrome / ChromeOS when online */
+  if (/google/i.test(name)) score += 100;
+  if (/microsoft|neural|natural/i.test(name)) score += 80;
+  if (/luciana|maria|francisca|daniela|heloisa/i.test(name)) score += 25;
+  if (/brasil|brazil/i.test(name)) score += 15;
+  /* Remote/cloud preferred; bare localService often = robotic compact */
+  if (v.localService === false) score += 40;
+  else score -= 30;
+  /* "Premium" / enhanced labels when present */
+  if (/premium|enhanced|wavenet|studio/i.test(name)) score += 20;
+  return score;
 }
 
 /**
- * Prefer real pt-BR voices (Google/Microsoft). Never fall back to an
- * English/default voice — that reads as robotic wrong-language TTS.
+ * Best usable pt voice, or null if only robotic/reject voices exist.
+ * @param {{ premiumOnly?: boolean }} [opts]
  * @returns {SpeechSynthesisVoice | null}
  */
-function pickPtVoice() {
+function pickPtVoice(opts = {}) {
   try {
     const voices = speechSynthesis.getVoices?.() || [];
     /** @type {{ v: SpeechSynthesisVoice, score: number }[]} */
     const ranked = [];
     for (const v of voices) {
-      const lang = String(v.lang || "").toLowerCase().replace(/_/g, "-");
-      if (!(lang === "pt" || lang.startsWith("pt-"))) continue;
-      const name = String(v.name || "").toLowerCase();
-      let score = lang.startsWith("pt-br") || lang === "pt_br" ? 100 : 40;
-      if (/google/.test(name)) score += 30;
-      if (/microsoft|luciana|maria|francisca|daniela/.test(name)) score += 20;
-      if (/brasil|brazil/.test(name)) score += 10;
-      /* Remote/cloud voices are usually clearer on ChromeOS than eSpeak-like */
-      if (v.localService === false) score += 8;
+      const score = scorePtVoice(v);
+      if (score < 0) continue;
+      /* Premium = cloud/neural engines (not ChromeOS compact/local formant) */
+      if (opts.premiumOnly) {
+        const named =
+          /google|microsoft|neural|natural|wavenet|studio/i.test(v.name || "");
+        const cloud = v.localService === false;
+        if (!named && !cloud) continue;
+      }
       ranked.push({ v, score });
     }
     ranked.sort((a, b) => b.score - a.score);
@@ -340,8 +380,64 @@ function pickPtVoice() {
 }
 
 /**
+ * Wait briefly for cloud pt-BR voices (Chrome loads them after first getVoices).
+ * @param {number} token
+ * @param {number} maxMs
+ * @returns {Promise<SpeechSynthesisVoice | null>}
+ */
+function waitForPtVoice(token, maxMs) {
+  return new Promise((resolve) => {
+    const started = Date.now();
+    let settled = false;
+    const done = (v) => {
+      if (settled) return;
+      settled = true;
+      try {
+        speechSynthesis.removeEventListener("voiceschanged", onChange);
+      } catch (_) {
+        /* ignore */
+      }
+      resolve(v);
+    };
+    const probe = () => {
+      if (token !== onboardSpeechToken) {
+        done(null);
+        return;
+      }
+      /* Prefer premium; fall back to any non-rejected pt only near timeout */
+      const premium = pickPtVoice({ premiumOnly: true });
+      if (premium) {
+        done(premium);
+        return;
+      }
+      const elapsed = Date.now() - started;
+      if (elapsed >= maxMs) {
+        done(pickPtVoice({ premiumOnly: false }));
+        return;
+      }
+    };
+    const onChange = () => probe();
+    try {
+      speechSynthesis.addEventListener("voiceschanged", onChange);
+      speechSynthesis.getVoices?.();
+    } catch (_) {
+      /* ignore */
+    }
+    probe();
+    const tick = setInterval(() => {
+      if (settled) {
+        clearInterval(tick);
+        return;
+      }
+      probe();
+      if (Date.now() - started >= maxMs) clearInterval(tick);
+    }, 120);
+  });
+}
+
+/**
  * Speak caption text (pt only). Resolves when utterance ends or is cancelled.
- * Skips when no Portuguese voice is available (avoids English reading PT).
+ * Uses Google/Microsoft pt-BR when available; skips robotic compact voices.
  * @param {string} text
  * @returns {Promise<void>}
  */
@@ -367,76 +463,79 @@ function speakOnboardCaption(text) {
       resolve();
     };
 
-    const speakNow = () => {
+    waitForPtVoice(token, 1800).then((voice) => {
       if (token !== onboardSpeechToken) {
         finish();
         return;
       }
-      const voice = pickPtVoice();
-      /* No pt voice → stay silent rather than wrong-language robotic speech */
-      if (!voice) {
+      /*
+       * Refuse low-quality engines: better silent captions than robotic
+       * ChromeOS compact / eSpeak reading Portuguese.
+       */
+      const premium =
+        voice &&
+        (/google|microsoft|neural|natural|wavenet|studio/i.test(
+          voice.name || "",
+        ) ||
+          voice.localService === false);
+      if (!premium) {
+        try {
+          console.info(
+            "[onboard TTS] no Google/Microsoft pt voice; stay silent (avoid robotic). Voices:",
+            (speechSynthesis.getVoices?.() || []).map((v) => ({
+              name: v.name,
+              lang: v.lang,
+              local: v.localService,
+              score: scorePtVoice(v),
+            })),
+          );
+        } catch (_) {
+          /* ignore */
+        }
         finish();
         return;
       }
+
       const u = new SpeechSynthesisUtterance(trimmed);
       u.lang = voice.lang || "pt-BR";
       u.voice = voice;
       u.rate = 1;
+      u.pitch = 1;
       u.onend = finish;
       u.onerror = finish;
       try {
-        /*
-         * Chrome drops utterances spoken in the same turn as cancel().
-         * Defer speak; keep a resume pulse for the mid-sentence pause bug.
-         */
-        setTimeout(() => {
-          if (token !== onboardSpeechToken) {
-            finish();
-            return;
-          }
-          try {
-            speechSynthesis.speak(u);
-            clearOnboardSpeechResume();
-            onboardSpeechResumeTimer = setInterval(() => {
-              if (token !== onboardSpeechToken) {
-                clearOnboardSpeechResume();
-                return;
-              }
-              try {
-                if (speechSynthesis.speaking && speechSynthesis.paused) {
-                  speechSynthesis.resume();
-                }
-              } catch (_) {
-                /* ignore */
-              }
-            }, 250);
-          } catch (_) {
-            finish();
-          }
-        }, 80);
+        console.info("[onboard TTS] voice", voice.name, voice.lang);
       } catch (_) {
-        finish();
+        /* ignore */
       }
-    };
 
-    const runWhenVoicesReady = () => {
-      const voices = speechSynthesis.getVoices?.() || [];
-      if (voices.length) {
-        speakNow();
-        return;
-      }
-      const once = () => {
-        speechSynthesis.removeEventListener("voiceschanged", once);
-        speakNow();
-      };
-      speechSynthesis.addEventListener("voiceschanged", once);
+      /* Chrome drops speak() in the same turn as cancel() — defer. */
       setTimeout(() => {
-        speechSynthesis.removeEventListener("voiceschanged", once);
-        speakNow();
-      }, 600);
-    };
-
-    runWhenVoicesReady();
+        if (token !== onboardSpeechToken) {
+          finish();
+          return;
+        }
+        try {
+          speechSynthesis.speak(u);
+          clearOnboardSpeechResume();
+          onboardSpeechResumeTimer = setInterval(() => {
+            if (token !== onboardSpeechToken) {
+              clearOnboardSpeechResume();
+              return;
+            }
+            try {
+              if (speechSynthesis.speaking && speechSynthesis.paused) {
+                speechSynthesis.resume();
+              }
+            } catch (_) {
+              /* ignore */
+            }
+          }, 250);
+        } catch (_) {
+          finish();
+        }
+      }, 80);
+    });
   });
 }
 
