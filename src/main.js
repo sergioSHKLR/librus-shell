@@ -20,6 +20,7 @@ import {
   applyViewportStep,
   isLibraryView,
 } from "./onboard/index.js";
+import { bindHelp, initHelp, syncHelpI18n } from "./help.js";
 import {
   loadFlavor,
   getFlavor,
@@ -131,15 +132,23 @@ const I18N = {
     "bar.help": "Ajuda",
     "bar.settings": "Ajustes",
     "help.title": "Ajuda",
-    "help.heading": "Começar",
-    "help.s1": "Abra um livro na biblioteca.",
-    "help.s2": "Leia no centro; anote com o Hypothesis.",
-    "help.s3":
-      "Em tela larga, selecione um trecho e consulte fontes à direita.",
-    "help.s4":
-      "Sumário e busca no painel esquerdo (ou abas dobradas na faixa principal).",
-    "help.tagline": "annotate to assimilate",
-    "help.pwa": "PWA · Hypothesis · Vite",
+    "help.tab.find": "1. Ache",
+    "help.tab.read": "2. Leia",
+    "help.tab.consult": "3. Consulte",
+    "help.tab.annotate": "4. Anote",
+    "help.feat.toc": "Sumário",
+    "help.feat.search": "Busca de texto",
+    "help.feat.typo": "Ajustes tipográficos",
+    "help.feat.pages": "Controle de paginação",
+    "help.feat.portals": "Consultas de portais",
+    "help.feat.pdf": "Comparação de PDF",
+    "help.feat.jaas": "Videoconferência",
+    "help.feat.notes":
+      "Grifos e notas podem ser públicas, privadas ou de grupo.",
+    "help.dev.desktop": "Desktop",
+    "help.dev.laptop": "Notebook",
+    "help.dev.tablet": "Tablet",
+    "help.dev.phone": "Celular",
     "orient.title": "Tela pequena demais para estudar",
     "orient.body":
       "O estudo ativo completo (ler e consultar ao mesmo tempo, com anotações) precisa de mais espaço. Gire o aparelho para paisagem ou use uma tela maior — não há modo reduzido neste beta.",
@@ -318,15 +327,23 @@ const I18N = {
     "bar.help": "Help",
     "bar.settings": "Settings",
     "help.title": "Help",
-    "help.heading": "Get started",
-    "help.s1": "Open a book from the library.",
-    "help.s2": "Read in the center; annotate with Hypothesis.",
-    "help.s3":
-      "On wide screens, select a passage and consult sources on the right.",
-    "help.s4":
-      "TOC and search live in the left pane (or folded tabs on the main strip).",
-    "help.tagline": "annotate to assimilate",
-    "help.pwa": "PWA · Hypothesis · Vite",
+    "help.tab.find": "1. Find",
+    "help.tab.read": "2. Read",
+    "help.tab.consult": "3. Consult",
+    "help.tab.annotate": "4. Annotate",
+    "help.feat.toc": "Table of contents",
+    "help.feat.search": "Text search",
+    "help.feat.typo": "Typography controls",
+    "help.feat.pages": "Pagination controls",
+    "help.feat.portals": "Portal lookups",
+    "help.feat.pdf": "PDF comparison",
+    "help.feat.jaas": "Video conference",
+    "help.feat.notes":
+      "Highlights and notes can be public, private, or group.",
+    "help.dev.desktop": "Desktop",
+    "help.dev.laptop": "Laptop",
+    "help.dev.tablet": "Tablet",
+    "help.dev.phone": "Mobile",
     "orient.title": "Screen too small to study",
     "orient.body":
       "Full active study (reading and consulting at once, with notes) needs more space. Rotate to landscape or use a larger screen — there is no reduced mode in this beta.",
@@ -525,6 +542,7 @@ function applyI18n() {
   });
   document.documentElement.lang = currentLang === "en" ? "en" : "pt-BR";
   document.body.dataset.lang = currentLang;
+  if (typeof syncHelpI18n === "function") syncHelpI18n();
   if (typeof syncTypoButtons === "function") syncTypoButtons();
   if (typeof syncLinkControls === "function") syncLinkControls();
   if (typeof syncChromeBar === "function") syncChromeBar();
@@ -3259,6 +3277,13 @@ async function boot() {
     initOnboard();
   } catch (err) {
     console.warn("[POC] onboard", err);
+  }
+
+  try {
+    bindHelp({ t });
+    initHelp();
+  } catch (err) {
+    console.warn("[POC] help", err);
   }
 
   try {

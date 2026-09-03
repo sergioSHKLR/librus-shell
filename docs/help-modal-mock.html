@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light" data-flavor="doutrina">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Help — 4 panes</title>
+    <!--
+      Help-icon modal playground.
+      - Soft-guide columns from help.png
+      - #help-feat-jaas only when data-flavor="centro"
+      - Device viewports: keep 4 equal card sizes; dark overlay on out cols
+        (header+body); folded pane icons park on column 2 header
+    -->
+    <style>
+      :root,
+      html[data-theme="light"] {
+        --page: #f0f0f0;
+        --bg: #ffffff;
+        --fg: #111;
+        --muted: #666;
+        --line: #e2e2e2;
+        --chrome-find: #e7c4ca;
+        --chrome-read: #c2d6ea;
+        --chrome-consult: #c2daca;
+        --chrome-annotate: #efe3bf;
+        --accent-find: #a0122a;
+        --accent-read: #0b5cad;
+        --accent-consult: #0d6b2c;
+        --accent-annotate: #7a5c00;
+        --bar: #f4f4f4;
+        --chip-bg: #fff;
+        --chip-line: #ccc;
+        --chip-fg: #444;
+        --scrim: rgba(20, 20, 20, 0.55);
+        --shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+        --ctrl-h: 44px;
+        --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+          sans-serif;
+      }
+
+      html[data-theme="dark"] {
+        --page: #0e0e0e;
+        --bg: #1a1a1a;
+        --fg: #f0f0f0;
+        --muted: #a0a0a0;
+        --line: #333;
+        --chrome-find: #3a2228;
+        --chrome-read: #1a2838;
+        --chrome-consult: #1a2e22;
+        --chrome-annotate: #3a3520;
+        --accent-find: #ff8a96;
+        --accent-read: #7eb6f0;
+        --accent-consult: #8ee5b0;
+        --accent-annotate: #e6c200;
+        --bar: #141414;
+        --chip-bg: #222;
+        --chip-line: #444;
+        --chip-fg: #ddd;
+        --scrim: rgba(0, 0, 0, 0.72);
+        --shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        font-family: var(--sans);
+        background: var(--page);
+        color: var(--fg);
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+      }
+
+      .help {
+        width: min(958px, 100%);
+        aspect-ratio: 958 / 429;
+        max-height: calc(100dvh - 2rem);
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        box-shadow: var(--shadow);
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) 56px;
+        overflow: hidden;
+      }
+
+      /* One column = colored header + body (overlay covers both) */
+      .cols {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        min-height: 0;
+      }
+
+      .col {
+        position: relative;
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: var(--ctrl-h) minmax(0, 1fr);
+        border-right: 1px solid var(--line);
+        isolation: isolate;
+        overflow: hidden;
+      }
+      .col:last-child {
+        border-right: 0;
+      }
+
+      /* Keep card sizes — dark overlay covers header + body of folded cols */
+      .col::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--scrim);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.12s ease;
+        z-index: 3;
+      }
+      .cols[data-vp] .col.is-out::after {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .cols[data-vp] .col.is-in {
+        z-index: 1;
+      }
+
+      .tab {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0 0.65rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        border-top: 3px solid transparent;
+        border-bottom: 1px solid var(--line);
+        min-width: 0;
+      }
+      .tab-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+      .tab > svg.ico {
+        width: 15px;
+        height: 15px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        flex: 0 0 auto;
+      }
+
+      /*
+       * Fold chips on column 2 (Leia): left-side panes (Ache) before the title;
+       * right-side panes (Consulte / Anote) after — mirrors panel orientation.
+       */
+      .fold-chips {
+        display: none;
+        align-items: center;
+        gap: 4px;
+        flex: 0 0 auto;
+      }
+      .fold-chips-start:not(:empty) {
+        display: inline-flex;
+        margin-right: 2px;
+      }
+      .fold-chips-end:not(:empty) {
+        display: inline-flex;
+        margin-left: auto;
+        padding-left: 0.35rem;
+      }
+      .fold-chip {
+        width: 22px;
+        height: 22px;
+        border-radius: 4px;
+        border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
+        display: grid;
+        place-items: center;
+        padding: 0;
+        background: color-mix(in srgb, var(--bg) 70%, transparent);
+        color: inherit;
+      }
+      .fold-chip svg {
+        width: 13px;
+        height: 13px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .fold-chip[data-card="1"] {
+        color: var(--accent-find);
+        background: var(--chrome-find);
+      }
+      .fold-chip[data-card="2"] {
+        color: var(--accent-read);
+        background: var(--chrome-read);
+      }
+      .fold-chip[data-card="3"] {
+        color: var(--accent-consult);
+        background: var(--chrome-consult);
+      }
+      .fold-chip[data-card="4"] {
+        color: var(--accent-annotate);
+        background: var(--chrome-annotate);
+      }
+
+      .col[data-card="1"] .tab {
+        background: var(--chrome-find);
+        color: var(--accent-find);
+        border-top-color: var(--accent-find);
+      }
+      .col[data-card="2"] .tab {
+        background: var(--chrome-read);
+        color: var(--accent-read);
+        border-top-color: var(--accent-read);
+      }
+      .col[data-card="3"] .tab {
+        background: var(--chrome-consult);
+        color: var(--accent-consult);
+        border-top-color: var(--accent-consult);
+      }
+      .col[data-card="4"] .tab {
+        background: var(--chrome-annotate);
+        color: var(--accent-annotate);
+        border-top-color: var(--accent-annotate);
+      }
+
+      .pane {
+        min-height: 0;
+        overflow: auto;
+        padding: 0.75rem 0.85rem;
+        background: var(--bg);
+      }
+
+      .feats {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-size: 0.84rem;
+        line-height: 1.45;
+      }
+      .feats li {
+        position: relative;
+        padding: 0.15rem 0 0.15rem 0.95rem;
+      }
+      .feats li::before {
+        content: "–";
+        position: absolute;
+        left: 0;
+        color: var(--muted);
+      }
+
+      #help-feat-jaas {
+        display: none;
+      }
+      html[data-flavor="centro"] #help-feat-jaas {
+        display: list-item;
+      }
+
+      .devices {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        align-items: center;
+        padding: 0 10px;
+        background: var(--bar);
+        border-top: 1px solid var(--line);
+      }
+      .dev {
+        height: 48px;
+        border: 1px solid var(--chip-line);
+        background: var(--chip-bg);
+        border-radius: 8px;
+        color: var(--chip-fg);
+        cursor: pointer;
+        display: grid;
+        grid-template-rows: 1fr auto;
+        justify-items: center;
+        align-items: center;
+        gap: 2px;
+        padding: 4px 4px 5px;
+        font: inherit;
+      }
+      .dev:hover {
+        filter: brightness(0.97);
+      }
+      html[data-theme="dark"] .dev:hover {
+        filter: brightness(1.15);
+      }
+      .dev[aria-pressed="true"] {
+        border-color: color-mix(in srgb, var(--fg) 45%, var(--chip-line));
+        box-shadow: inset 0 0 0 1px
+          color-mix(in srgb, var(--fg) 25%, transparent);
+      }
+      .dev svg {
+        display: block;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.6;
+      }
+      .dev span {
+        font-size: 0.68rem;
+        font-weight: 600;
+        line-height: 1;
+      }
+
+      .playground {
+        position: fixed;
+        top: 10px;
+        right: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        z-index: 5;
+      }
+      .playground button,
+      .playground select {
+        font: inherit;
+        font-size: 0.75rem;
+        padding: 0.3rem 0.5rem;
+        border-radius: 6px;
+        border: 1px solid var(--chip-line);
+        background: var(--chip-bg);
+        color: var(--fg);
+        cursor: pointer;
+      }
+      .meta {
+        position: fixed;
+        left: 12px;
+        bottom: 10px;
+        font-size: 11px;
+        color: var(--muted);
+        max-width: 30rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="playground" aria-label="Playground controls">
+      <select id="pg-flavor" title="Flavor">
+        <option value="librus">librus</option>
+        <option value="doutrina" selected>doutrina</option>
+        <option value="centro">centro</option>
+      </select>
+      <button type="button" id="pg-theme" data-i18n="pg.theme">Tema</button>
+      <button type="button" id="pg-lang" data-i18n="pg.lang">EN</button>
+    </div>
+
+    <p class="meta" data-i18n="pg.meta">
+      Card sizes stay fixed. Out-of-viewport columns get a dark overlay
+      (header+body); their icons park on column 2 (Leia).
+    </p>
+
+    <section class="help" aria-label="Help">
+      <div class="cols" id="cols">
+        <article class="col" data-card="1">
+          <div class="tab">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+            </svg>
+            <span class="tab-title" data-i18n="tab.find">1. Ache</span>
+          </div>
+          <div class="pane">
+            <ul class="feats">
+              <li data-i18n="feat.toc">Sumário</li>
+              <li data-i18n="feat.search">Busca de texto</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="col" data-card="2">
+          <div class="tab">
+            <span class="fold-chips fold-chips-start" aria-hidden="true"></span>
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path
+                d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+              />
+            </svg>
+            <span class="tab-title" data-i18n="tab.read">2. Leia</span>
+            <span class="fold-chips fold-chips-end" aria-hidden="true"></span>
+          </div>
+          <div class="pane">
+            <ul class="feats">
+              <li data-i18n="feat.typo">Ajustes tipográficos</li>
+              <li data-i18n="feat.pages">Controle de paginação</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="col" data-card="3">
+          <div class="tab">
+            <svg viewBox="0 0 24 24" class="ico" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path
+                d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+              />
+            </svg>
+            <span class="tab-title" data-i18n="tab.consult">3. Consulte</span>
+          </div>
+          <div class="pane">
+            <ul class="feats">
+              <li data-i18n="feat.portals">Consultas de portais</li>
+              <li data-i18n="feat.pdf">Comparação de PDF</li>
+              <li id="help-feat-jaas" data-i18n="feat.jaas">Videoconferência</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="col" data-card="4">
+          <div class="tab">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+            <span class="tab-title" data-i18n="tab.annotate">4. Anote</span>
+          </div>
+          <div class="pane">
+            <ul class="feats">
+              <li data-i18n="feat.notes">
+                Grifos e notas podem ser públicas, privadas ou de grupo.
+              </li>
+            </ul>
+          </div>
+        </article>
+      </div>
+
+      <div class="devices" role="group" aria-label="Viewport">
+        <button type="button" class="dev" data-vp="desktop" aria-pressed="false">
+          <svg width="36" height="20" viewBox="0 0 36 20" aria-hidden="true">
+            <rect x="1" y="1" width="34" height="14" rx="1.5" />
+            <path d="M12 18h12M18 15v3" />
+          </svg>
+          <span data-i18n="dev.desktop">Desktop</span>
+        </button>
+        <button type="button" class="dev" data-vp="laptop" aria-pressed="false">
+          <svg width="30" height="18" viewBox="0 0 30 18" aria-hidden="true">
+            <rect x="3" y="1" width="24" height="12" rx="1.5" />
+            <path d="M1 16h28" />
+          </svg>
+          <span data-i18n="dev.laptop">Notebook</span>
+        </button>
+        <button type="button" class="dev" data-vp="tablet" aria-pressed="false">
+          <svg width="16" height="22" viewBox="0 0 16 22" aria-hidden="true">
+            <rect x="1" y="1" width="14" height="20" rx="2" />
+            <path d="M6 18h4" />
+          </svg>
+          <span data-i18n="dev.tablet">Tablet</span>
+        </button>
+        <button type="button" class="dev" data-vp="phone" aria-pressed="false">
+          <svg width="11" height="22" viewBox="0 0 11 22" aria-hidden="true">
+            <rect x="1" y="1" width="9" height="20" rx="2" />
+            <path d="M4 18h3" />
+          </svg>
+          <span data-i18n="dev.phone">Celular</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Icon templates for fold chips -->
+    <template id="ico-1">
+      <svg viewBox="0 0 24 24">
+        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+      </svg>
+    </template>
+    <template id="ico-2">
+      <svg viewBox="0 0 24 24">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+        <path
+          d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+        />
+      </svg>
+    </template>
+    <template id="ico-3">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path
+          d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+        />
+      </svg>
+    </template>
+    <template id="ico-4">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+      </svg>
+    </template>
+
+    <script>
+      (function () {
+        const I18N = {
+          pt: {
+            "tab.find": "1. Ache",
+            "tab.read": "2. Leia",
+            "tab.consult": "3. Consulte",
+            "tab.annotate": "4. Anote",
+            "feat.toc": "Sumário",
+            "feat.search": "Busca de texto",
+            "feat.typo": "Ajustes tipográficos",
+            "feat.pages": "Controle de paginação",
+            "feat.portals": "Consultas de portais",
+            "feat.pdf": "Comparação de PDF",
+            "feat.jaas": "Videoconferência",
+            "feat.notes":
+              "Grifos e notas podem ser públicas, privadas ou de grupo.",
+            "dev.desktop": "Desktop",
+            "dev.laptop": "Notebook",
+            "dev.tablet": "Tablet",
+            "dev.phone": "Celular",
+            "pg.theme": "Tema",
+            "pg.lang": "EN",
+            "pg.meta":
+              "Tamanho das colunas fixo. Colunas fora da viewport ganham overlay escuro; ícones vão para o cabeçalho da coluna 2 (Leia).",
+          },
+          en: {
+            "tab.find": "1. Find",
+            "tab.read": "2. Read",
+            "tab.consult": "3. Consult",
+            "tab.annotate": "4. Annotate",
+            "feat.toc": "Table of contents",
+            "feat.search": "Text search",
+            "feat.typo": "Typography controls",
+            "feat.pages": "Pagination controls",
+            "feat.portals": "Portal lookups",
+            "feat.pdf": "PDF comparison",
+            "feat.jaas": "Video conference",
+            "feat.notes":
+              "Highlights and notes can be public, private, or group.",
+            "dev.desktop": "Desktop",
+            "dev.laptop": "Laptop",
+            "dev.tablet": "Tablet",
+            "dev.phone": "Mobile",
+            "pg.theme": "Theme",
+            "pg.lang": "PT",
+            "pg.meta":
+              "Card sizes stay fixed. Out-of-viewport columns get a dark overlay; their icons park on column 2 (Read) header.",
+          },
+        };
+
+        const MAP = {
+          desktop: [1, 2, 3, 4],
+          laptop: [2, 3, 4],
+          tablet: [2, 3],
+          phone: [2],
+        };
+
+        const TITLES = {
+          1: "tab.find",
+          2: "tab.read",
+          3: "tab.consult",
+          4: "tab.annotate",
+        };
+
+        let lang = "pt";
+        const colsRoot = document.getElementById("cols");
+        const cols = [...colsRoot.querySelectorAll(".col")];
+        const buttons = [...document.querySelectorAll(".dev")];
+
+        function applyI18n() {
+          const pack = I18N[lang] || I18N.pt;
+          document.documentElement.lang = lang === "en" ? "en" : "pt-BR";
+          document.querySelectorAll("[data-i18n]").forEach((el) => {
+            const key = el.getAttribute("data-i18n");
+            if (pack[key] != null) el.textContent = pack[key];
+          });
+        }
+
+        function clearChips() {
+          document
+            .querySelectorAll(".fold-chips")
+            .forEach((host) => (host.innerHTML = ""));
+        }
+
+        function makeChip(n) {
+          const chip = document.createElement("span");
+          chip.className = "fold-chip";
+          chip.dataset.card = String(n);
+          chip.title = (I18N[lang] || I18N.pt)[TITLES[n]] || "";
+          const tpl = document.getElementById("ico-" + n);
+          if (tpl) chip.appendChild(tpl.content.cloneNode(true));
+          return chip;
+        }
+
+        /**
+         * Park folded icons on column 2: left-of-Leia panes on the start,
+         * right-of-Leia panes (green/yellow) on the end — same orientation.
+         */
+        function placeChips(folded) {
+          clearChips();
+          if (!folded.length) return;
+          const hostCol = cols.find((c) => c.dataset.card === "2");
+          const start = hostCol?.querySelector(".fold-chips-start");
+          const end = hostCol?.querySelector(".fold-chips-end");
+          if (!start || !end) return;
+          folded
+            .slice()
+            .sort((a, b) => a - b)
+            .forEach((n) => {
+              if (n < 2) start.appendChild(makeChip(n));
+              else if (n > 2) end.appendChild(makeChip(n));
+            });
+        }
+
+        function applyVp(vp) {
+          const same = colsRoot.dataset.vp === vp;
+          if (!vp || same) {
+            delete colsRoot.dataset.vp;
+            cols.forEach((c) => {
+              c.classList.remove("is-out", "is-in");
+            });
+            clearChips();
+            buttons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+            return;
+          }
+
+          const keep = new Set(MAP[vp]);
+          const folded = [];
+          colsRoot.dataset.vp = vp;
+          cols.forEach((c) => {
+            const n = Number(c.dataset.card);
+            const on = keep.has(n);
+            c.classList.toggle("is-in", on);
+            c.classList.toggle("is-out", !on);
+            if (!on) folded.push(n);
+          });
+          placeChips(folded);
+          buttons.forEach((b) =>
+            b.setAttribute(
+              "aria-pressed",
+              b.dataset.vp === vp ? "true" : "false",
+            ),
+          );
+        }
+
+        buttons.forEach((b) =>
+          b.addEventListener("click", () => applyVp(b.dataset.vp)),
+        );
+
+        function setTheme(theme) {
+          document.documentElement.dataset.theme = theme;
+          try {
+            localStorage.setItem("help-mock-theme", theme);
+          } catch (_) {}
+        }
+        function setFlavor(id) {
+          document.documentElement.dataset.flavor = id;
+          try {
+            localStorage.setItem("help-mock-flavor", id);
+          } catch (_) {}
+        }
+
+        const q = new URLSearchParams(location.search);
+        try {
+          lang =
+            q.get("lang") === "en" || q.get("lang") === "pt"
+              ? q.get("lang")
+              : localStorage.getItem("help-mock-lang") === "en"
+                ? "en"
+                : "pt";
+        } catch (_) {}
+
+        let theme = q.get("theme");
+        if (theme !== "dark" && theme !== "light") {
+          try {
+            theme = localStorage.getItem("help-mock-theme");
+          } catch (_) {}
+        }
+        if (theme !== "dark" && theme !== "light") {
+          theme = matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        }
+        setTheme(theme);
+
+        let flavor = q.get("flavor");
+        if (!flavor) {
+          try {
+            flavor = localStorage.getItem("help-mock-flavor");
+          } catch (_) {}
+        }
+        if (!["librus", "doutrina", "centro"].includes(flavor))
+          flavor = "doutrina";
+        setFlavor(flavor);
+        const flavorSel = document.getElementById("pg-flavor");
+        if (flavorSel) flavorSel.value = flavor;
+
+        applyI18n();
+
+        document.getElementById("pg-theme")?.addEventListener("click", () => {
+          setTheme(
+            document.documentElement.dataset.theme === "dark"
+              ? "light"
+              : "dark",
+          );
+        });
+        document.getElementById("pg-lang")?.addEventListener("click", () => {
+          lang = lang === "en" ? "pt" : "en";
+          try {
+            localStorage.setItem("help-mock-lang", lang);
+          } catch (_) {}
+          applyI18n();
+          /* refresh chip titles */
+          if (colsRoot.dataset.vp) applyVp(colsRoot.dataset.vp);
+        });
+        flavorSel?.addEventListener("change", () => setFlavor(flavorSel.value));
+      })();
+    </script>
+  </body>
+</html>

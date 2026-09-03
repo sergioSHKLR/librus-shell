@@ -321,7 +321,7 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
   const jaasOn = feat.jaas === true;
   document.documentElement.dataset.flavorJaas = jaasOn ? "1" : "0";
   document.querySelectorAll(
-    '[data-mode="consult:video"], [data-tool="consult:video"], [data-panel="consult:video"], fieldset[data-feat="jaas"]',
+    '[data-mode="consult:video"], [data-tool="consult:video"], [data-panel="consult:video"], fieldset[data-feat="jaas"], #help-feat-jaas, [data-feat="jaas"]',
   ).forEach((el) => {
     el.hidden = !jaasOn;
     if (!jaasOn) el.classList.remove("on");
