@@ -63,6 +63,24 @@ function vpTier(w = window.innerWidth || 0) {
   return "phone";
 }
 
+function isLandscape(
+  w = window.innerWidth || 0,
+  h = window.innerHeight || 0,
+) {
+  return w > 0 && h > 0 && w > h;
+}
+
+/**
+ * Portrait phone only. Landscape phone (≤920 but wide) keeps Read+Consult
+ * as real columns — single-column overlay is nearly unusable at ~400px tall.
+ */
+function shouldFoldConsult(
+  w = window.innerWidth || 0,
+  h = window.innerHeight || 0,
+) {
+  return w <= VP.FOLD_CONSULT && !isLandscape(w, h);
+}
+
 /** PDF on desktop/laptop only; video not on phone; other modes always size-ok. */
 function toolAllowedBySize(mode, tier = vpTier()) {
   if (mode === "consult:pdf") return tier === "desktop" || tier === "laptop";
@@ -1147,7 +1165,7 @@ function syncMainStripActive() {
   if (!strip) return;
   const w = window.innerWidth;
   const foldFind = w <= VP.FOLD_FIND;
-  const foldConsult = w <= VP.FOLD_CONSULT;
+  const foldConsult = shouldFoldConsult();
 
   if (foldFind || foldConsult) {
     /*
@@ -1193,7 +1211,7 @@ function syncMainStripActive() {
 function applyOverlaySingleTool() {
   const w = window.innerWidth;
   const foldFind = w <= VP.FOLD_FIND;
-  const foldConsult = w <= VP.FOLD_CONSULT;
+  const foldConsult = shouldFoldConsult();
   const p1 = document.getElementById("p1");
   const p3 = document.getElementById("p3");
 
@@ -1273,7 +1291,7 @@ function setMode(group, panel) {
     } catch (_) {
       /* ignore */
     }
-  } else if (group === "consult" && w <= VP.FOLD_CONSULT) {
+  } else if (group === "consult" && shouldFoldConsult()) {
     const p1 = document.getElementById("p1");
     if (p1?.classList.contains("overlay")) {
       p1.classList.add("is-closing", "overlay-single");
@@ -1327,19 +1345,23 @@ function handleTabFolding(force = false) {
   const strip = document.getElementById("main-tabs");
   if (!strip) return;
   const w = window.innerWidth;
+  const h = window.innerHeight;
   const tier = vpTier(w);
   const foldFind = w <= VP.FOLD_FIND;
-  const foldConsult = w <= VP.FOLD_CONSULT;
+  const foldConsult = shouldFoldConsult(w, h);
+  const land = isLandscape(w, h);
   /* Labels: icon-only when strip is crowded (fold find) or consult is dense */
   const compact = foldFind || w <= 1800;
   const foldKey =
     (foldFind ? "1" : "0") +
     (foldConsult ? "1" : "0") +
+    (land ? "L" : "P") +
     tier;
 
   document.body.dataset.compact = compact ? "1" : "0";
   document.body.dataset.foldFind = foldFind ? "1" : "0";
   document.body.dataset.foldConsult = foldConsult ? "1" : "0";
+  document.documentElement.dataset.vpOrient = land ? "landscape" : "portrait";
   /* Consult toolbar: icon-only before labels crowd (~2400) */
   document.body.dataset.compactConsult = w <= 2500 ? "1" : "0";
 
@@ -3282,6 +3304,12 @@ function applyViewportHandicaps() {
 
   /* Leaving phone → always show bottom bar again */
   if (tier !== "phone") setBarScrollHidden(false);
+
+  /* Landscape phone: drop Consulte overlay so dual-column CSS can show it */
+  if (!shouldFoldConsult()) {
+    const p3 = document.getElementById("p3");
+    if (p3) p3.classList.remove("overlay", "overlay-single", "is-closing");
+  }
 }
 
 /** @deprecated no-op gate open — hard block removed */

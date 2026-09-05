@@ -1624,7 +1624,8 @@ html[data-theme="dark"] .ctx-hint {
   }
 }
 
-@media screen and (max-width: 920px) {
+/* Portrait phone: single Read column; Consulte is a slide-over drawer */
+@media screen and (max-width: 920px) and (orientation: portrait) {
   #workspace {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "read";
@@ -1660,6 +1661,57 @@ html[data-theme="dark"] .ctx-hint {
 
   #p3.overlay {
     transform: translateX(0);
+  }
+}
+
+/*
+ * Landscape phone (≤920 wide, short height): Read | Consult side by side.
+ * Find stays folded into Leia’s strip; one toolbar row — usable study loop.
+ * (orientation:landscape ≈ w>h; JS shouldFoldConsult mirrors this.)
+ */
+@media screen and (max-width: 920px) and (orientation: landscape) {
+  #workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "read consult";
+    background: var(--bg);
+  }
+
+  #p1 {
+    width: min(48vw, 22rem);
+    min-width: 14rem;
+  }
+
+  #p2 {
+    grid-area: read;
+  }
+
+  #p2::after {
+    display: none;
+  }
+
+  #p3 {
+    grid-area: consult;
+    position: relative;
+    inset: auto;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    height: auto;
+    z-index: auto;
+    transform: none !important;
+    transition: none;
+    box-shadow: none;
+    border-left: 1px solid var(--border);
+  }
+
+  #p3::after {
+    display: none;
+  }
+
+  #p3.overlay,
+  #p3.overlay-single,
+  #p3.is-closing {
+    transform: none !important;
   }
 }
 
