@@ -59,6 +59,26 @@ function placeChips(root, folded) {
     });
 }
 
+/**
+ * Dim Help feature rows that are size-handicapped at the previewed device.
+ * Stance A: full Consulte is keyboard/desk (laptop+); tablet/phone stay lean
+ * on purpose (PDF off; video off on phone; portals → encyc+dict).
+ */
+function syncHelpSizeHints(root, vp) {
+  const help = root?.closest("#help") || document.getElementById("help");
+  if (!help) return;
+  const tier = vp || "";
+  help.querySelectorAll("[data-help-size]").forEach((li) => {
+    const kind = li.getAttribute("data-help-size");
+    let restricted = false;
+    if (kind === "pdf") restricted = tier === "tablet" || tier === "phone";
+    else if (kind === "jaas") restricted = tier === "phone";
+    else if (kind === "providers")
+      restricted = tier === "tablet" || tier === "phone";
+    li.classList.toggle("is-size-restricted", restricted);
+  });
+}
+
 function applyVp(root, buttons, vp) {
   const same = root.dataset.vp === vp;
   const cols = [...root.querySelectorAll(".help-col")];
@@ -67,6 +87,7 @@ function applyVp(root, buttons, vp) {
     cols.forEach((c) => c.classList.remove("is-out", "is-in"));
     clearChips(root);
     buttons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+    syncHelpSizeHints(root, "");
     return;
   }
   const keep = new Set(MAP[vp] || []);
@@ -83,6 +104,7 @@ function applyVp(root, buttons, vp) {
   buttons.forEach((b) =>
     b.setAttribute("aria-pressed", b.dataset.vp === vp ? "true" : "false"),
   );
+  syncHelpSizeHints(root, vp);
 }
 
 /** Refresh chip titles after language change. */

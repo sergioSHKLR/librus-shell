@@ -261,6 +261,19 @@ body[data-view="reader"] #bar {
   display: none !important;
 }
 
+/*
+ * Phone: scroll-down hides bottom bar to free vertical space (esp. landscape).
+ * Tabs stay. Reveal on scroll-up / near top / chrome tap.
+ */
+html.bar-scroll-hidden #bar {
+  transform: translateY(100%);
+  pointer-events: none;
+}
+
+html.bar-scroll-hidden [data-screen] {
+  bottom: 0;
+}
+
 /* Color guide only affects reader chrome — hide that block on library */
 body[data-view="library"] #settings fieldset:has([name="color-guide"]),
 body[data-view="library"] #settings [data-reader-only] {
@@ -1721,6 +1734,7 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
   color: var(--bar-fg);
   z-index: 500;
   border-top: 1px solid var(--border);
+  transition: transform 0.22s ease;
 }
 
 /*
@@ -1803,12 +1817,6 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
   background: var(--accent);
   color: #fff;
   filter: brightness(1.12);
-}
-
-#bar-lang,
-#bar-theme {
-  min-width: var(--ctrl-h);
-  padding: 0;
 }
 
 /* All bar icons same size (incl. lang-pt / lang-en path glyphs) */
@@ -2206,6 +2214,18 @@ html[data-theme="dark"] .help-col::after {
 .help-feats li {
   position: relative;
   padding: 0.15rem 0 0.15rem 0.95rem;
+}
+
+.help-feat-note {
+  margin: 0.65rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.help-feats li.is-size-restricted {
+  opacity: 0.45;
+  text-decoration: line-through;
 }
 
 .help-feats li::before {
@@ -3292,7 +3312,7 @@ html[data-theme="dark"] #viewport-frame.is-blocked #viewport-label-device {
   }
 }
 
-/* ── Páginas toolbar: link density + provider toggles ─ */
+/* ── Páginas toolbar: provider toggles (Luz / Encyc / Dict) ─ */
 #reader [data-tool="read:book"] .tool-sep {
   display: inline-block;
   width: 1px;
@@ -3358,12 +3378,7 @@ html[data-theme="dark"]
   color: var(--chrome-label, var(--fg));
 }
 
-#link-density [data-icon] svg,
-#link-density svg {
-  transition: rotate 0.2s ease;
-}
-
-/* Inject links suppressed by density / provider filter */
+/* Inject links suppressed by provider filter */
 #book a.link-hidden,
 #book a.link-hidden[data-link-provider],
 #book a.link-hidden[data-doutrina-link] {
@@ -3380,31 +3395,5 @@ html[data-theme="dark"]
   display: none !important;
 }
 
-/* ── Reduced study surface (≤920px) ───────────────── */
-html[data-study="reduced"] #p3 {
-  display: none !important;
-}
-
-/* Suppress consultation link affordances — clean text surface */
-html[data-study="reduced"] #book a[data-link-provider],
-html[data-study="reduced"] #book a[data-doutrina-link] {
-  color: inherit !important;
-  text-decoration: none !important;
-  border: none !important;
-  background: none !important;
-  cursor: text !important;
-  pointer-events: none !important;
-  font-weight: inherit;
-}
-
-html[data-study="reduced"] #book a[data-link-provider]::after,
-html[data-study="reduced"] #book a[data-doutrina-link]::after {
-  display: none !important;
-}
-
-/* No consult tools / provider strip / Páginas link controls when reduced */
-html[data-study="reduced"] #main-tabs > button[data-fold="3"],
-html[data-study="reduced"] #main-tabs > button[data-mode^="consult:"],
-html[data-study="reduced"] [data-link-controls] {
-  display: none !important;
-}
+/* Hard “reduced study” gate removed — phone folds Consulte as overlay (≤920).
+ * Size handicaps (PDF / video / slim providers) are JS `data-size-off` + hidden. */

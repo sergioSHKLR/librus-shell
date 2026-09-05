@@ -36,9 +36,44 @@ const GUIDE_KEY = "librus-color-guide";
 /** @type {'full'|'soft'|'min'} */
 let colorGuide = "full";
 const LANG_KEY = "librus-lang";
-/** Below this width: study gate blocks until the viewport is larger. */
-const STUDY_REDUCED_MAX_W = 920;
+/**
+ * Viewport ladder (width — landscape on tablet/phone restores wider tiers).
+ * Matches Help device story: desktop → laptop (fold find) → tablet (no notes,
+ * slim providers) → phone (fold consult, no video).
+ */
+const VP = {
+  FOLD_FIND: 1650,
+  FOLD_NOTES: 1400,
+  FOLD_CONSULT: 920,
+};
+/** @deprecated alias — consult fold / phone tier */
+const STUDY_REDUCED_MAX_W = VP.FOLD_CONSULT;
+/** Providers kept on tablet/phone (flavor allowlist still applies). */
+const NARROW_PROVIDERS = ["encyc", "dict"];
 const APP_VERSION = "0.9.1";
+
+/**
+ * @param {number} [w]
+ * @returns {'desktop'|'laptop'|'tablet'|'phone'}
+ */
+function vpTier(w = window.innerWidth || 0) {
+  if (w > VP.FOLD_FIND) return "desktop";
+  if (w > VP.FOLD_NOTES) return "laptop";
+  if (w > VP.FOLD_CONSULT) return "tablet";
+  return "phone";
+}
+
+/** PDF on desktop/laptop only; video not on phone; other modes always size-ok. */
+function toolAllowedBySize(mode, tier = vpTier()) {
+  if (mode === "consult:pdf") return tier === "desktop" || tier === "laptop";
+  if (mode === "consult:video") return tier !== "phone";
+  return true;
+}
+
+function providerAllowedBySize(key, tier = vpTier()) {
+  if (tier === "desktop" || tier === "laptop") return true;
+  return NARROW_PROVIDERS.includes(key);
+}
 
 const I18N = {
   pt: {
@@ -91,13 +126,9 @@ const I18N = {
     "tip.close": "Fechar",
     "tip.home": "Biblioteca",
 
-    "tip.density": "Densidade de ligações",
     "tip.link.luz": "Mostrar / ocultar ligações Luz",
     "tip.link.encyc": "Mostrar / ocultar ligações enciclopédia",
     "tip.link.dict": "Mostrar / ocultar ligações dicionário",
-    "density.lo": "Zero",
-    "density.md": "Médio",
-    "density.hi": "Alto",
     "prov.luz": "Luz Espírita",
     "prov.encyc": "Enciclopédia",
     "prov.dict": "Dicionário",
@@ -115,10 +146,10 @@ const I18N = {
       "Notas abrem na barra lateral do Hypothesis (ícone no canto).",
     "notes.off": "Hypothesis desligado neste build.",
     "set.title": "Ajustes",
-    "set.hint": "Tema claro/escuro: botão na barra inferior.",
+    "set.hint": "Idioma, tema e cores do chrome do leitor.",
     "set.guide": "Guia de cor",
     "set.guideHint":
-      "Cores do chrome do leitor (abas e barras). O tema claro/escuro fica na barra inferior.",
+      "Cores do chrome do leitor (abas e barras). Independente do tema claro/escuro.",
     "set.guideFull": "Completo",
     "set.guideSoft": "Suave",
     "set.guideMin": "Mínimo",
@@ -128,7 +159,6 @@ const I18N = {
     "set.dark": "Escuro",
     "set.lang": "Idioma",
     "bar.lang": "Idioma",
-    "bar.theme": "Tema",
     "bar.help": "Ajuda",
     "bar.settings": "Ajustes",
     "help.title": "Ajuda",
@@ -140,18 +170,20 @@ const I18N = {
     "help.feat.search": "Busca de texto",
     "help.feat.typo": "Ajustes tipográficos",
     "help.feat.pages": "Controle de paginação",
-    "help.feat.portals": "Consultas de portais",
-    "help.feat.pdf": "Comparação de PDF",
-    "help.feat.jaas": "Videoconferência",
+    "help.feat.portals": "Consultas de portais *",
+    "help.feat.pdf": "Comparação de PDF *",
+    "help.feat.jaas": "Videoconferência *",
     "help.feat.notes":
       "Grifos e notas podem ser públicas, privadas ou de grupo.",
+    "help.feat.footnote":
+      "* Consulte completo (vários portais, PDF, vídeo) é para estudo com teclado — notebook ou desktop. Em tablet/celular mantemos Enciclopédia e Dicionário de propósito: dá para estudar no toque, sem sobrecarregar. Paisagem mais larga no notebook devolve as ferramentas.",
     "help.dev.desktop": "Desktop",
     "help.dev.laptop": "Notebook",
     "help.dev.tablet": "Tablet",
     "help.dev.phone": "Celular",
-    "orient.title": "Tela pequena demais para estudar",
+    "orient.title": "Tela estreita",
     "orient.body":
-      "O estudo ativo completo (ler e consultar ao mesmo tempo, com anotações) precisa de mais espaço. Gire o aparelho para paisagem ou use uma tela maior — não há modo reduzido neste beta.",
+      "Painéis se dobram na coluna Leia. O Consulte completo fica para notebook/desktop (teclado); no toque usamos um conjunto mais enxuto.",
     "onboard.title": "Onde você estuda",
     "onboard.titleHow": "Como utilizar",
     "onboard.whereBody":
@@ -287,13 +319,9 @@ const I18N = {
     "tip.close": "Close",
     "tip.home": "Library",
 
-    "tip.density": "Link density",
     "tip.link.luz": "Show / hide Luz links",
     "tip.link.encyc": "Show / hide encyclopedia links",
     "tip.link.dict": "Show / hide dictionary links",
-    "density.lo": "Zero",
-    "density.md": "Medium",
-    "density.hi": "High",
     "prov.luz": "Luz",
     "prov.encyc": "Encyclopedia",
     "prov.dict": "Dictionary",
@@ -310,10 +338,10 @@ const I18N = {
     "notes.hint": "Notes open in the Hypothesis sidebar (corner control).",
     "notes.off": "Hypothesis disabled in this build.",
     "set.title": "Settings",
-    "set.hint": "Light/dark theme: use the bottom bar button.",
+    "set.hint": "Language, theme, and reader chrome colors.",
     "set.guide": "Color guide",
     "set.guideHint":
-      "Reader chrome colors (tabs and toolbars). Light/dark theme stays on the bottom bar.",
+      "Reader chrome colors (tabs and toolbars). Independent of light/dark theme.",
     "set.guideFull": "Full",
     "set.guideSoft": "Soft",
     "set.guideMin": "Minimal",
@@ -323,7 +351,6 @@ const I18N = {
     "set.dark": "Dark",
     "set.lang": "Language",
     "bar.lang": "Language",
-    "bar.theme": "Theme",
     "bar.help": "Help",
     "bar.settings": "Settings",
     "help.title": "Help",
@@ -335,18 +362,20 @@ const I18N = {
     "help.feat.search": "Text search",
     "help.feat.typo": "Typography controls",
     "help.feat.pages": "Pagination controls",
-    "help.feat.portals": "Portal lookups",
-    "help.feat.pdf": "PDF comparison",
-    "help.feat.jaas": "Video conference",
+    "help.feat.portals": "Portal lookups *",
+    "help.feat.pdf": "PDF comparison *",
+    "help.feat.jaas": "Video conference *",
     "help.feat.notes":
       "Highlights and notes can be public, private, or group.",
+    "help.feat.footnote":
+      "* Full Consulte (extra portals, PDF, video) is for keyboard study — laptop or desktop. On tablet/phone we keep Encyclopedia and Dictionary on purpose: touch-friendly, not overloaded. A wider laptop layout restores the rest.",
     "help.dev.desktop": "Desktop",
     "help.dev.laptop": "Laptop",
     "help.dev.tablet": "Tablet",
     "help.dev.phone": "Mobile",
-    "orient.title": "Screen too small to study",
+    "orient.title": "Narrow screen",
     "orient.body":
-      "Full active study (reading and consulting at once, with notes) needs more space. Rotate to landscape or use a larger screen — there is no reduced mode in this beta.",
+      "Panes fold into the Read column. Full Consulte stays on laptop/desktop (keyboard); touch gets a leaner set on purpose.",
     "onboard.title": "Where you study",
     "onboard.titleHow": "How to use",
     "onboard.whereBody":
@@ -464,9 +493,6 @@ const PROVIDERS = {
 const MEASURES = ["narrow", "medium", "wide"];
 const FONT_SIZES = [0.85, 0.95, 1, 1.1, 1.25, 1.4, 1.5];
 const LINE_HEIGHTS = [1.35, 1.5, 1.65, 1.85, 2.1];
-/** Link density on Páginas toolbar: Zero / Med / Hi (filters data-link-interest). */
-const LINK_DENSITY_KEYS = ["lo", "md", "hi"];
-const LINK_DENSITY_KEY = "librus-link-density";
 const ALIGNS = ["start", "justify"];
 /* Reading faces only — order: default first (serif ≈ printed book) */
 const FONTS = ["serif", "sans"];
@@ -494,15 +520,16 @@ let lineHeight = 1.65;
 let measure = "medium";
 let textAlign = "start";
 let fontFamily = "serif";
-/** @type {'lo'|'md'|'hi'} */
-let linkDensity = "md";
 /**
- * Páginas toolbar toggles only: Luz · Encyc · Dict (not map/bible/kardec).
- * Flavor gates which appear (e.g. LIBRUS has no Luz).
+ * Inject-link providers in the book (Páginas).
+ * Toolbar toggles: Luz · Encyc only. Dict has no toggle — always on except
+ * phone, where inject dict links are forced off (visual density).
  */
 const PAGE_LINK_PROVIDERS = ["luz", "encyc", "dict"];
-/** Provider keys currently on for inject-link visibility. */
-const linkProvidersOn = new Set(["encyc", "dict"]);
+/** Keys that get an on/off LED on Páginas (subset of PAGE_LINK_PROVIDERS). */
+const PAGE_LINK_TOGGLES = ["luz", "encyc"];
+/** Provider keys currently on for inject-link visibility (seeded at wire). */
+const linkProvidersOn = new Set();
 let searchQuery = "";
 let hypoTimer = null;
 let lastCtxUrl = "";
@@ -614,7 +641,7 @@ function tipForButton(btn) {
   )
     return t("tip.home");
   if (btn.getAttribute("data-cycle") === "lang") return t("bar.lang");
-  if (btn.getAttribute("data-cycle") === "theme") return t("bar.theme");
+  if (btn.getAttribute("data-cycle") === "theme") return t("set.theme");
   if (btn.getAttribute("data-open") === "help") return t("bar.help");
   if (btn.getAttribute("data-open") === "settings") return t("bar.settings");
   if (btn.hasAttribute("data-close")) return t("tip.close");
@@ -677,30 +704,10 @@ function syncTooltips(root = document) {
   }
 }
 
-/** Update bottom-bar cycler labels (theme) + settings lang radios. */
+/** Update bottom-bar labels + settings lang/theme radios. */
 function syncChromeBar() {
   syncLangInputs();
-
-  /* Theme: monitor (system) · sun (light) · moon (dark) */
-  const themeIcon =
-    themePref === "light" ? "sun" : themePref === "dark" ? "moon" : "monitor";
-  const themeHost = document.getElementById("bar-theme-icon");
-  if (themeHost) {
-    themeHost.setAttribute("data-icon", themeIcon);
-    themeHost.innerHTML = "";
-    hydrateIcons(themeHost.parentElement || themeHost);
-  }
-  const themeBtn = document.getElementById("bar-theme");
-  if (themeBtn) {
-    const themeName =
-      themePref === "light"
-        ? t("set.light")
-        : themePref === "dark"
-          ? t("set.dark")
-          : t("set.system");
-    themeBtn.title = t("bar.theme") + " · " + themeName;
-    themeBtn.setAttribute("aria-label", t("bar.theme") + " · " + themeName);
-  }
+  syncThemeInputs();
 
   const helpBtn = document.querySelector('#bar [data-open="help"]');
   if (helpBtn) {
@@ -718,12 +725,12 @@ function cycleLang() {
   setLang(currentLang === "en" ? "pt" : "en");
 }
 
-const THEME_CYCLE = ["system", "light", "dark"];
-
-function cycleTheme() {
-  const i = THEME_CYCLE.indexOf(themePref);
-  const next = THEME_CYCLE[(i < 0 ? 0 : i + 1) % THEME_CYCLE.length];
-  setTheme(/** @type {'system'|'light'|'dark'} */ (next));
+function syncThemeInputs() {
+  document.querySelectorAll('input[name="ui-theme"]').forEach((el) => {
+    if (el instanceof HTMLInputElement) {
+      el.checked = el.value === themePref;
+    }
+  });
 }
 
 /** Default OS/PWA title-bar greys (not pure white/black, not brand). */
@@ -811,6 +818,7 @@ function setLang(lang, { persist = true } = {}) {
   try {
     applyFlavorBrand(getFlavor(), currentLang, currentTheme);
     hydrateIcons(document.getElementById("library"));
+    applyViewportHandicaps();
   } catch (_) {
     /* ignore */
   }
@@ -878,6 +886,7 @@ function setTheme(pref, { persist = true, reloadHypo = true } = {}) {
   if (fav) fav.href = flavorFavicon(currentTheme);
   try {
     applyFlavorBrand(getFlavor(), currentLang, currentTheme);
+    applyViewportHandicaps();
   } catch (_) {
     /* ignore */
   }
@@ -949,13 +958,8 @@ function setView(name) {
   }
   /* Boot applyRoute → setView("library") must not kill an open How-to anim */
   if (!isOnboardOpen()) stopViewportAnim();
-  /* Back on Library with first-visit still pending */
-  if (
-    name === "library" &&
-    shouldOfferOnboard() &&
-    !isOnboardOpen() &&
-    !isStudyConstrained()
-  ) {
+  /* Back on Library with first-visit still pending (onboard archived → usually no-op) */
+  if (name === "library" && shouldOfferOnboard() && !isOnboardOpen()) {
     requestAnimationFrame(() => openOnboard());
   }
   syncChromeBar();
@@ -1142,8 +1146,8 @@ function syncMainStripActive() {
   const strip = document.getElementById("main-tabs");
   if (!strip) return;
   const w = window.innerWidth;
-  const foldFind = w <= 1650;
-  const foldConsult = w <= 920;
+  const foldFind = w <= VP.FOLD_FIND;
+  const foldConsult = w <= VP.FOLD_CONSULT;
 
   if (foldFind || foldConsult) {
     /*
@@ -1188,8 +1192,8 @@ function syncMainStripActive() {
  */
 function applyOverlaySingleTool() {
   const w = window.innerWidth;
-  const foldFind = w <= 1650;
-  const foldConsult = !isStudyConstrained() && w <= STUDY_REDUCED_MAX_W;
+  const foldFind = w <= VP.FOLD_FIND;
+  const foldConsult = w <= VP.FOLD_CONSULT;
   const p1 = document.getElementById("p1");
   const p3 = document.getElementById("p3");
 
@@ -1200,44 +1204,55 @@ function applyOverlaySingleTool() {
     );
   }
   if (p3) {
-    if (isStudyReduced()) {
-      p3.classList.remove("overlay", "overlay-single", "is-closing");
-    } else {
-      p3.classList.toggle(
-        "overlay-single",
-        p3.classList.contains("overlay") && foldConsult,
-      );
-    }
+    p3.classList.toggle(
+      "overlay-single",
+      p3.classList.contains("overlay") && foldConsult,
+    );
   }
 
   syncMainStripActive();
 }
 
 function setMode(group, panel) {
-  /* Reduced study: refuse Consulte entirely */
-  if (group === "consult" && isStudyReduced()) {
-    return;
-  }
   const mode = group + ":" + panel;
-  focusMode = mode;
-  if (group === "read") lastReadMode = mode;
+  if (group === "consult" && !toolAllowedBySize(mode)) {
+    /* Size handicap — fall back to web when PDF/video unavailable */
+    panel = "web";
+  }
+  const resolved = group + ":" + panel;
+  focusMode = resolved;
+  if (group === "read") lastReadMode = resolved;
 
   document.querySelectorAll('[data-mode^="' + group + ':"]').forEach((btn) => {
-    btn.classList.toggle("on", btn.getAttribute("data-mode") === mode);
+    if (btn.hasAttribute("data-size-off")) {
+      btn.classList.remove("on");
+      return;
+    }
+    btn.classList.toggle("on", btn.getAttribute("data-mode") === resolved);
   });
   document.querySelectorAll('[data-tool^="' + group + ':"]').forEach((tb) => {
-    const match = tb.getAttribute("data-tool") === mode;
+    if (tb.hasAttribute("data-size-off")) {
+      tb.classList.remove("on");
+      tb.hidden = true;
+      return;
+    }
+    const match = tb.getAttribute("data-tool") === resolved;
     tb.classList.toggle("on", match);
     tb.hidden = !match;
   });
   document.querySelectorAll('[data-panel^="' + group + ':"]').forEach((p) => {
-    const match = p.getAttribute("data-panel") === mode;
+    if (p.hasAttribute("data-size-off")) {
+      p.classList.remove("on");
+      p.hidden = true;
+      return;
+    }
+    const match = p.getAttribute("data-panel") === resolved;
     p.classList.toggle("on", match);
     p.hidden = !match;
   });
 
   const w = window.innerWidth;
-  if (group === "find" && w <= 1650) {
+  if (group === "find" && w <= VP.FOLD_FIND) {
     /* Slide-close p3 if open (no tab-bar flash) */
     const p3 = document.getElementById("p3");
     if (p3?.classList.contains("overlay")) {
@@ -1258,12 +1273,7 @@ function setMode(group, panel) {
     } catch (_) {
       /* ignore */
     }
-  } else if (group === "consult" && w <= STUDY_REDUCED_MAX_W) {
-    /* Reduced study: Consulte is intentionally absent — do not open overlay */
-    if (isStudyReduced()) {
-      applyOverlaySingleTool();
-      return;
-    }
+  } else if (group === "consult" && w <= VP.FOLD_CONSULT) {
     const p1 = document.getElementById("p1");
     if (p1?.classList.contains("overlay")) {
       p1.classList.add("is-closing", "overlay-single");
@@ -1287,26 +1297,25 @@ function setMode(group, panel) {
     }
   } else if (group === "read") {
     closeFoldOverlays({ restoreRead: false });
-    focusMode = mode;
-    lastReadMode = mode;
+    focusMode = resolved;
+    lastReadMode = resolved;
   }
 
   applyOverlaySingleTool();
 }
 
 function openMode(mode) {
-  /* Reduced surface: no Consulte */
-  if (String(mode || "").startsWith("consult:") && isStudyReduced()) {
-    return;
-  }
-  /* Flavor may disable video (librus / doutrina); ignore open */
+  /* Flavor may disable video (librus / doutrina); size may also strip it */
   if (mode === "consult:video") {
     const f = typeof getFlavor === "function" ? getFlavor() : null;
     if (!f?.features || f.features.jaas !== true) {
       mode = "consult:web";
     }
   }
-  const [group, panel] = mode.split(":");
+  if (mode && !toolAllowedBySize(mode)) {
+    mode = String(mode).startsWith("consult:") ? "consult:web" : mode;
+  }
+  const [group, panel] = String(mode || "").split(":");
   if (group && panel) setMode(group, panel);
 }
 
@@ -1318,16 +1327,15 @@ function handleTabFolding(force = false) {
   const strip = document.getElementById("main-tabs");
   if (!strip) return;
   const w = window.innerWidth;
-  const reduced = isStudyConstrained();
-  const foldFind = w <= 1650;
-  /* In reduced mode consult is removed, not folded */
-  const foldConsult = !reduced && w <= STUDY_REDUCED_MAX_W;
+  const tier = vpTier(w);
+  const foldFind = w <= VP.FOLD_FIND;
+  const foldConsult = w <= VP.FOLD_CONSULT;
   /* Labels: icon-only when strip is crowded (fold find) or consult is dense */
   const compact = foldFind || w <= 1800;
   const foldKey =
     (foldFind ? "1" : "0") +
     (foldConsult ? "1" : "0") +
-    (reduced ? "R" : "F");
+    tier;
 
   document.body.dataset.compact = compact ? "1" : "0";
   document.body.dataset.foldFind = foldFind ? "1" : "0";
@@ -1352,6 +1360,8 @@ function handleTabFolding(force = false) {
     if (!orig || orig.hidden || orig.closest("[data-feat][hidden]"))
       return null;
     if (orig.classList.contains("is-off")) return null;
+    const mode = orig.getAttribute("data-mode") || "";
+    if (mode && !toolAllowedBySize(mode, tier)) return null;
     const clone = orig.cloneNode(true);
     clone.classList.remove("on");
     clone.setAttribute("data-fold", fold);
@@ -1542,7 +1552,7 @@ function syncTypoButtons() {
   setIcon("size", nextSize >= fontSize ? "a-arrow-up" : "a-arrow-down");
 }
 
-/* ── Link density / provider filters (Páginas toolbar) ── */
+/* ── Provider filters (Páginas toolbar) ─── */
 
 /** Flavor-allowed subset of PAGE_LINK_PROVIDERS (Luz only on doutrina/centro). */
 function pageLinkProvidersForFlavor() {
@@ -1554,19 +1564,40 @@ function pageLinkProvidersForFlavor() {
 }
 
 function defaultLinkProvidersOn() {
-  pageLinkProvidersForFlavor().forEach((k) => linkProvidersOn.add(k));
+  const tier = vpTier();
+  pageLinkProvidersForFlavor().forEach((k) => {
+    /* Dict: no LED — on everywhere except phone */
+    if (k === "dict" && tier === "phone") return;
+    linkProvidersOn.add(k);
+  });
 }
 
+/** Sync dict inject with viewport (no user toggle). */
+function syncDictInjectForTier(tier = vpTier()) {
+  const pageKeys = new Set(pageLinkProvidersForFlavor());
+  if (!pageKeys.has("dict")) {
+    linkProvidersOn.delete("dict");
+    return;
+  }
+  if (tier === "phone") linkProvidersOn.delete("dict");
+  else linkProvidersOn.add("dict");
+}
+
+/**
+ * Show/hide inject links by provider on-state.
+ * All data-link-interest levels stay visible when a provider is on.
+ * Dict is auto-managed (off on phone); Luz/Encyc use Páginas LEDs.
+ */
 function applyLinkFilters() {
   const book = bookEl();
   if (!book) return;
-  book.dataset.linkDensity = linkDensity;
+  delete book.dataset.linkDensity;
 
-  /* Drop on-state for providers not in this flavor */
   const pageKeys = new Set(pageLinkProvidersForFlavor());
   [...linkProvidersOn].forEach((k) => {
     if (!pageKeys.has(k)) linkProvidersOn.delete(k);
   });
+  syncDictInjectForTier();
 
   book.querySelectorAll("a[data-link-provider], a[data-doutrina-link]").forEach(
     (a) => {
@@ -1576,22 +1607,10 @@ function applyLinkFilters() {
         a.getAttribute("data-provider") ||
         ""
       ).toLowerCase();
-      const interest = (
-        a.getAttribute("data-link-interest") || "med"
-      ).toLowerCase();
       const key = LINK_PROVIDER_KEY[code] || "";
 
       let show = true;
-      if (linkDensity === "lo") {
-        show = false; /* Zero — no inject links */
-      } else if (linkDensity === "md") {
-        /* Medium: hi + med only */
-        show = interest === "hi" || interest === "med";
-      }
-      /* hi: all interests */
-
-      /* Páginas toggles only filter luz / encyc / dict */
-      if (show && PAGE_LINK_PROVIDERS.includes(key) && !linkProvidersOn.has(key)) {
+      if (PAGE_LINK_PROVIDERS.includes(key) && !linkProvidersOn.has(key)) {
         show = false;
       }
 
@@ -1605,38 +1624,20 @@ function applyLinkFilters() {
 }
 
 function syncLinkControls() {
-  const knob = document.getElementById("link-density");
-  if (knob) {
-    knob.setAttribute("data-step", linkDensity);
-    const label = knob.querySelector("span");
-    if (label) {
-      label.textContent = t("density." + linkDensity);
-      label.setAttribute("data-i18n", "density." + linkDensity);
-    }
-    const icon = knob.querySelector("[data-icon], svg");
-    const rot =
-      linkDensity === "lo"
-        ? "225deg"
-        : linkDensity === "hi"
-          ? "405deg"
-          : "315deg";
-    if (icon instanceof HTMLElement) icon.style.rotate = rot;
-    const tip = t("tip.density") + " · " + t("density." + linkDensity);
-    knob.title = tip;
-    knob.setAttribute("aria-label", tip);
-  }
-
   const pageKeys = pageLinkProvidersForFlavor();
+  const tier = vpTier();
   document.querySelectorAll("[data-link].link-toggle").forEach((btn) => {
     const key = btn.getAttribute("data-link");
     if (!key) return;
-    /* Flavor gate (also applied in applyFlavorBrand) */
-    const allowed = pageKeys.includes(key);
-    if (!allowed) {
+    /* Dict has no toggle in DOM; ignore if leftover markup */
+    if (!PAGE_LINK_TOGGLES.includes(key)) {
       btn.hidden = true;
       return;
     }
-    if (!isStudyReduced()) btn.hidden = false;
+    const allowed =
+      pageKeys.includes(key) && providerAllowedBySize(key, tier);
+    btn.hidden = !allowed;
+    if (!allowed) return;
     const on = linkProvidersOn.has(key);
     btn.classList.toggle("is-on", on);
     btn.setAttribute("aria-pressed", on ? "true" : "false");
@@ -1646,65 +1647,38 @@ function syncLinkControls() {
     btn.setAttribute("aria-label", tip);
   });
 
-  /* Hide entire link-control cluster in reduced study */
-  const reduced = isStudyReduced();
+  let anyToggle = false;
   document.querySelectorAll("[data-link-controls]").forEach((el) => {
     if (!(el instanceof HTMLElement)) return;
     if (el.classList?.contains("link-toggle")) {
-      /* Provider toggles: reduced OR flavor-hidden */
       const key = el.getAttribute("data-link");
-      const flavorOk = key && pageKeys.includes(key);
-      el.hidden = reduced || !flavorOk;
+      if (!key || !PAGE_LINK_TOGGLES.includes(key)) {
+        el.hidden = true;
+        return;
+      }
+      const flavorOk = pageKeys.includes(key);
+      const sizeOk = providerAllowedBySize(key, tier);
+      const show = flavorOk && sizeOk;
+      el.hidden = !show;
+      if (show) anyToggle = true;
       return;
     }
-    /* density knob + separator */
-    el.hidden = reduced;
+    el.hidden = !anyToggle;
   });
-}
-
-function setLinkDensity(level) {
-  if (!LINK_DENSITY_KEYS.includes(level)) return;
-  linkDensity = /** @type {'lo'|'md'|'hi'} */ (level);
-  try {
-    localStorage.setItem(LINK_DENSITY_KEY, linkDensity);
-  } catch (_) {
-    /* ignore */
-  }
-  if (linkDensity === "lo") {
-    /* Match simple/: zero density clears provider LEDs */
-    linkProvidersOn.clear();
-  } else if (linkProvidersOn.size === 0) {
-    /* Restore flavor-default page providers when leaving zero */
-    defaultLinkProvidersOn();
-  }
-  applyLinkFilters();
-}
-
-function cycleLinkDensity() {
-  const i = LINK_DENSITY_KEYS.indexOf(linkDensity);
-  const next = LINK_DENSITY_KEYS[(i < 0 ? 0 : i + 1) % LINK_DENSITY_KEYS.length];
-  setLinkDensity(next);
+  document
+    .querySelectorAll("[data-link-controls].tool-sep, .tool-sep[data-link-controls]")
+    .forEach((el) => {
+      if (el instanceof HTMLElement) el.hidden = !anyToggle;
+    });
 }
 
 function toggleLinkProvider(key) {
-  if (!key) return;
+  if (!key || !PAGE_LINK_TOGGLES.includes(key)) return;
   if (!pageLinkProvidersForFlavor().includes(key)) return;
   if (linkProvidersOn.has(key)) linkProvidersOn.delete(key);
-  else {
-    linkProvidersOn.add(key);
-    if (linkDensity === "lo") {
-      /* Turning a provider on from zero → at least medium density */
-      linkDensity = "md";
-      try {
-        localStorage.setItem(LINK_DENSITY_KEY, linkDensity);
-      } catch (_) {
-        /* ignore */
-      }
-    }
-  }
+  else linkProvidersOn.add(key);
   applyLinkFilters();
-  /* Opening the provider when enabling (simple/ behaviour) */
-  if (linkProvidersOn.has(key) && !isStudyReduced()) {
+  if (linkProvidersOn.has(key) && providerAllowedBySize(key)) {
     openProvider(key);
   }
 }
@@ -1850,6 +1824,7 @@ async function loadBook(slug) {
     currentBook = BOOK_CACHE[id];
     currentSlug = id;
     await loadFolioPages(id);
+    scheduleSearchIndexWarm();
     return currentBook;
   }
   const entry =
@@ -1863,7 +1838,65 @@ async function loadBook(slug) {
   currentBook = book;
   currentSlug = id;
   await loadFolioPages(id);
+  scheduleSearchIndexWarm();
   return book;
+}
+
+/**
+ * Warm plain-text search index in true idle time (no forced timeout).
+ * LDE-sized pages (~2MB HTML / thousands of headings) must NOT be forced onto
+ * the main thread via `timeout:` — that was freezing Chrome (“Page Unresponsive”)
+ * right after the already-expensive innerHTML paint. Huge pages stay lazy until
+ * the first search (O(n) index is fine on Enter).
+ */
+function scheduleSearchIndexWarm() {
+  const book = currentBook;
+  if (!book?.pages?.length) return;
+  const HUGE = 400000; /* ~chars of html — skip eager warm */
+  let i = 0;
+  const step = (deadline) => {
+    if (currentBook !== book) return;
+    while (i < book.pages.length) {
+      const html = book.pages[i]?.html || "";
+      if (html.length >= HUGE) {
+        i += 1;
+        continue; /* lazy on first search */
+      }
+      if (
+        deadline &&
+        typeof deadline.timeRemaining === "function" &&
+        deadline.timeRemaining() < 4 &&
+        !deadline.didTimeout
+      ) {
+        break;
+      }
+      try {
+        getPageSearchIndex(i);
+      } catch (_) {
+        /* ignore */
+      }
+      i += 1;
+      if (
+        deadline &&
+        typeof deadline.timeRemaining === "function" &&
+        deadline.timeRemaining() < 4
+      ) {
+        break;
+      }
+    }
+    if (i < book.pages.length) {
+      if (typeof requestIdleCallback === "function") {
+        requestIdleCallback(step); /* no timeout — never force */
+      } else {
+        setTimeout(() => step(null), 50);
+      }
+    }
+  };
+  if (typeof requestIdleCallback === "function") {
+    requestIdleCallback(step);
+  } else {
+    setTimeout(() => step(null), 50);
+  }
 }
 
 async function openBook(slug) {
@@ -1985,6 +2018,7 @@ function renderPage() {
           (currentLang === "en" ? "Empty page." : "Página vazia.") +
           "</p>";
       el.dataset.folioBook = currentSlug || "";
+      paintedSearchQuery = "";
     }
   } else {
     delete el.dataset.folioBook;
@@ -1993,6 +2027,8 @@ function renderPage() {
       "<p class='chrome-hint'>" +
         (currentLang === "en" ? "Empty page." : "Página vazia.") +
         "</p>";
+    /* New DOM — any prior search marks are gone */
+    paintedSearchQuery = "";
   }
 
   const input = document.getElementById("page-n");
@@ -2037,12 +2073,18 @@ function renderPage() {
   }
 }
 
-function goToPage(index) {
+/**
+ * @param {number} index
+ * @param {{ scrollTop?: boolean }} [opts]
+ */
+function goToPage(index, opts = {}) {
+  const scrollTop = opts.scrollTop !== false;
   if (isFolioPaged()) {
     if (index < 0 || index >= folioPages.length) return;
+    const same = index === pageIndex;
     pageIndex = index;
     const folio = folioPages[pageIndex];
-    renderPage();
+    if (!same) renderPage();
     navigate(pathFor("reader", { slug: currentSlug, page: folio - 1 }), {
       replace: true,
       skip: true,
@@ -2051,13 +2093,16 @@ function goToPage(index) {
   }
   const pages = currentBook?.pages || [];
   if (index < 0 || index >= pages.length) return;
+  const same = index === pageIndex;
   pageIndex = index;
-  renderPage();
-  navigate(pathFor("reader", { slug: currentSlug, page: pageIndex }), {
-    replace: true,
-    skip: true,
-  });
-  bookEl()?.scrollTo(0, 0);
+  if (!same) {
+    renderPage();
+    navigate(pathFor("reader", { slug: currentSlug, page: pageIndex }), {
+      replace: true,
+      skip: true,
+    });
+  }
+  if (scrollTop && !same) bookEl()?.scrollTo(0, 0);
 }
 
 function stripHtml(html) {
@@ -2078,36 +2123,66 @@ function cleanHeadingLabel(raw) {
 }
 
 /**
- * Index page plain text (same normalization as stripHtml) and heading
- * starts. “Lowest heading” for a hit = last H1–H6 whose start ≤ hit offset
- * (nearest preceding / deepest current section title).
+ * Index page plain text (≈ stripHtml) and heading starts in one O(n) walk.
+ * Avoids Range#toString per heading (was O(n·headings) and multi-second on
+ * large single-page books like LDE).
  * @param {string} html
  * @returns {{ text: string, headings: { start: number, label: string }[] }}
  */
 function indexPageHeadings(html) {
   const root = document.createElement("div");
   root.innerHTML = html || "";
-  const collapsed = (root.textContent || "").replace(/\s+/g, " ");
-  const text = collapsed.trim();
-  const lead = collapsed.length - collapsed.trimStart().length;
   const headings = /** @type {{ start: number, label: string }[]} */ ([]);
+  let collapsed = "";
 
-  root.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
-    const label = cleanHeadingLabel(h.textContent || "");
-    if (!label) return;
-    try {
-      const range = document.createRange();
-      range.selectNodeContents(root);
-      range.setEndBefore(h);
-      const pre = range.toString().replace(/\s+/g, " ");
-      const start = Math.max(0, pre.length - lead);
-      headings.push({ start, label });
-    } catch (_) {
-      /* ignore malformed trees */
+  function append(s) {
+    if (!s) return;
+    const t = s.replace(/\s+/g, " ");
+    if (!t) return;
+    if (!collapsed) {
+      collapsed = t[0] === " " ? t.slice(1) : t;
+      return;
     }
-  });
+    if (collapsed.endsWith(" ") && t[0] === " ") collapsed += t.slice(1);
+    else collapsed += t;
+  }
 
-  return { text, headings };
+  function walk(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      append(node.nodeValue || "");
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const tag = node.tagName;
+    if (tag.length === 2 && tag[0] === "H" && tag[1] >= "1" && tag[1] <= "6") {
+      const label = cleanHeadingLabel(node.textContent || "");
+      if (label) headings.push({ start: collapsed.length, label });
+    }
+    const kids = node.childNodes;
+    for (let i = 0; i < kids.length; i++) walk(kids[i]);
+  }
+
+  walk(root);
+  if (collapsed.endsWith(" ")) collapsed = collapsed.slice(0, -1);
+  return { text: collapsed, headings };
+}
+
+/** @type {WeakMap<object, Map<number, { text: string, headings: { start: number, label: string }[] }>>} */
+const pageSearchIndexCache = new WeakMap();
+
+/** @param {number} pageIdx */
+function getPageSearchIndex(pageIdx) {
+  const book = currentBook;
+  if (!book) return { text: "", headings: [] };
+  let map = pageSearchIndexCache.get(book);
+  if (!map) {
+    map = new Map();
+    pageSearchIndexCache.set(book, map);
+  }
+  if (map.has(pageIdx)) return map.get(pageIdx);
+  const indexed = indexPageHeadings(book.pages?.[pageIdx]?.html || "");
+  map.set(pageIdx, indexed);
+  return indexed;
 }
 
 /**
@@ -2123,9 +2198,13 @@ function headingAt(headings, at) {
   return label;
 }
 
+/** Query currently painted as <mark>s in #book (lowercase), or "". */
+let paintedSearchQuery = "";
+
 /** Unwrap in-book <mark> highlights (search clear / new query). */
 function clearSearchHighlights() {
   const el = bookEl();
+  paintedSearchQuery = "";
   if (!el) return;
   el.querySelectorAll("mark").forEach((m) => {
     const p = m.parentNode;
@@ -2152,7 +2231,7 @@ function runSearch(q) {
   let capped = false;
   const lower = query.toLowerCase();
   outer: for (let i = 0; i < pages.length; i++) {
-    const indexed = indexPageHeadings(pages[i].html || "");
+    const indexed = getPageSearchIndex(i);
     const text = indexed.text;
     let from = 0;
     let idx;
@@ -2212,8 +2291,7 @@ function runSearch(q) {
         b.classList.remove("is-current", "on");
       });
       btn.classList.add("is-current");
-      goToPage(hit.page);
-      highlightInPage(query, hit.pageHitIndex);
+      jumpToSearchHit(query, hit);
     });
     box.appendChild(btn);
     cards.push(btn);
@@ -2223,45 +2301,81 @@ function runSearch(q) {
   const first = hits[0];
   if (first) {
     cards[0]?.classList.add("is-current");
-    if (first.page !== pageIndex) goToPage(first.page);
-    highlightInPage(query, first.pageHitIndex);
+    jumpToSearchHit(query, first);
   }
 }
 
+/**
+ * Navigate to a hit without re-rendering a huge page on every click.
+ * @param {string} query
+ * @param {{ page: number, pageHitIndex: number }} hit
+ */
+function jumpToSearchHit(query, hit) {
+  const pageChanged = hit.page !== pageIndex;
+  if (pageChanged) {
+    goToPage(hit.page, { scrollTop: true });
+    /* Let layout settle after swapping ~MB of HTML before marking/scrolling */
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => highlightInPage(query, hit.pageHitIndex));
+    });
+    return;
+  }
+  highlightInPage(query, hit.pageHitIndex);
+}
+
+/**
+ * Mark only the focused occurrence (not every hit). Painting hundreds of
+ * <mark>s across a multi‑MB book was multi‑second and made hit nav feel broken.
+ * @param {string} query
+ * @param {number} focusIndex 0-based match index on the current page
+ */
 function highlightInPage(query, focusIndex) {
   const el = bookEl();
   if (!el || !query) return;
   clearSearchHighlights();
-  const re = new RegExp(
-    "(" + query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")",
-    "ig",
-  );
+  const qLower = query.toLowerCase();
+  const want = Math.max(0, focusIndex || 0);
+  let seen = 0;
   const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  /** @type {Text[]} */
   const nodes = [];
   let n;
   while ((n = walk.nextNode())) {
-    if (n.nodeValue && n.nodeValue.toLowerCase().includes(query.toLowerCase()))
-      nodes.push(n);
+    if (n.nodeValue && n.nodeValue.toLowerCase().includes(qLower))
+      nodes.push(/** @type {Text} */ (n));
   }
-  nodes.forEach((textNode) => {
+
+  let target = /** @type {HTMLElement | null} */ (null);
+  outer: for (const textNode of nodes) {
     const parent = textNode.parentNode;
-    if (!parent || parent.closest("mark")) return;
-    const frag = document.createDocumentFragment();
-    textNode.nodeValue.split(re).forEach((part, i) => {
-      if (i % 2 === 1) {
+    if (!parent || parent.closest("mark")) continue;
+    const value = textNode.nodeValue || "";
+    const valueLower = value.toLowerCase();
+    let from = 0;
+    let idx;
+    while ((idx = valueLower.indexOf(qLower, from)) !== -1) {
+      if (seen === want) {
+        const before = value.slice(0, idx);
+        const match = value.slice(idx, idx + query.length);
+        const after = value.slice(idx + query.length);
+        const frag = document.createDocumentFragment();
+        if (before) frag.appendChild(document.createTextNode(before));
         const mark = document.createElement("mark");
-        mark.textContent = part;
+        mark.className = "focus";
+        mark.textContent = match;
         frag.appendChild(mark);
-      } else if (part) frag.appendChild(document.createTextNode(part));
-    });
-    parent.replaceChild(frag, textNode);
-  });
-  const marks = el.querySelectorAll("mark");
-  const target =
-    marks[Math.min(Math.max(0, focusIndex || 0), marks.length - 1)] || marks[0];
-  marks.forEach((m) => m.classList.remove("focus"));
+        if (after) frag.appendChild(document.createTextNode(after));
+        parent.replaceChild(frag, textNode);
+        target = mark;
+        break outer;
+      }
+      seen += 1;
+      from = idx + query.length;
+    }
+  }
+
+  paintedSearchQuery = qLower;
   if (target) {
-    target.classList.add("focus");
     target.scrollIntoView({ block: "center", behavior: "smooth" });
   }
 }
@@ -2716,6 +2830,19 @@ function wire() {
   });
   syncLangInputs();
 
+  /* Theme radios (settings) */
+  document.querySelectorAll('input[name="ui-theme"]').forEach((el) => {
+    el.addEventListener("change", () => {
+      if (el instanceof HTMLInputElement && el.checked) {
+        const v = el.value;
+        setTheme(
+          v === "light" || v === "dark" || v === "system" ? v : "system",
+        );
+      }
+    });
+  });
+  syncThemeInputs();
+
   /* Single delegated click owner for chrome navigation */
   document.addEventListener("click", (e) => {
     const t = e.target;
@@ -2726,7 +2853,6 @@ function wire() {
       e.preventDefault();
       const kind = cycleBtn.getAttribute("data-cycle");
       if (kind === "lang") cycleLang();
-      else if (kind === "theme") cycleTheme();
       return;
     }
 
@@ -2870,26 +2996,20 @@ function wire() {
     syncTypoButtons();
   }
 
-  /* Páginas: link density + provider filters */
-  document.getElementById("link-density")?.addEventListener("click", () => {
-    cycleLinkDensity();
-  });
+  /* Páginas: provider filters (all link interests on by default) */
   document.querySelectorAll("[data-link].link-toggle").forEach((btn) => {
     btn.addEventListener("click", () => {
       toggleLinkProvider(btn.getAttribute("data-link"));
     });
   });
+  /* Seed on-state from flavor (Luz only when listed); drop legacy density key */
+  linkProvidersOn.clear();
+  defaultLinkProvidersOn();
   try {
-    const stored = localStorage.getItem(LINK_DENSITY_KEY);
-    if (stored === "lo" || stored === "md" || stored === "hi") {
-      linkDensity = stored;
-    }
+    localStorage.removeItem("librus-link-density");
   } catch (_) {
     /* ignore */
   }
-  /* Seed on-state from flavor (Luz only when listed) */
-  linkProvidersOn.clear();
-  if (linkDensity !== "lo") defaultLinkProvidersOn();
   syncLinkControls();
   applyLinkFilters();
 
@@ -3065,53 +3185,90 @@ function closeAllDrawers() {
   }
 }
 
-/* ── Study size gate (blocking narrow viewport) ─── */
+/* ── Viewport tiers (fold + feature handicaps; no hard block) ─── */
 
-/** True when multi-pane active study (incl. simultaneous consult) is not viable. */
+/** @deprecated phone-tier alias — kept for onboard stubs */
 function isStudyConstrained() {
-  const w = window.innerWidth || 0;
-  return w > 0 && w <= STUDY_REDUCED_MAX_W;
+  return vpTier() === "phone";
 }
 
+/** @deprecated always false — hard reduced gate removed */
 function isStudyReduced() {
-  return document.documentElement.dataset.study === "reduced";
+  return false;
 }
 
 /**
- * Apply full vs reduced study surface (defense while gated).
- * Reduced: hide Consulte (p3), suppress consult links/controls; keep Leia + Anote.
+ * Hide/show consult tools and provider buttons by width tier.
+ * Flavor allowlists still apply; size is a second axis.
  */
-function applyStudySurface() {
-  const reduced = isStudyConstrained();
-  document.documentElement.dataset.study = reduced ? "reduced" : "full";
-  document.body.dataset.study = reduced ? "reduced" : "full";
+function applyViewportHandicaps() {
+  const tier = vpTier();
+  const flavor = typeof getFlavor === "function" ? getFlavor() : null;
+  const allowed = flavor?.features?.providers;
+  const jaasOn = flavor?.features?.jaas === true;
 
-  const p3 = document.getElementById("p3");
-  if (p3) {
-    if (reduced) {
-      p3.classList.remove("overlay", "overlay-single", "is-closing");
-      p3.setAttribute("aria-hidden", "true");
+  document.documentElement.dataset.vpTier = tier;
+  document.body.dataset.vpTier = tier;
+  /* Legacy dataset: "full" always — consult folds instead of vanishing */
+  document.documentElement.dataset.study = "full";
+  document.body.dataset.study = "full";
+
+  const setSizeOff = (el, off) => {
+    if (!(el instanceof HTMLElement)) return;
+    if (off) {
+      el.setAttribute("data-size-off", "1");
+      el.hidden = true;
+      el.classList.remove("on");
     } else {
-      p3.removeAttribute("aria-hidden");
+      el.removeAttribute("data-size-off");
     }
-  }
+  };
 
-  if (reduced) {
-    /* If user was in consult, return to reading */
-    if (String(focusMode || "").startsWith("consult:")) {
-      focusMode = lastReadMode || "read:book";
-      lastReadMode = focusMode;
+  const pdfOk = toolAllowedBySize("consult:pdf", tier);
+  document
+    .querySelectorAll(
+      '[data-mode="consult:pdf"], [data-tool="consult:pdf"], [data-panel="consult:pdf"]',
+    )
+    .forEach((el) => setSizeOff(el, !pdfOk));
+
+  const videoOk = jaasOn && toolAllowedBySize("consult:video", tier);
+  document
+    .querySelectorAll(
+      '[data-mode="consult:video"], [data-tool="consult:video"], [data-panel="consult:video"]',
+    )
+    .forEach((el) => setSizeOff(el, !videoOk));
+  const helpJaas = document.getElementById("help-feat-jaas");
+  if (helpJaas && !jaasOn) helpJaas.hidden = true;
+
+  document.querySelectorAll("[data-provider]").forEach((btn) => {
+    const key = btn.getAttribute("data-provider");
+    if (!key) return;
+    const flavorOk = !Array.isArray(allowed) || allowed.indexOf(key) !== -1;
+    const sizeOk = providerAllowedBySize(key, tier);
+    btn.hidden = !(flavorOk && sizeOk);
+  });
+
+  /* If focus is on a now-handicapped tool, fall back to web */
+  if (String(focusMode || "").startsWith("consult:")) {
+    if (!toolAllowedBySize(focusMode, tier)) {
       try {
-        setMode("read", focusMode.split(":")[1] || "book");
+        setMode("consult", "web");
       } catch (_) {
         /* ignore */
       }
     }
   }
 
-  /* Refresh Páginas link controls + inject-link visibility */
+  const p3 = document.getElementById("p3");
+  if (p3) p3.removeAttribute("aria-hidden");
+
+  /* Dict inject follows tier; re-filter book links when crossing phone */
   try {
-    applyLinkFilters();
+    const before = linkProvidersOn.has("dict");
+    syncDictInjectForTier(tier);
+    const after = linkProvidersOn.has("dict");
+    if (before !== after) applyLinkFilters();
+    else syncLinkControls();
   } catch (_) {
     /* ignore before boot */
   }
@@ -3122,118 +3279,65 @@ function applyStudySurface() {
   } catch (_) {
     /* ignore */
   }
+
+  /* Leaving phone → always show bottom bar again */
+  if (tier !== "phone") setBarScrollHidden(false);
 }
 
+/** @deprecated no-op gate open — hard block removed */
 function openOrientGate(el) {
-  if (!el) return;
-  /* Close help/settings if open — gate owns the scrim */
-  MODAL_IDS.forEach((id) => {
-    const o = document.getElementById(id);
-    if (o) {
-      o.classList.remove("is-open", "is-closing");
-      o.hidden = true;
-    }
-  });
-  const scrim = document.getElementById("scrim");
-  el.hidden = false;
-  el.classList.remove("is-closing");
-  if (scrim) {
-    scrim.hidden = false;
-    scrim.classList.remove("is-closing");
-  }
-  el.setAttribute("aria-hidden", "false");
-  document.documentElement.classList.add("is-portrait-blocked");
-  document.body.classList.add("is-portrait-blocked");
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      el.classList.add("is-open");
-      if (scrim) scrim.classList.add("is-open");
-    });
-  });
+  if (el) closeOrientGate(el);
 }
 
 function closeOrientGate(el) {
-  if (!el) return;
+  const target = el || document.getElementById("orient");
+  if (!target) return;
   const scrim = document.getElementById("scrim");
-  const finish = () => {
-    el.classList.remove("is-open", "is-closing");
-    el.hidden = true;
-    el.setAttribute("aria-hidden", "true");
-    document.documentElement.classList.remove("is-portrait-blocked");
-    document.body.classList.remove("is-portrait-blocked");
-    if (scrim) {
-      scrim.classList.remove("is-open", "is-closing");
-      scrim.hidden = true;
-    }
-  };
-  if (!el.classList.contains("is-open")) {
-    finish();
-    return;
+  target.classList.remove("is-open", "is-closing");
+  target.hidden = true;
+  target.setAttribute("aria-hidden", "true");
+  document.documentElement.classList.remove("is-portrait-blocked");
+  document.body.classList.remove("is-portrait-blocked");
+  /* Only clear scrim when no other modal owns it */
+  const otherOpen = MODAL_IDS.some((id) => {
+    const o = document.getElementById(id);
+    return o && o.classList.contains("is-open") && !o.hidden;
+  });
+  if (scrim && !otherOpen) {
+    scrim.classList.remove("is-open", "is-closing");
+    scrim.hidden = true;
   }
-  let done = false;
-  const end = () => {
-    if (done) return;
-    done = true;
-    el.removeEventListener("transitionend", onEnd);
-    finish();
-  };
-  const onEnd = (ev) => {
-    if (
-      ev.target === el &&
-      (ev.propertyName === "opacity" || ev.propertyName === "transform")
-    )
-      end();
-  };
-  el.classList.remove("is-open");
-  el.classList.add("is-closing");
-  if (scrim) {
-    scrim.classList.remove("is-open");
-    scrim.classList.add("is-closing");
-  }
-  el.addEventListener("transitionend", onEnd);
-  setTimeout(end, 280);
 }
 
+/** Sync fold + handicaps on resize/orientation (landscape restores width tiers). */
 function updateOrientLock() {
+  /* Ensure legacy gate never sticks open */
   const el = document.getElementById("orient");
-  if (!el) return;
-
-  applyStudySurface();
-
-  const constrained = isStudyConstrained();
-  const open = el.classList.contains("is-open") && !el.hidden;
-
-  /* Blocking gate first: no dismiss — only a wider viewport clears it.
-     Onboarding waits until the screen is large enough. */
-  if (constrained) {
-    if (isOnboardOpen()) {
-      /* Soft-close — do not mark onboard as done; yield scrim to the size gate */
-      closeOnboard(undefined, { skipOrient: true });
-    }
-    if (!open) openOrientGate(el);
-    delete el.dataset.dismissed;
-    return;
+  if (el && (!el.hidden || el.classList.contains("is-open"))) {
+    closeOrientGate(el);
   }
+  applyViewportHandicaps();
+}
 
-  if (open || !el.hidden) closeOrientGate(el);
-  delete el.dataset.dismissed;
-
-  /* After the block clears, show first-visit onboard on Library if still pending */
-  if (shouldOfferOnboard() && !isOnboardOpen() && isLibraryView()) {
-    requestAnimationFrame(() => openOnboard());
-  }
+let orientResizeTimer = null;
+function onOrientResize() {
+  if (orientResizeTimer) clearTimeout(orientResizeTimer);
+  orientResizeTimer = setTimeout(() => {
+    orientResizeTimer = null;
+    updateOrientLock();
+  }, 120);
 }
 
 function initOrientLock() {
   updateOrientLock();
 
-  window.addEventListener("resize", updateOrientLock);
+  window.addEventListener("resize", onOrientResize);
   window.addEventListener("orientationchange", () => {
     setTimeout(updateOrientLock, 50);
     setTimeout(updateOrientLock, 250);
   });
   try {
-    const mq = window.matchMedia("(max-width: " + STUDY_REDUCED_MAX_W + "px)");
+    const mq = window.matchMedia("(max-width: " + VP.FOLD_CONSULT + "px)");
     if (mq.addEventListener) mq.addEventListener("change", updateOrientLock);
     else if (mq.addListener) mq.addListener(updateOrientLock);
   } catch (_) {
@@ -3241,6 +3345,64 @@ function initOrientLock() {
   }
   requestAnimationFrame(updateOrientLock);
   setTimeout(updateOrientLock, 100);
+}
+
+/* ── Phone: hide bottom bar while scrolling down ─── */
+
+let barScrollHidden = false;
+let barScrollLastY = 0;
+
+function setBarScrollHidden(hidden) {
+  const on = !!hidden && vpTier() === "phone";
+  if (on === barScrollHidden) {
+    document.documentElement.classList.toggle("bar-scroll-hidden", on);
+    return;
+  }
+  barScrollHidden = on;
+  document.documentElement.classList.toggle("bar-scroll-hidden", on);
+}
+
+/**
+ * Reading scroll lives on #book / [data-body] (and library main) — not on
+ * #reader[data-screen], which is overflow:hidden.
+ */
+function isBarScrollSource(el) {
+  if (!(el instanceof Element)) return false;
+  if (el.id === "book") return true;
+  if (el.matches?.("#library > main")) return true;
+  if (el.hasAttribute("data-body") && el.closest("#reader")) return true;
+  return false;
+}
+
+function initBarScrollHide() {
+  document.addEventListener(
+    "scroll",
+    (ev) => {
+      if (vpTier() !== "phone") {
+        setBarScrollHidden(false);
+        return;
+      }
+      const t = ev.target;
+      if (!isBarScrollSource(t)) return;
+      if (!(t instanceof Element)) return;
+      const y = t.scrollTop || 0;
+      const dy = y - barScrollLastY;
+      barScrollLastY = y;
+      if (y < 32) {
+        setBarScrollHidden(false);
+        return;
+      }
+      if (dy > 6) setBarScrollHidden(true);
+      else if (dy < -6) setBarScrollHidden(false);
+    },
+    { capture: true, passive: true },
+  );
+  /* Reveal when opening chrome modals / tapping the bar */
+  document.addEventListener("click", (e) => {
+    const t = e.target;
+    if (!(t instanceof Element)) return;
+    if (t.closest("[data-open], #bar, [data-close]")) setBarScrollHidden(false);
+  });
 }
 
 /* ── Boot ────────────────────────────────────────── */
@@ -3257,8 +3419,9 @@ async function boot() {
   }
 
   try {
-    /* Orient before onboard so a small screen blocks first */
+    /* Viewport tiers: fold + handicaps (no hard size gate) */
     initOrientLock();
+    initBarScrollHide();
   } catch (err) {
     console.warn("[POC] orient", err);
   }
@@ -3347,6 +3510,7 @@ async function boot() {
   try {
     applyFlavorBrand(getFlavor(), currentLang, currentTheme);
     hydrateIcons(document.getElementById("library"));
+    applyViewportHandicaps();
   } catch (_) {
     /* ignore */
   }

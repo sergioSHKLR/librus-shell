@@ -26,7 +26,7 @@ const PATHS = {
     '<path d="m14 11 4-4 4 4"/><path d="M18 16V7"/><path d="m2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16"/><path d="M3.304 13h6.392"/>',
   'a-arrow-down':
     '<path d="m14 12 4 4 4-4"/><path d="M18 16V7"/><path d="m2 16 4.039-9.69a.5.5 0 0 1 .923 0L11 16"/><path d="M3.304 13h6.392"/>',
-  /* Gauge needle — rotated via style for lo/md/hi density */
+  /* Gauge (unused in chrome; kept for icon catalog) */
   'circle-gauge':
     '<path d="M15.6 2.7a10 10 0 1 0 5.7 5.7"/><circle cx="12" cy="12" r="2"/><path d="M13.4 10.6 19 5"/>',
   'unfold-vertical':
