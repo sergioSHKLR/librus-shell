@@ -250,7 +250,6 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
 
   const titleEl = document.querySelector("#library > header h1");
   if (titleEl && brand.name) {
-    /* Name lives in a child span so #app-version superscript stays intact */
     const nameEl =
       titleEl.querySelector('[data-i18n="library.title"]') ||
       titleEl.querySelector("span");
@@ -258,9 +257,7 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
       nameEl.textContent = brand.name;
       nameEl.removeAttribute("data-i18n");
     } else {
-      const verEl = titleEl.querySelector("#app-version, .app-version");
       titleEl.textContent = brand.name;
-      if (verEl) titleEl.appendChild(verEl);
     }
     titleEl.removeAttribute("data-i18n");
   }

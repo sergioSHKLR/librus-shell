@@ -261,6 +261,10 @@ const I18N = {
     "set.jitsiAppId": "App ID (8x8 JaaS)",
     "set.jitsiRoom": "Sala",
     "set.jitsiName": "Nome de exibição",
+    "set.about": "Sobre",
+    "set.version": "Versão",
+    "set.repo": "Repositório",
+    "set.repoOpen": "Abrir repositório no GitHub",
     "pdf.upload": "Upload",
     "pdf.unload": "Unload",
     "pdf.uploadTitle": "Envie um PDF pela barra acima.",
@@ -450,6 +454,10 @@ const I18N = {
     "set.jitsiAppId": "App ID (8x8 JaaS)",
     "set.jitsiRoom": "Room",
     "set.jitsiName": "Display name",
+    "set.about": "About",
+    "set.version": "Version",
+    "set.repo": "Repository",
+    "set.repoOpen": "Open repository on GitHub",
     "pdf.upload": "Upload",
     "pdf.unload": "Unload",
     "pdf.uploadTitle": "Upload a PDF from the toolbar above.",
@@ -1865,25 +1873,18 @@ async function loadBook(slug) {
 }
 
 /**
- * Warm plain-text search index in true idle time (no forced timeout).
- * LDE-sized pages (~2MB HTML / thousands of headings) must NOT be forced onto
- * the main thread via `timeout:` — that was freezing Chrome (“Page Unresponsive”)
- * right after the already-expensive innerHTML paint. Huge pages stay lazy until
- * the first search (O(n) index is fine on Enter).
+ * Warm the string search index in idle time (no timeout — never force).
+ * Indexing is a linear HTML scan (no innerHTML), so LDE-sized pages are
+ * tens of ms and safe to warm after paint. First Enter still builds if idle
+ * has not finished.
  */
 function scheduleSearchIndexWarm() {
   const book = currentBook;
   if (!book?.pages?.length) return;
-  const HUGE = 400000; /* ~chars of html — skip eager warm */
   let i = 0;
   const step = (deadline) => {
     if (currentBook !== book) return;
     while (i < book.pages.length) {
-      const html = book.pages[i]?.html || "";
-      if (html.length >= HUGE) {
-        i += 1;
-        continue; /* lazy on first search */
-      }
       if (
         deadline &&
         typeof deadline.timeRemaining === "function" &&
@@ -1908,7 +1909,7 @@ function scheduleSearchIndexWarm() {
     }
     if (i < book.pages.length) {
       if (typeof requestIdleCallback === "function") {
-        requestIdleCallback(step); /* no timeout — never force */
+        requestIdleCallback(step);
       } else {
         setTimeout(() => step(null), 50);
       }
@@ -2145,57 +2146,85 @@ function cleanHeadingLabel(raw) {
 }
 
 /**
- * Index page plain text (≈ stripHtml) and heading starts in one O(n) walk.
- * Avoids Range#toString per heading (was O(n·headings) and multi-second on
- * large single-page books like LDE).
- * @param {string} html
- * @returns {{ text: string, headings: { start: number, label: string }[] }}
+ * Decode the few entities books actually ship (`&amp;` / `&quot;` / numeric).
+ * @param {string} s
  */
-function indexPageHeadings(html) {
-  const root = document.createElement("div");
-  root.innerHTML = html || "";
-  const headings = /** @type {{ start: number, label: string }[]} */ ([]);
-  let collapsed = "";
-
-  function append(s) {
-    if (!s) return;
-    const t = s.replace(/\s+/g, " ");
-    if (!t) return;
-    if (!collapsed) {
-      collapsed = t[0] === " " ? t.slice(1) : t;
-      return;
-    }
-    if (collapsed.endsWith(" ") && t[0] === " ") collapsed += t.slice(1);
-    else collapsed += t;
-  }
-
-  function walk(node) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      append(node.nodeValue || "");
-      return;
-    }
-    if (node.nodeType !== Node.ELEMENT_NODE) return;
-    const tag = node.tagName;
-    if (tag.length === 2 && tag[0] === "H" && tag[1] >= "1" && tag[1] <= "6") {
-      const label = cleanHeadingLabel(node.textContent || "");
-      if (label) headings.push({ start: collapsed.length, label });
-    }
-    const kids = node.childNodes;
-    for (let i = 0; i < kids.length; i++) walk(kids[i]);
-  }
-
-  walk(root);
-  if (collapsed.endsWith(" ")) collapsed = collapsed.slice(0, -1);
-  return { text: collapsed, headings };
+function decodeSearchEntities(s) {
+  if (!s || s.indexOf("&") === -1) return s;
+  return s
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) =>
+      String.fromCharCode(parseInt(n, 16)),
+    );
 }
 
-/** @type {WeakMap<object, Map<number, { text: string, headings: { start: number, label: string }[] }>>} */
+/**
+ * Index page plain text + heading starts with a linear HTML string scan.
+ * No innerHTML / detached DOM — that was multi-second on LDE-sized pages.
+ * @param {string} html
+ * @returns {{
+ *   text: string,
+ *   lower: string,
+ *   headings: { start: number, label: string, id: string }[]
+ * }}
+ */
+function indexPageHeadings(html) {
+  const src = String(html || "")
+    .replace(/<script\b[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[\s\S]*?<\/style>/gi, " ");
+  const headings =
+    /** @type {{ start: number, label: string, id: string }[]} */ ([]);
+  const parts = [];
+  let len = 0;
+  let lastSpace = false;
+
+  function append(raw) {
+    if (!raw) return;
+    const t = decodeSearchEntities(raw).replace(/\s+/g, " ");
+    if (!t) return;
+    let chunk = t;
+    if (len === 0 && chunk[0] === " ") chunk = chunk.slice(1);
+    else if (lastSpace && chunk[0] === " ") chunk = chunk.slice(1);
+    if (!chunk) return;
+    parts.push(chunk);
+    len += chunk.length;
+    lastSpace = chunk.endsWith(" ");
+  }
+
+  const re = /<h([1-6])(\s[^>]*)?>([\s\S]*?)<\/h\1>|<[^>]+>/gi;
+  let last = 0;
+  let m;
+  while ((m = re.exec(src))) {
+    if (m.index > last) append(src.slice(last, m.index));
+    if (m[1]) {
+      const attrs = m[2] || "";
+      const idM = /\sid\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(attrs);
+      const id = (idM && (idM[1] || idM[2] || idM[3])) || "";
+      const inner = m[3].replace(/<[^>]+>/g, " ");
+      const label = cleanHeadingLabel(decodeSearchEntities(inner));
+      if (label) headings.push({ start: len, label, id });
+      append(inner);
+    }
+    last = re.lastIndex;
+  }
+  if (last < src.length) append(src.slice(last));
+  let text = parts.join("");
+  if (text.endsWith(" ")) text = text.slice(0, -1);
+  return { text, lower: text.toLowerCase(), headings };
+}
+
+/** @type {WeakMap<object, Map<number, { text: string, lower: string, headings: { start: number, label: string, id: string }[] }>>} */
 const pageSearchIndexCache = new WeakMap();
 
 /** @param {number} pageIdx */
 function getPageSearchIndex(pageIdx) {
   const book = currentBook;
-  if (!book) return { text: "", headings: [] };
+  if (!book) return { text: "", lower: "", headings: [] };
   let map = pageSearchIndexCache.get(book);
   if (!map) {
     map = new Map();
@@ -2208,16 +2237,17 @@ function getPageSearchIndex(pageIdx) {
 }
 
 /**
- * @param {{ start: number, label: string }[]} headings
+ * @param {{ start: number, label: string, id: string }[]} headings
  * @param {number} at plain-text offset of the hit
+ * @returns {{ start: number, label: string, id: string } | null}
  */
 function headingAt(headings, at) {
-  let label = "";
+  let found = null;
   for (let i = 0; i < headings.length; i++) {
-    if (headings[i].start <= at) label = headings[i].label;
+    if (headings[i].start <= at) found = headings[i];
     else break;
   }
-  return label;
+  return found;
 }
 
 /** Query currently painted as <mark>s in #book (lowercase), or "". */
@@ -2254,20 +2284,30 @@ function runSearch(q) {
   const lower = query.toLowerCase();
   outer: for (let i = 0; i < pages.length; i++) {
     const indexed = getPageSearchIndex(i);
-    const text = indexed.text;
+    const hay = indexed.lower || "";
+    const text = indexed.text || "";
     let from = 0;
     let idx;
     let pageHit = 0;
-    while ((idx = text.toLowerCase().indexOf(lower, from)) !== -1) {
+    let sectionId = null;
+    let sectionHit = 0;
+    while ((idx = hay.indexOf(lower, from)) !== -1) {
       const start = Math.max(0, idx - 40);
       const snip = text.slice(start, idx + query.length + 40);
       const where = headingAt(indexed.headings, idx);
+      const hid = where?.id || "";
+      if (hid !== sectionId) {
+        sectionId = hid;
+        sectionHit = 0;
+      }
       hits.push({
         page: i,
         snip,
         at: idx,
         pageHitIndex: pageHit++,
-        heading: where,
+        heading: where?.label || "",
+        headingId: hid,
+        sectionHitIndex: sectionHit++,
       });
       from = idx + query.length;
       if (hits.length >= SEARCH_HIT_CAP) {
@@ -2330,43 +2370,78 @@ function runSearch(q) {
 /**
  * Navigate to a hit without re-rendering a huge page on every click.
  * @param {string} query
- * @param {{ page: number, pageHitIndex: number }} hit
+ * @param {{ page: number, headingId?: string, sectionHitIndex?: number, pageHitIndex?: number }} hit
  */
 function jumpToSearchHit(query, hit) {
   const pageChanged = hit.page !== pageIndex;
   if (pageChanged) {
     goToPage(hit.page, { scrollTop: true });
-    /* Let layout settle after swapping ~MB of HTML before marking/scrolling */
+    /* Let layout settle after swapping HTML before marking/scrolling */
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => highlightInPage(query, hit.pageHitIndex));
+      requestAnimationFrame(() => highlightInPage(query, hit));
     });
     return;
   }
-  highlightInPage(query, hit.pageHitIndex);
+  highlightInPage(query, hit);
 }
 
 /**
- * Mark only the focused occurrence (not every hit). Painting hundreds of
- * <mark>s across a multi‑MB book was multi‑second and made hit nav feel broken.
- * @param {string} query
- * @param {number} focusIndex 0-based match index on the current page
+ * Text nodes in a heading’s section (heading + following siblings until the
+ * next h1–h6). Falls back to the whole page when the id is missing.
+ * @param {Element} root
+ * @param {string} [headingId]
+ * @returns {Text[]}
  */
-function highlightInPage(query, focusIndex) {
+function textNodesForSearch(root, headingId) {
+  /** @type {Text[]} */
+  const nodes = [];
+  const take = (el) => {
+    if (!el) return;
+    const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = walk.nextNode())) {
+      if (n.nodeValue) nodes.push(/** @type {Text} */ (n));
+    }
+  };
+  const start =
+    headingId && root.querySelector
+      ? root.querySelector("#" + CSS.escape(headingId))
+      : null;
+  if (!start || !root.contains(start)) {
+    take(root);
+    return nodes;
+  }
+  take(start);
+  let sib = start.nextElementSibling;
+  while (sib) {
+    if (/^H[1-6]$/.test(sib.tagName)) break;
+    take(sib);
+    sib = sib.nextElementSibling;
+  }
+  return nodes;
+}
+
+/**
+ * Mark only the focused occurrence (not every hit). Walk the heading section
+ * rather than the whole multi‑MB book.
+ * @param {string} query
+ * @param {{ headingId?: string, sectionHitIndex?: number, pageHitIndex?: number }} hit
+ */
+function highlightInPage(query, hit) {
   const el = bookEl();
   if (!el || !query) return;
   clearSearchHighlights();
   const qLower = query.toLowerCase();
-  const want = Math.max(0, focusIndex || 0);
+  const want = Math.max(
+    0,
+    hit && hit.sectionHitIndex != null
+      ? hit.sectionHitIndex
+      : hit && hit.pageHitIndex != null
+        ? hit.pageHitIndex
+        : 0,
+  );
+  const nodes = textNodesForSearch(el, hit?.headingId);
   let seen = 0;
-  const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-  /** @type {Text[]} */
-  const nodes = [];
-  let n;
-  while ((n = walk.nextNode())) {
-    if (n.nodeValue && n.nodeValue.toLowerCase().includes(qLower))
-      nodes.push(/** @type {Text} */ (n));
-  }
-
   let target = /** @type {HTMLElement | null} */ (null);
   outer: for (const textNode of nodes) {
     const parent = textNode.parentNode;
@@ -2397,8 +2472,42 @@ function highlightInPage(query, focusIndex) {
   }
 
   paintedSearchQuery = qLower;
+  if (!target && hit?.headingId && hit.pageHitIndex != null) {
+    /* Section walk missed (whitespace vs live DOM) — whole-page fallback */
+    const all = textNodesForSearch(el, "");
+    seen = 0;
+    const wantPage = Math.max(0, hit.pageHitIndex);
+    outerPage: for (const textNode of all) {
+      const parent = textNode.parentNode;
+      if (!parent || parent.closest("mark")) continue;
+      const value = textNode.nodeValue || "";
+      const valueLower = value.toLowerCase();
+      let from = 0;
+      let idx;
+      while ((idx = valueLower.indexOf(qLower, from)) !== -1) {
+        if (seen === wantPage) {
+          const before = value.slice(0, idx);
+          const match = value.slice(idx, idx + query.length);
+          const after = value.slice(idx + query.length);
+          const frag = document.createDocumentFragment();
+          if (before) frag.appendChild(document.createTextNode(before));
+          const mark = document.createElement("mark");
+          mark.className = "focus";
+          mark.textContent = match;
+          frag.appendChild(mark);
+          if (after) frag.appendChild(document.createTextNode(after));
+          parent.replaceChild(frag, textNode);
+          target = mark;
+          break outerPage;
+        }
+        seen += 1;
+        from = idx + query.length;
+      }
+    }
+  }
   if (target) {
-    target.scrollIntoView({ block: "center", behavior: "smooth" });
+    /* Instant jump — smooth scroll across a folio book feels stuck. */
+    target.scrollIntoView({ block: "center", behavior: "auto" });
   }
 }
 
@@ -2830,7 +2939,7 @@ function wire() {
   }
 
   const appVer = document.getElementById("app-version");
-  if (appVer) appVer.textContent = "v." + APP_VERSION;
+  if (appVer) appVer.textContent = "v" + APP_VERSION;
 
   /* Color guide radios (settings) */
   document.querySelectorAll('input[name="color-guide"]').forEach((el) => {
