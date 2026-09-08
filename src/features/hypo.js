@@ -4,11 +4,17 @@
 const EMBED = 'https://hypothes.is/embed.js';
 let loadPromise = null;
 
+const NOTES_FOLD_PX = 1400;
+
+function notesColumnOpen() {
+  return (window.innerWidth || 0) > NOTES_FOLD_PX;
+}
+
 function branding(theme) {
   const font = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
   const dark = theme === 'dark';
-  /* Light: white sidebar; dark: same as pane body (--surface #1a1a1a) */
-  const bg = dark ? '#1a1a1a' : '#ffffff';
+  /* Match pane body paper (--surface), not the old grey aux */
+  const bg = dark ? '#0a0a0a' : '#ffffff';
   const fg = dark ? '#f0f0f0' : '#111111';
   return {
     appBackgroundColor: bg,
@@ -23,12 +29,22 @@ function branding(theme) {
 export function installHypothesisConfig() {
   window.hypothesisConfig = function () {
     const t = document.documentElement.dataset.theme || 'light';
-    return {
-      openSidebar: true,
+    const inPane = notesColumnOpen();
+    const cfg = {
+      openSidebar: inPane,
       theme: 'classic',
-      sideBySide: { mode: 'manual' },
-      branding: branding(t)
+      branding: branding(t),
+      sideBySide: {
+        mode: 'manual',
+        isActive: function () {
+          return (
+            notesColumnOpen() && document.body?.dataset?.view === 'reader'
+          );
+        },
+      },
     };
+    if (inPane) cfg.externalContainerSelector = '#hypo-slot';
+    return cfg;
   };
 }
 
@@ -81,4 +97,58 @@ export function destroyHypothesisUi() {
 export async function reloadHypothesisForTheme() {
   installHypothesisConfig();
   /* Soft path — do not destroy the page */
+}
+
+/**
+ * When Hypo used externalContainerSelector, the iframe lives in #hypo-slot.
+ * Watch for it and hide the fallback hint. Do not position:fixed the host.
+ */
+let dockRaf = 0;
+let dockWatching = false;
+
+export function syncHypothesisDock() {
+  const root = document.documentElement;
+  const slot = document.getElementById("hypo-slot");
+  const inReader = document.body?.dataset?.view === "reader";
+  const inSlot = !!(
+    slot &&
+    (slot.querySelector("hypothesis-sidebar, .annotator-frame, iframe") ||
+      slot.querySelector("iframe"))
+  );
+  root.classList.toggle("hypo-in-pane", !!(inReader && inSlot));
+  root.classList.remove("hypo-docked");
+}
+
+export function startHypothesisDockWatch() {
+  if (dockWatching) {
+    syncHypothesisDock();
+    return;
+  }
+  dockWatching = true;
+  const schedule = () => {
+    if (!dockRaf) dockRaf = requestAnimationFrame(() => {
+      dockRaf = 0;
+      syncHypothesisDock();
+    });
+  };
+  window.addEventListener("resize", schedule);
+  if (typeof ResizeObserver !== "undefined") {
+    const p4 = document.getElementById("p4");
+    if (p4) {
+      const ro = new ResizeObserver(schedule);
+      ro.observe(p4);
+      const slot = p4.querySelector("[data-body]");
+      if (slot) ro.observe(slot);
+    }
+  }
+  if (document.body) {
+    const mo = new MutationObserver(schedule);
+    mo.observe(document.body, { childList: true });
+  }
+  const slot = document.getElementById("hypo-slot");
+  if (slot) {
+    const moSlot = new MutationObserver(schedule);
+    moSlot.observe(slot, { childList: true, subtree: true });
+  }
+  schedule();
 }

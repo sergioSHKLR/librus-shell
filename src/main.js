@@ -20,7 +20,13 @@ import {
   applyViewportStep,
   isLibraryView,
 } from "./onboard/index.js";
-import { bindHelp, initHelp, syncHelpI18n } from "./help.js";
+import {
+  bindHelp,
+  initHelp,
+  syncHelpI18n,
+  syncHelpViewport,
+  syncHelpPortraitGate,
+} from "./help.js";
 import {
   loadFlavor,
   getFlavor,
@@ -36,6 +42,7 @@ const GUIDE_KEY = "librus-color-guide";
 /** @type {'full'|'soft'|'min'} */
 let colorGuide = "full";
 const LANG_KEY = "librus-lang";
+const HELP_DISMISS_KEY = "librus-help-dismiss";
 /**
  * Viewport ladder (width). Phone landscape is blocked (rotate to portrait).
  * Matches Help: desktop → laptop (fold find) → tablet (no notes, slim
@@ -101,8 +108,10 @@ function toolAllowedBySize(mode, tier = vpTier()) {
 }
 
 function providerAllowedBySize(key, tier = vpTier()) {
-  if (tier === "desktop" || tier === "laptop") return true;
-  return NARROW_PROVIDERS.includes(key);
+  /* Tablet still has a Consulte column — same portals as desk, sliding strip.
+   * Phone has no Consulte; keep the lean list if that pane is ever shown. */
+  if (tier === "phone") return NARROW_PROVIDERS.includes(key);
+  return true;
 }
 
 const I18N = {
@@ -156,9 +165,8 @@ const I18N = {
     "tip.close": "Fechar",
     "tip.home": "Biblioteca",
 
-    "tip.link.luz": "Mostrar / ocultar ligações Luz",
-    "tip.link.encyc": "Mostrar / ocultar ligações enciclopédia",
-    "tip.link.dict": "Mostrar / ocultar ligações dicionário",
+    "tab.links": "Links",
+    "tip.links": "Mostrar / ocultar links no texto",
     "prov.luz": "Luz Espírita",
     "prov.encyc": "Enciclopédia",
     "prov.dict": "Dicionário",
@@ -200,17 +208,30 @@ const I18N = {
     "help.feat.search": "Busca de texto",
     "help.feat.typo": "Ajustes tipográficos",
     "help.feat.pages": "Controle de paginação",
-    "help.feat.portals": "Consultas de portais *",
-    "help.feat.pdf": "Comparação de PDF *",
-    "help.feat.jaas": "Videoconferência *",
-    "help.feat.notes":
-      "Grifos e notas podem ser públicas, privadas ou de grupo.",
-    "help.feat.footnote":
-      "* Consulte completo (vários portais, PDF, vídeo) é para teclado — notebook ou desktop. Em tablet mantemos Enciclopédia e Dicionário. No celular: só retrato; Leia + Ache por cima; sem Consulte e sem ligações no texto.",
+    "help.feat.links": "Links no texto",
+    "help.feat.luz": "Consulta no Luz Espírita",
+    "help.feat.encyc": "Consulta de Enciclopédia",
+    "help.feat.dict": "Consulta de Dicionário",
+    "help.feat.map": "Consulta de Mapas",
+    "help.feat.bible": "Consulta na Bíblia",
+    "help.feat.kardec": "Consulta no Kardecpedia",
+    "help.feat.pdf": "Comparação de PDF",
+    "help.feat.jaas": "Videoconferência",
+    "help.feat.notes": "Grifos e notas (públicas, privadas ou de grupo)",
+    "help.note.foldFind": "Aba 1 abre na esquerda",
+    "help.note.foldNotes": "Aba 4 abre na direita",
+    "help.note.foldNotesRight": "Aba 4 abre na direita",
+    "help.note.consultGone": "Aba 3 removida",
     "help.dev.desktop": "Desktop",
     "help.dev.laptop": "Notebook",
     "help.dev.tablet": "Tablet",
     "help.dev.phone": "Celular",
+    "boot.loading": "Carregando…",
+    "help.dismiss": "Não mostrar novamente",
+    "help.rotate": "Gire o aparelho para a horizontal para ver a ajuda.",
+    "help.note.pdf": "Comparação de PDF",
+    "help.note.conf": "Videoconferência",
+    "ctx.needTerm": "Selecione um termo no texto para consultar.",
     "orient.title": "Gire o aparelho",
     "orient.body":
       "No celular, o estudo é só em retrato: Leia e Ache. Sem Consulte e sem ligações no texto. Gire para retrato (ou use uma tela maior).",
@@ -277,7 +298,7 @@ const I18N = {
     "set.version": "Versão",
     "set.repo": "Repositório",
     "set.repoOpen": "Abrir repositório no GitHub",
-    "pdf.upload": "Enviar",
+    "pdf.upload": "Carregar",
     "pdf.unload": "Remover",
     "pdf.uploadTitle": "Envie um PDF pela barra acima.",
     "pdf.loading": "A carregar PDF…",
@@ -360,9 +381,8 @@ const I18N = {
     "tip.close": "Close",
     "tip.home": "Library",
 
-    "tip.link.luz": "Show / hide Luz links",
-    "tip.link.encyc": "Show / hide encyclopedia links",
-    "tip.link.dict": "Show / hide dictionary links",
+    "tab.links": "Links",
+    "tip.links": "Show / hide in-book links",
     "prov.luz": "Luz",
     "prov.encyc": "Encyclopedia",
     "prov.dict": "Dictionary",
@@ -403,17 +423,30 @@ const I18N = {
     "help.feat.search": "Text search",
     "help.feat.typo": "Typography controls",
     "help.feat.pages": "Pagination controls",
-    "help.feat.portals": "Portal lookups *",
-    "help.feat.pdf": "PDF comparison *",
-    "help.feat.jaas": "Video conference *",
-    "help.feat.notes":
-      "Highlights and notes can be public, private, or group.",
-    "help.feat.footnote":
-      "* Full Consulte (extra portals, PDF, video) is for keyboard — laptop or desktop. Tablet keeps Encyclopedia and Dictionary. On a phone: portrait only; Read + Find overlay; no Consulte and no in-book links.",
+    "help.feat.links": "In-book links",
+    "help.feat.luz": "Look up on Luz Espírita",
+    "help.feat.encyc": "Encyclopedia lookup",
+    "help.feat.dict": "Dictionary lookup",
+    "help.feat.map": "Maps lookup",
+    "help.feat.bible": "Bible lookup",
+    "help.feat.kardec": "Look up on Kardecpedia",
+    "help.feat.pdf": "PDF comparison",
+    "help.feat.jaas": "Video conference",
+    "help.feat.notes": "Highlights and notes (public, private, or group)",
+    "help.note.foldFind": "Tab 1 opens on the left",
+    "help.note.foldNotes": "Tab 4 opens on the right",
+    "help.note.foldNotesRight": "Tab 4 opens on the right",
+    "help.note.consultGone": "Tab 3 removed",
     "help.dev.desktop": "Desktop",
     "help.dev.laptop": "Laptop",
     "help.dev.tablet": "Tablet",
     "help.dev.phone": "Mobile",
+    "boot.loading": "Loading…",
+    "help.dismiss": "Don't show again",
+    "help.rotate": "Rotate the device to landscape to see Help.",
+    "help.note.pdf": "PDF comparison",
+    "help.note.conf": "Video conference",
+    "ctx.needTerm": "Select a term in the text to look up.",
     "orient.title": "Rotate the device",
     "orient.body":
       "On a phone, study is portrait only: Read and Find. No Consulte and no in-book links. Rotate to portrait (or use a larger screen).",
@@ -573,15 +606,11 @@ let measure = "medium";
 let textAlign = "start";
 let fontFamily = "serif";
 /**
- * Inject-link providers in the book (Páginas).
- * Toolbar toggles: Luz · Encyc only. Dict has no toggle — always on except
- * phone, where inject dict links are forced off (visual density).
+ * In-book inject links (Páginas). One on/off — not per-provider.
+ * Phone forces off. Toggling does not open Consulte.
  */
-const PAGE_LINK_PROVIDERS = ["luz", "encyc", "dict"];
-/** Keys that get an on/off LED on Páginas (subset of PAGE_LINK_PROVIDERS). */
-const PAGE_LINK_TOGGLES = ["luz", "encyc"];
-/** Provider keys currently on for inject-link visibility (seeded at wire). */
-const linkProvidersOn = new Set();
+const BOOK_LINKS_KEY = "librus-book-links";
+let bookLinksOn = true;
 let searchQuery = "";
 let hypoTimer = null;
 let lastCtxUrl = "";
@@ -1019,15 +1048,21 @@ function setView(name) {
     } catch (_) {
       /* ignore */
     }
-  } else if (hypoTimer) {
-    clearTimeout(hypoTimer);
-    hypoTimer = null;
+  } else {
+    document.documentElement.classList.remove("hypo-docked");
+    if (hypoTimer) {
+      clearTimeout(hypoTimer);
+      hypoTimer = null;
+    }
   }
   /* Boot applyRoute → setView("library") must not kill an open How-to anim */
   if (!isOnboardOpen()) stopViewportAnim();
   /* Back on Library with first-visit still pending (onboard archived → usually no-op) */
   if (name === "library" && shouldOfferOnboard() && !isOnboardOpen()) {
     requestAnimationFrame(() => openOnboard());
+  }
+  if (name === "library") {
+    requestAnimationFrame(() => maybeOfferHelp());
   }
   syncChromeBar();
 }
@@ -1111,17 +1146,17 @@ async function enterReader(slug, page = 0) {
   }
   setView("reader");
   setMode("find", "toc");
-  setMode("read", "typo");
+  setMode("read", "book");
   setMode("consult", "web");
   setMode("annotate", "notes");
   /*
    * setMode("annotate") leaves focusMode on annotate:notes. On folded
    * widths (≤1650) the main strip paints exclusively from focusMode and
-   * Annotate isn't on that strip (p4 often hidden) — so Typo flashed then
+   * Annotate isn't on that strip (p4 often hidden) — so Páginas flashed then
    * went dark. Park focus back on the default read tool.
    */
-  focusMode = "read:typo";
-  lastReadMode = "read:typo";
+  focusMode = "read:book";
+  lastReadMode = "read:book";
   applyTypography();
   renderPage();
   renderToc();
@@ -1136,18 +1171,64 @@ async function enterReader(slug, page = 0) {
   syncMainStripActive();
 }
 
+function bootHypothesis() {
+  return import("./features/hypo.js")
+    .then((m) => {
+      m.installHypothesisConfig();
+      m.startHypothesisDockWatch();
+      return m.ensureHypothesis().then(() => m.syncHypothesisDock());
+    })
+    .catch((e) => console.warn("[POC] Hypothesis", e));
+}
+
+let hypoBootPromise = null;
+
+/** Start Hypo on the library (CSS hides it) so the reader does not wait. */
+function preloadHypothesis() {
+  if (import.meta.env.VITE_FEAT_HYPO !== "1") return Promise.resolve();
+  if (!hypoBootPromise) hypoBootPromise = bootHypothesis();
+  return hypoBootPromise;
+}
+
+function bootSplashUp() {
+  const el = document.getElementById("boot-splash");
+  return !!(el && !el.hidden && !el.classList.contains("is-gone"));
+}
+
+function dismissBootSplash() {
+  const el = document.getElementById("boot-splash");
+  if (!el || el.hidden) {
+    maybeOfferHelp();
+    return;
+  }
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    el.hidden = true;
+    el.setAttribute("aria-busy", "false");
+    maybeOfferHelp();
+  };
+  el.classList.add("is-gone");
+  el.addEventListener("transitionend", finish, { once: true });
+  setTimeout(finish, 450);
+}
+
 function scheduleHypothesis() {
   if (import.meta.env.VITE_FEAT_HYPO !== "1") return;
-  if (hypoTimer) clearTimeout(hypoTimer);
+  if (hypoTimer) {
+    clearTimeout(hypoTimer);
+    hypoTimer = null;
+  }
+  /* Already fetching / injected — dock as soon as the reader is up. */
+  if (document.querySelector("script[data-librus-hypothesis]")) {
+    bootHypothesis();
+    return;
+  }
   hypoTimer = setTimeout(() => {
     hypoTimer = null;
     if (document.body.dataset.view !== "reader") return;
-    import("./features/hypo.js")
-      .then((m) => {
-        m.installHypothesisConfig();
-        return m.ensureHypothesis();
-      })
-      .catch((e) => console.warn("[POC] Hypothesis", e));
+    bootHypothesis();
   }, 400);
 }
 
@@ -1157,8 +1238,8 @@ function scheduleHypothesis() {
  * Strip highlight while folded: only this mode is lit on #main-tabs.
  * lastReadMode restored when find/consult overlays close (so Tipo/Páginas stay blue).
  */
-let focusMode = "read:typo";
-let lastReadMode = "read:typo";
+let focusMode = "read:book";
+let lastReadMode = "read:book";
 /** Last fold flags — skip DOM rebuild when only width jittered */
 let lastFoldKey = "";
 
@@ -1192,7 +1273,7 @@ function closeFoldOverlays({ restoreRead = true } = {}) {
   });
 
   if (wasOpen && restoreRead) {
-    focusMode = lastReadMode || "read:typo";
+    focusMode = lastReadMode || "read:book";
     const [g, p] = focusMode.split(":");
     if (g === "read" && p) {
       document.querySelectorAll('[data-mode^="read:"]').forEach((btn) => {
@@ -1227,7 +1308,7 @@ function syncMainStripActive() {
       'button[data-mode="' + CSS.escape(String(paint || "")) + '"]',
     );
     if (!onStrip) {
-      paint = lastReadMode || "read:typo";
+      paint = lastReadMode || "read:book";
     }
     strip.querySelectorAll("button[data-mode]").forEach((btn) => {
       btn.classList.toggle("on", btn.getAttribute("data-mode") === paint);
@@ -1412,8 +1493,9 @@ function handleTabFolding(force = false) {
   document.body.dataset.foldFind = foldFind ? "1" : "0";
   document.body.dataset.foldConsult = foldConsult ? "1" : "0";
   document.documentElement.dataset.vpOrient = land ? "landscape" : "portrait";
-  /* Consult toolbar: icon-only before labels crowd (~2400) */
-  document.body.dataset.compactConsult = w <= 2500 ? "1" : "0";
+  /* Consult providers: labeled sliding strip while Consulte is a column
+   * (desktop / laptop / tablet). Icon-only only when Consulte is folded. */
+  document.body.dataset.compactConsult = foldConsult ? "1" : "0";
 
   if (!force && foldKey === lastFoldKey) {
     applyOverlaySingleTool();
@@ -1624,154 +1706,57 @@ function syncTypoButtons() {
   setIcon("size", nextSize >= fontSize ? "a-arrow-up" : "a-arrow-down");
 }
 
-/* ── Provider filters (Páginas toolbar) ─── */
+/* ── In-book links on/off (Páginas toolbar) ─── */
 
-/** Flavor-allowed subset of PAGE_LINK_PROVIDERS (Luz only on doutrina/centro). */
-function pageLinkProvidersForFlavor() {
-  const allowed = getFlavor()?.features?.providers;
-  if (!Array.isArray(allowed) || !allowed.length) {
-    return PAGE_LINK_PROVIDERS.slice();
-  }
-  return PAGE_LINK_PROVIDERS.filter((k) => allowed.indexOf(k) !== -1);
-}
-
-function defaultLinkProvidersOn() {
-  const tier = vpTier();
-  /* Phone: no in-book inject links at all */
-  if (tier === "phone") return;
-  pageLinkProvidersForFlavor().forEach((k) => {
-    linkProvidersOn.add(k);
-  });
-}
-
-/** Phone clears all inject providers; leaving phone restores flavor defaults. */
-let linkInjectTier = "";
-function syncDictInjectForTier(tier = vpTier()) {
-  const pageKeys = new Set(pageLinkProvidersForFlavor());
-  const wasPhone = linkInjectTier === "phone";
-  linkInjectTier = tier;
-  if (tier === "phone") {
-    PAGE_LINK_PROVIDERS.forEach((k) => linkProvidersOn.delete(k));
-    return;
-  }
-  if (wasPhone) {
-    pageLinkProvidersForFlavor().forEach((k) => linkProvidersOn.add(k));
-    return;
-  }
-  if (!pageKeys.has("dict")) {
-    linkProvidersOn.delete("dict");
-    return;
-  }
-  linkProvidersOn.add("dict");
+function bookLinksWanted() {
+  if (vpTier() === "phone") return false;
+  return bookLinksOn;
 }
 
 /**
- * Show/hide inject links by provider on-state.
- * Phone: every in-book inject link is off (no fat-finger consult).
- * Larger: Luz/Encyc use Páginas LEDs; dict is auto-on.
+ * Show/hide every inject link in the book.
+ * Phone: forced off (no fat-finger consult). Does not open Consulte.
  */
 function applyLinkFilters() {
   const book = bookEl();
   if (!book) return;
   delete book.dataset.linkDensity;
-
-  const pageKeys = new Set(pageLinkProvidersForFlavor());
-  [...linkProvidersOn].forEach((k) => {
-    if (!pageKeys.has(k)) linkProvidersOn.delete(k);
-  });
-  syncDictInjectForTier();
-  const noLinks = vpTier() === "phone";
-
+  const show = bookLinksWanted();
   book.querySelectorAll("a[data-link-provider], a[data-doutrina-link]").forEach(
     (a) => {
       if (!(a instanceof HTMLElement)) return;
-      const code = (
-        a.getAttribute("data-link-provider") ||
-        a.getAttribute("data-provider") ||
-        ""
-      ).toLowerCase();
-      const key = LINK_PROVIDER_KEY[code] || "";
-
-      let show = !noLinks;
-      if (show && PAGE_LINK_PROVIDERS.includes(key) && !linkProvidersOn.has(key)) {
-        show = false;
-      }
-
       a.classList.toggle("link-hidden", !show);
       if (!show) a.setAttribute("aria-hidden", "true");
       else a.removeAttribute("aria-hidden");
     },
   );
-
   syncLinkControls();
 }
 
 function syncLinkControls() {
-  const pageKeys = pageLinkProvidersForFlavor();
-  const tier = vpTier();
-  if (tier === "phone") {
-    document
-      .querySelectorAll("[data-link].link-toggle, [data-link-controls]")
-      .forEach((el) => {
-        if (el instanceof HTMLElement) el.hidden = true;
-      });
-    return;
-  }
-  document.querySelectorAll("[data-link].link-toggle").forEach((btn) => {
-    const key = btn.getAttribute("data-link");
-    if (!key) return;
-    /* Dict has no toggle in DOM; ignore if leftover markup */
-    if (!PAGE_LINK_TOGGLES.includes(key)) {
-      btn.hidden = true;
-      return;
-    }
-    const allowed =
-      pageKeys.includes(key) && providerAllowedBySize(key, tier);
-    btn.hidden = !allowed;
-    if (!allowed) return;
-    const on = linkProvidersOn.has(key);
-    btn.classList.toggle("is-on", on);
-    btn.setAttribute("aria-pressed", on ? "true" : "false");
-    const tipKey = "tip.link." + key;
-    const tip = t(tipKey) !== tipKey ? t(tipKey) : key;
-    btn.title = tip;
-    btn.setAttribute("aria-label", tip);
-  });
-
-  let anyToggle = false;
+  const phone = vpTier() === "phone";
+  const on = bookLinksWanted();
   document.querySelectorAll("[data-link-controls]").forEach((el) => {
-    if (!(el instanceof HTMLElement)) return;
-    if (el.classList?.contains("link-toggle")) {
-      const key = el.getAttribute("data-link");
-      if (!key || !PAGE_LINK_TOGGLES.includes(key)) {
-        el.hidden = true;
-        return;
-      }
-      const flavorOk = pageKeys.includes(key);
-      const sizeOk = providerAllowedBySize(key, tier);
-      const show = flavorOk && sizeOk;
-      el.hidden = !show;
-      if (show) anyToggle = true;
-      return;
-    }
-    el.hidden = !anyToggle;
+    if (el instanceof HTMLElement) el.hidden = phone;
   });
-  document
-    .querySelectorAll("[data-link-controls].tool-sep, .tool-sep[data-link-controls]")
-    .forEach((el) => {
-      if (el instanceof HTMLElement) el.hidden = !anyToggle;
-    });
+  const btn = document.getElementById("book-links");
+  if (!btn) return;
+  btn.classList.toggle("is-on", on);
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  const tip = t("tip.links");
+  btn.title = tip;
+  btn.setAttribute("aria-label", tip);
 }
 
-function toggleLinkProvider(key) {
-  if (!key || !PAGE_LINK_TOGGLES.includes(key)) return;
-  if (!pageLinkProvidersForFlavor().includes(key)) return;
-  if (linkProvidersOn.has(key)) linkProvidersOn.delete(key);
-  else linkProvidersOn.add(key);
-  applyLinkFilters();
-  if (linkProvidersOn.has(key) && providerAllowedBySize(key)) {
-    openProvider(key);
+function toggleBookLinks() {
+  if (vpTier() === "phone") return;
+  bookLinksOn = !bookLinksOn;
+  try {
+    localStorage.setItem(BOOK_LINKS_KEY, bookLinksOn ? "1" : "0");
+  } catch (_) {
+    /* ignore */
   }
+  applyLinkFilters();
 }
 
 /* ── Catalog / books / in-book search ────────────── */
@@ -1822,7 +1807,6 @@ function renderLibrary() {
     btn.type = "button";
     if (entry.color) {
       btn.style.setProperty("--card-accent", entry.color);
-      btn.style.borderBottomColor = entry.color;
     }
     if (entry.emoji) {
       const b = document.createElement("b");
@@ -2799,10 +2783,40 @@ function loadCtx(url, { push = true, term = "", provider = "" } = {}) {
   syncCtxBackBtn();
 }
 
+function flashConsultNeedTerm() {
+  setMode("consult", "web");
+  const host = document.getElementById("ctx-host");
+  if (!host) return;
+  host.classList.remove("is-need-term");
+  void host.offsetWidth;
+  host.setAttribute("data-need-term", t("ctx.needTerm"));
+  host.classList.add("is-need-term");
+  window.setTimeout(() => host.classList.remove("is-need-term"), 1400);
+}
+
+function syncProviderArmed() {
+  const on = !!selectionTerm();
+  document.querySelectorAll("[data-provider]").forEach((btn) => {
+    btn.classList.toggle("is-disarmed", !on);
+    btn.setAttribute("aria-disabled", on ? "false" : "true");
+    if (!on) {
+      btn.setAttribute("title", t("ctx.needTerm"));
+    } else {
+      const key = btn.getAttribute("data-provider");
+      const label = providerLabel(key);
+      if (label) btn.setAttribute("title", label);
+    }
+  });
+}
+
 /** Open a provider from toolbar (selection = query for search). */
 async function openProvider(key) {
   if (phoneReaderOnly() || isStudyReduced()) return;
   const term = selectionTerm();
+  if (!term) {
+    flashConsultNeedTerm();
+    return;
+  }
   const url = await resolveProviderUrl(key, term);
   if (url) loadCtx(url, { term, provider: key });
 }
@@ -3190,21 +3204,18 @@ function wire() {
     syncTypoButtons();
   }
 
-  /* Páginas: provider filters (all link interests on by default) */
-  document.querySelectorAll("[data-link].link-toggle").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      toggleLinkProvider(btn.getAttribute("data-link"));
-    });
+  /* Páginas: in-book links on/off (default on; phone forced off) */
+  document.getElementById("book-links")?.addEventListener("click", () => {
+    toggleBookLinks();
   });
-  /* Seed on-state from flavor (Luz only when listed); drop legacy density key */
-  linkProvidersOn.clear();
-  defaultLinkProvidersOn();
   try {
     localStorage.removeItem("librus-link-density");
+    const stored = localStorage.getItem(BOOK_LINKS_KEY);
+    if (stored === "0") bookLinksOn = false;
+    else if (stored === "1") bookLinksOn = true;
   } catch (_) {
     /* ignore */
   }
-  syncLinkControls();
   applyLinkFilters();
 
   if (FEAT.providers) {
@@ -3214,6 +3225,8 @@ function wire() {
         if (key) openProvider(key);
       });
     });
+    document.addEventListener("selectionchange", syncProviderArmed);
+    syncProviderArmed();
     document.querySelectorAll('[data-ctx="back"]').forEach((btn) => {
       btn.addEventListener("click", () => ctxGoBack());
     });
@@ -3314,6 +3327,14 @@ function openDrawer(id) {
     scrim.classList.remove("is-closing");
   }
   hydrateIcons(el);
+  if (id === "help") {
+    try {
+      syncHelpViewport(vpTier());
+      syncHelpPortraitGate();
+    } catch (_) {
+      /* ignore */
+    }
+  }
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       el.classList.add("is-open");
@@ -3322,11 +3343,46 @@ function openDrawer(id) {
   });
 }
 
+function helpDismissed() {
+  try {
+    return localStorage.getItem(HELP_DISMISS_KEY) === "1";
+  } catch (_) {
+    return false;
+  }
+}
+
+function persistHelpDismiss() {
+  try {
+    localStorage.setItem(HELP_DISMISS_KEY, "1");
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+function noteHelpClosing(el) {
+  if (el?.id !== "help") return;
+  const box = document.getElementById("help-dismiss");
+  if (box?.checked) persistHelpDismiss();
+}
+
+function maybeOfferHelp() {
+  if (bootSplashUp()) return;
+  if (helpDismissed()) return;
+  if (document.body.dataset.view !== "library") return;
+  const orient = document.getElementById("orient");
+  if (orient && orient.classList.contains("is-open")) return;
+  if (isOnboardOpen()) return;
+  const help = document.getElementById("help");
+  if (help?.classList.contains("is-open") && !help.hidden) return;
+  openDrawer("help");
+}
+
 function closeDrawerAnimated(el, onDone) {
   if (!el || el.hidden) {
     onDone?.();
     return;
   }
+  noteHelpClosing(el);
   if (!el.classList.contains("is-open")) {
     el.classList.remove("is-closing");
     el.hidden = true;
@@ -3469,13 +3525,9 @@ function applyViewportHandicaps() {
   const p3 = document.getElementById("p3");
   if (p3) p3.removeAttribute("aria-hidden");
 
-  /* Dict inject follows tier; re-filter book links when crossing phone */
+  /* Phone forces inject links off; leaving phone restores the user toggle */
   try {
-    const before = linkProvidersOn.has("dict");
-    syncDictInjectForTier(tier);
-    const after = linkProvidersOn.has("dict");
-    if (before !== after) applyLinkFilters();
-    else syncLinkControls();
+    applyLinkFilters();
   } catch (_) {
     /* ignore before boot */
   }
@@ -3544,13 +3596,16 @@ function closeOrientGate(el) {
   }
 }
 
-/** Phone landscape → block; otherwise fold + handicaps. */
+/** Fold + handicaps. Do not block phone landscape. Portrait Help is gated separately. */
 function updateOrientLock() {
-  const el = document.getElementById("orient");
   applyViewportHandicaps();
-  if (!el) return;
-  if (isPhoneLandscape()) openOrientGate(el);
-  else if (el.classList.contains("is-open") || !el.hidden) closeOrientGate(el);
+  const el = document.getElementById("orient");
+  if (el && (el.classList.contains("is-open") || !el.hidden)) closeOrientGate(el);
+  try {
+    syncHelpPortraitGate();
+  } catch (_) {
+    /* ignore */
+  }
 }
 
 let orientResizeTimer = null;
@@ -3702,6 +3757,12 @@ async function boot() {
   }
 
   try {
+    preloadHypothesis();
+  } catch (err) {
+    console.warn("[POC] Hypothesis preload", err);
+  }
+
+  try {
     let g = "full";
     try {
       g = localStorage.getItem(GUIDE_KEY) || g;
@@ -3777,6 +3838,16 @@ async function boot() {
     setView("library");
   }
   syncChromeBar();
+  try {
+    const hypo = preloadHypothesis();
+    await Promise.race([
+      Promise.resolve(hypo),
+      new Promise((resolve) => setTimeout(resolve, 3000)),
+    ]);
+  } catch (err) {
+    console.warn("[POC] Hypothesis preload", err);
+  }
+  dismissBootSplash();
 
   try {
     registerSW({ immediate: true });

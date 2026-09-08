@@ -25,7 +25,7 @@
   --surface: #fff;
   --border: #ccc;
   --gutter: #c8c8c8;
-  /* Chrome fills (full guide) — soft role tints; overridden by data-guide */
+  /* Chrome fills: tab-bar track + inactive tabs. Selected tab + toolbar = --chrome-active-bg. */
   --chrome-find: #ffe4e8;
   --chrome-read: #e3f0ff;
   --chrome-consult: #e3f5e8;
@@ -33,7 +33,7 @@
   --chrome-band: var(--surface);
   --chrome-active-bg: var(--surface);
   --chrome-tab-top: 3px;
-  /* Active tab label text (on chrome fills) — ≥15:1 vs chrome bgs */
+  /* Active tab label (on white / surface) */
   --chrome-label: #111111;
   /*
    * Tab top accent: inverse of fill intensity (full = calmer edge, min = brightest).
@@ -111,6 +111,52 @@ body {
   color: var(--fg);
 }
 
+#boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--bg);
+  color: var(--fg);
+  transition: opacity 0.35s ease;
+}
+
+#boot-splash.is-gone {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#boot-splash[hidden] {
+  display: none !important;
+}
+
+#boot-splash p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.boot-splash-spin {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: boot-spin 0.7s linear infinite;
+}
+
+@keyframes boot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 button,
 input,
 textarea {
@@ -185,16 +231,20 @@ input[type="text"] {
 #reader [data-tool] .tool-search {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   flex: 1 1 auto;
   min-width: 0;
-  height: var(--ctrl-h);
+  height: auto;
+  align-self: stretch;
+  min-height: 0;
 }
 
 #reader [data-tool] .tool-search input[type="search"] {
   padding-right: 2rem;
-  height: calc(var(--ctrl-h) - 8px);
-  margin: 0 0.35rem;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  margin: 0;
 }
 
 #reader [data-tool] .input-clear {
@@ -291,62 +341,62 @@ body[data-view="library"] #settings [data-reader-only] {
   display: none !important;
 }
 
-/* Paging cluster: ‹  1 / X pages  › */
-#reader [data-tool="read:book"] .page-nav {
+/* Paging cluster (Leia + PDF): ‹  1 / X  › — icon-only, no side borders */
+#reader [data-tool] .page-nav {
   display: inline-flex;
   align-items: stretch;
-  height: var(--ctrl-h);
+  height: auto;
+  align-self: stretch;
+  min-height: 0;
   flex: 0 0 auto;
-  border-right: 1px solid var(--border);
+  border: none;
 }
 
-#reader [data-tool="read:book"] .page-nav[hidden] {
+#reader [data-tool] .page-nav[hidden] {
   display: none !important;
 }
 
-#reader [data-tool="read:book"] .page-nav > button[data-page] {
+#reader [data-tool] .page-nav > button,
+#reader [data-tool] .page-nav > button:hover {
   min-width: var(--ctrl-h);
   padding: 0;
-  border-right: 1px solid var(--border);
+  border: none;
 }
 
-#reader [data-tool="read:book"] .page-nav > button[data-page]:last-of-type {
-  border-right: none;
-}
-
-#reader [data-tool="read:book"] .page-nav-readout {
+#reader [data-tool] .page-nav-readout {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  height: var(--ctrl-h);
+  height: auto;
+  align-self: stretch;
+  min-height: 0;
   padding: 0 0.65rem;
   margin: 0;
-  border-right: 1px solid var(--border);
+  border: none;
   color: var(--fg);
   font-size: 0.8125rem;
   white-space: nowrap;
 }
 
-#reader [data-tool="read:book"] .page-nav-readout input[type="number"] {
+#reader [data-tool] .page-nav-readout input[type="number"] {
   width: 2.75rem;
   min-width: 2.75rem;
   margin: 0;
   padding: 0 0.25rem;
   border: none;
-  border-right: none;
   text-align: center;
   background: transparent;
-  height: calc(var(--ctrl-h) - 8px);
+  height: 100%;
   min-height: 0;
   max-height: none;
 }
 
-#reader [data-tool="read:book"] .page-nav-unit {
+#reader [data-tool] .page-nav-unit {
   color: var(--muted);
   font-size: 0.75rem;
 }
 
-#reader [data-tool="read:book"] .page-nav.is-disabled {
+#reader [data-tool] .page-nav.is-disabled {
   opacity: 0.35;
   pointer-events: none;
 }
@@ -504,7 +554,12 @@ html[data-flavor="centro"] #grid > li:first-child > button {
   padding: 0.75rem;
   text-align: center;
   border: 1px solid var(--border);
+  /* Raw accent as fallback; then lift L + chroma so dark catalog hues read on the 4px bar */
   border-bottom: 4px solid var(--card-accent, var(--border));
+  border-bottom-color: oklch(
+    from var(--card-accent, var(--border))
+      min(0.7, calc(l + 0.22)) calc(c * 1.28) h
+  );
   border-radius: 0;
   position: relative;
   overflow: hidden;
@@ -514,7 +569,10 @@ html[data-flavor="centro"] #grid > li:first-child > button {
 
 #grid > li > button:hover {
   border-color: var(--border);
-  border-bottom-color: var(--card-accent, var(--border));
+  border-bottom-color: oklch(
+    from var(--card-accent, var(--border))
+      min(0.7, calc(l + 0.22)) calc(c * 1.28) h
+  );
 }
 
 #grid > li > button > b {
@@ -612,42 +670,18 @@ html[data-flavor="centro"] #grid > li:first-child > button {
   z-index: 6;
 }
 
-/*
- * Flat fills only — shell and body share --pane-aux so tints don’t stack
- * (white shell under #f5f5f5 body made P1/P4 look dirtier than P3’s iframe).
- */
+/* All pane shells + bodies: paper (surface). Color lives on the tab track. */
+#reader [data-pane],
 #reader [data-body],
 #reader #book {
   background: var(--surface);
 }
 
-#reader #p1,
-#reader #p3,
-#reader #p4,
-#reader #p1 > [data-body],
-#reader #p3 > [data-body],
-#reader #p4 > [data-body] {
-  background: var(--pane-aux);
-}
-
-/* Consult host panels: transparent so aux shows in letterboxing, not white */
+/* Consult host panels: transparent so surface shows in letterboxing */
 #reader #p3 #ctx-host,
 #reader #p3 #pdf-panel,
 #reader #p3 #video-panel {
   background: transparent;
-}
-
-/* Pane 2 (Read): pure white page */
-#reader #p2,
-#reader #p2 [data-body],
-#reader #p2 #book {
-  background: #fff;
-}
-
-html[data-theme="dark"] #reader #p2,
-html[data-theme="dark"] #reader #p2 [data-body],
-html[data-theme="dark"] #reader #p2 #book {
-  background: var(--surface);
 }
 
 /* Pane 1 (find): TOC stays serif; hit meta uses UI sans (see #hits rules). */
@@ -660,7 +694,8 @@ html[data-theme="dark"] #reader #p2 #book {
 /*
  * Reader chrome — one rhythm
  * --ctrl-h (50px): tab bar, tabs, toolbars, toolbar buttons, inputs
- * Selection: active tab border-top (role accent). Toolbar bottom = neutral only.
+ * Invert: track + inactive = pane pastel; selected tab + toolbar = white/surface.
+ * Active tab meets the toolbar (no seam). Role signal = 3px top + track.
  * Guide: html[data-guide=full|soft|min]
  */
 #reader [data-tabs],
@@ -675,12 +710,28 @@ html[data-theme="dark"] #reader #p2 #book {
 #reader [data-tabs] {
   display: flex;
   align-items: stretch;
-  border-bottom: none;
+  border-bottom: 1px solid var(--border);
   background: var(--chrome-band);
-  overflow: hidden;
+  overflow: visible;
 }
 
-/* Inactive tabs: no role color; muted label */
+#reader #p1 [data-tabs] {
+  background: var(--chrome-find);
+}
+
+#reader #p2 [data-tabs] {
+  background: var(--chrome-read);
+}
+
+#reader #p3 [data-tabs] {
+  background: var(--chrome-consult);
+}
+
+#reader #p4 [data-tabs] {
+  background: var(--chrome-annotate);
+}
+
+/* Inactive tabs: pane pastel (same as track; role fill on folded mixed strips) */
 #reader [data-tabs] > button {
   height: var(--ctrl-h);
   min-height: var(--ctrl-h);
@@ -703,7 +754,23 @@ html[data-theme="dark"] #reader #p2 #book {
   box-sizing: border-box;
 }
 
-#reader [data-tabs] > button:hover {
+#reader [data-tabs] > button[data-mode^="find:"]:not(.on) {
+  background: var(--chrome-find);
+}
+
+#reader [data-tabs] > button[data-mode^="read:"]:not(.on) {
+  background: var(--chrome-read);
+}
+
+#reader [data-tabs] > button[data-mode^="consult:"]:not(.on) {
+  background: var(--chrome-consult);
+}
+
+#reader [data-tabs] > button[data-mode^="annotate:"]:not(.on) {
+  background: var(--chrome-annotate);
+}
+
+#reader [data-tabs] > button:not(.on):hover {
   background: color-mix(in srgb, var(--fg) 6%, transparent);
   color: var(--fg);
   border-color: var(--border);
@@ -716,8 +783,8 @@ html[data-theme="dark"] #reader #p2 #book {
 }
 
 /*
- * Active tab: fill by guide mode + role border-top.
- * data-mode colors folded clones (find/consult on #main-tabs), not parent pane.
+ * Active tab: paper fill + role border-top; meets toolbar (covers track edge).
+ * data-mode sets the top accent for folded clones on #main-tabs.
  * !important beats global `button.on` (fg/bg invert).
  */
 #reader [data-tabs] > button.on {
@@ -726,28 +793,32 @@ html[data-theme="dark"] #reader #p2 #book {
   background: var(--chrome-active-bg) !important;
   border-color: var(--border) !important;
   border-top-color: var(--tab-top-read) !important;
+  border-bottom: 1px solid var(--chrome-active-bg) !important;
+  margin-bottom: -1px;
+  position: relative;
+  z-index: 1;
 }
 
 #reader [data-tabs] > button.on[data-mode^="find:"] {
-  background: var(--chrome-find) !important;
+  background: var(--chrome-active-bg) !important;
   border-top-color: var(--tab-top-find) !important;
   color: var(--chrome-label) !important;
 }
 
 #reader [data-tabs] > button.on[data-mode^="read:"] {
-  background: var(--chrome-read) !important;
+  background: var(--chrome-active-bg) !important;
   border-top-color: var(--tab-top-read) !important;
   color: var(--chrome-label) !important;
 }
 
 #reader [data-tabs] > button.on[data-mode^="consult:"] {
-  background: var(--chrome-consult) !important;
+  background: var(--chrome-active-bg) !important;
   border-top-color: var(--tab-top-consult) !important;
   color: var(--chrome-label) !important;
 }
 
 #reader [data-tabs] > button.on[data-mode^="annotate:"] {
-  background: var(--chrome-annotate) !important;
+  background: var(--chrome-active-bg) !important;
   border-top-color: var(--tab-top-annotate) !important;
   color: var(--chrome-label) !important;
 }
@@ -796,9 +867,10 @@ html[data-theme="dark"] #reader #p2 #book {
  * Fills get quieter left→right; tab top accents get brighter (inverse).
  */
 
-/* full (default): soft role fills; calmer tops (AA accents as-is) */
+/* full (default): pastel track; white selected tab + toolbar; calmer tops */
 html[data-guide="full"],
 html:not([data-guide]) {
+  --chrome-active-bg: var(--surface);
   --tab-top-find: var(--accent-find);
   --tab-top-read: var(--accent-read);
   --tab-top-consult: var(--accent-consult);
@@ -918,30 +990,26 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tabs] > button:not(.on) 
   gap: 0;
   flex-wrap: nowrap;
   padding: 0;
-  border-top: 1px solid var(--border);
+  border-top: none;
   border-bottom: 1px solid var(--border);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
-  background: var(--chrome-band);
+  background: var(--chrome-active-bg);
 }
 
-/* Toolbar fill by pane role (guide softens/flattens via --chrome-*) */
-#reader #p1 [data-tool] {
-  background: var(--chrome-find);
-}
-
-#reader #p2 [data-tool] {
-  background: var(--chrome-read);
-}
-
+/* Toolbars follow selected tab (paper). Min guide overrides via --chrome-active-bg. */
+#reader #p1 [data-tool],
+#reader #p2 [data-tool],
 #reader #p3 [data-tool] {
-  background: var(--chrome-consult);
+  background: var(--chrome-active-bg);
+  border-bottom: 1px solid var(--border);
+  /* Hairline below the 50px row — children would cover an in-box border */
+  box-shadow: 0 1px 0 var(--border);
 }
 
 #reader #p4 [data-tool] {
-  background: var(--chrome-annotate);
-  color: var(--chrome-label);
+  display: none !important;
 }
 
 #reader #p4 [data-tool] button,
@@ -977,7 +1045,8 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tabs] > button:not(.on) 
   margin: 0;
   border: none;
   border-radius: 0;
-  border-right: 1px solid var(--border);
+  border-left: none;
+  border-right: none;
   background: transparent;
   padding: 0 0.85rem;
   font-size: 0.8125rem;
@@ -1041,47 +1110,134 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tabs] > button:not(.on) 
 }
 
 /*
- * Find (P1) search/filter: always find-chrome pink/red — never UA blue/white.
- * Screen recording showed focus flipping the field to cool blue; kill appearance
- * and paint an explicit --chrome-find fill + red underline.
+ * Text fields: P1 TOC/search + current-page (book pager + consult PDF).
+ * Idle sits on the white toolbar; 3px role accent only while focused.
+ * Type ~15% larger. appearance:none so UA focus cannot flip to cool blue.
+ * Totals / unit labels stay untouched.
  */
 #reader [data-tool] input:focus {
   outline: none;
+}
+
+#reader #p1 #toc-q,
+#reader #p1 #search-q,
+#reader #p2 #page-n,
+#reader #p3 #pdf-page-input {
+  -webkit-appearance: none;
+  appearance: none;
+  font-size: calc(0.8125rem * 1.15);
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  box-sizing: border-box;
 }
 
 #reader #p1 [data-tool] input[type="search"],
 #reader #p1 [data-tool] input[type="text"] {
   -webkit-appearance: none;
   appearance: none;
-  background: var(--chrome-find) !important;
+  background: transparent !important;
   color: var(--fg);
 }
 
-#reader #p1 [data-tool] input[type="search"]:focus,
-#reader #p1 [data-tool] input[type="search"]:focus-visible,
-#reader #p1 [data-tool] input[type="text"]:focus,
-#reader #p1 [data-tool] input[type="text"]:focus-visible,
+#reader #p1 #toc-q::placeholder,
+#reader #p1 #search-q::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+#reader #p1 #toc-q:focus,
+#reader #p1 #toc-q:focus-visible,
+#reader #p1 #toc-q:active,
+#reader #p1 #search-q:focus,
+#reader #p1 #search-q:focus-visible,
+#reader #p1 #search-q:active,
 #reader #p1 [data-tool] .tool-search:focus-within input {
   outline: none !important;
-  background: var(--chrome-find) !important;
-  border-color: transparent !important;
-  box-shadow: inset 0 -3px 0 var(--tab-top-find, var(--accent-find)) !important;
+  background: #fff !important;
+  border: none !important;
+  border-bottom: var(--chrome-tab-top, 3px) solid
+    var(--tab-top-find, var(--accent-find)) !important;
+  box-shadow: none !important;
   caret-color: var(--accent-find);
   accent-color: var(--accent-find);
-  color: var(--fg) !important;
+  color: #111 !important;
+}
+
+#reader #p1 #toc-q:focus::placeholder,
+#reader #p1 #toc-q:focus-visible::placeholder,
+#reader #p1 #search-q:focus::placeholder,
+#reader #p1 #search-q:focus-visible::placeholder,
+#reader #p1 [data-tool] .tool-search:focus-within input::placeholder {
+  color: #666;
 }
 
 #reader #p1 [data-tool] input[type="search"]:-webkit-autofill,
-#reader #p1 [data-tool] input[type="search"]:-webkit-autofill:focus {
+#reader #p1 [data-tool] input[type="search"]:-webkit-autofill:hover {
   -webkit-text-fill-color: var(--fg);
-  box-shadow:
-    0 0 0 1000px var(--chrome-find) inset,
-    inset 0 -3px 0 var(--tab-top-find, var(--accent-find)) !important;
+  box-shadow: 0 0 0 1000px var(--surface) inset;
+  transition: background-color 99999s ease-out;
+}
+
+#reader #p1 [data-tool] input[type="search"]:-webkit-autofill:focus {
+  -webkit-text-fill-color: #111;
+  box-shadow: 0 0 0 1000px #fff inset;
+  border-bottom: var(--chrome-tab-top, 3px) solid
+    var(--tab-top-find, var(--accent-find)) !important;
   transition: background-color 99999s ease-out;
 }
 
 #reader #p1 [data-tool] .tool-search:focus-within {
-  background: var(--chrome-find);
+  background: transparent;
+}
+
+/* Current page only — not / total or the “páginas” unit */
+#reader #p2 #page-n {
+  background: transparent;
+  color: inherit;
+}
+
+#reader #p2 #page-n:focus,
+#reader #p2 #page-n:focus-visible,
+#reader #p2 #page-n:active,
+#reader #p2 .page-nav-readout:focus-within #page-n {
+  outline: none !important;
+  background: #fff !important;
+  color: #111 !important;
+  border: none !important;
+  border-bottom: var(--chrome-tab-top, 3px) solid
+    var(--tab-top-read, var(--accent-read)) !important;
+  box-shadow: none !important;
+  caret-color: var(--accent-read);
+}
+
+#reader #p3 [data-tool="consult:pdf"] .page-nav-readout {
+  height: auto;
+  align-self: stretch;
+  min-height: 0;
+}
+
+#reader #p3 #pdf-page-input {
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  margin-block: 0;
+  background: transparent;
+  color: inherit;
+}
+
+#reader #p3 #pdf-page-input:focus,
+#reader #p3 #pdf-page-input:focus-visible,
+#reader #p3 #pdf-page-input:active,
+#reader #p3 [data-tool="consult:pdf"] label:focus-within #pdf-page-input {
+  outline: none !important;
+  background: #fff !important;
+  color: #111 !important;
+  border: none !important;
+  border-bottom: var(--chrome-tab-top, 3px) solid
+    var(--tab-top-consult, var(--accent-consult)) !important;
+  box-shadow: none !important;
+  caret-color: var(--accent-consult);
 }
 
 #reader [data-tool] [data-icon] svg,
@@ -1152,7 +1308,7 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tabs] > button:not(.on) 
   padding: 1.25rem 1.5rem;
   box-sizing: border-box;
   text-align: center;
-  background: var(--pane-aux, #f5f5f5);
+  background: var(--surface);
   color: var(--fg);
   pointer-events: none;
 }
@@ -1176,7 +1332,7 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tabs] > button:not(.on) 
 }
 
 html[data-theme="dark"] .ctx-hint {
-  background: var(--pane-aux, #141414);
+  background: var(--surface);
 }
 
 #ctx-loading.pane-spinner {
@@ -1190,7 +1346,7 @@ html[data-theme="dark"] .ctx-hint {
   gap: 0.85rem;
   padding: 0 0.75rem;
   box-sizing: border-box;
-  background: color-mix(in srgb, var(--pane-aux, #f5f5f5) 92%, transparent);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   pointer-events: none;
 }
 
@@ -1372,10 +1528,14 @@ html[data-theme="dark"] .ctx-hint {
   font-family: var(--book-sans);
 }
 
-/* Column 2 figures — cap width inside the measured reading column */
+/* Column 2 figures — same width as the typo measure, centered in the pane */
 #book img {
-  max-width: 80%;
+  display: block;
+  width: 100%;
+  max-width: 100%;
   height: auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /*
@@ -1605,10 +1765,56 @@ html[data-theme="dark"] .ctx-hint {
   display: block;
 }
 
+#p4 [data-body] {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  min-height: 0;
+}
+
+#p4-gap {
+  height: 10px;
+  flex-shrink: 0;
+  background: var(--surface);
+  box-sizing: border-box;
+}
+
+#hypo-slot {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  border: none;
+  background: var(--surface);
+}
+
+#hypo-slot hypothesis-sidebar,
+#hypo-slot .annotator-frame,
+#hypo-slot iframe {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+
 #p4 [data-body] p {
   margin: 0;
+  padding: 0.75rem;
   font-size: 0.9rem;
   color: var(--muted);
+}
+
+html.hypo-in-pane #p4 [data-body] > p {
+  display: none !important;
 }
 
 /* Collapse 4 → 3 → 2 → 1 (explicit areas — fixed panes leave the track) */
@@ -1753,7 +1959,9 @@ html[data-theme="dark"] .ctx-hint {
  * body[data-compact-consult="1"] ≤2500 — Context provider row (labels need room below ~2400).
  */
 body[data-compact="1"] #reader [data-tabs] > button > span,
-body[data-compact="1"] #reader [data-tool] button > span,
+body[data-compact="1"] #reader #p1 [data-tool] button > span,
+body[data-compact="1"] #reader #p2 [data-tool] button > span,
+body[data-compact="1"] #reader #p4 [data-tool] button > span,
 body[data-compact="1"] #reader [data-tool] [data-typo-label],
 body[data-compact-consult="1"] #reader #p3 [data-tool] button > span {
   position: absolute;
@@ -1773,7 +1981,9 @@ body[data-compact="1"] #reader [data-tabs] > [data-i18n^="pane."] {
 }
 
 body[data-compact="1"] #reader [data-tabs] > button,
-body[data-compact="1"] #reader [data-tool] button,
+body[data-compact="1"] #reader #p1 [data-tool] button,
+body[data-compact="1"] #reader #p2 [data-tool] button,
+body[data-compact="1"] #reader #p4 [data-tool] button,
 body[data-compact-consult="1"] #reader #p3 [data-tool] button {
   padding: 0;
   min-width: var(--ctrl-h);
@@ -1784,6 +1994,46 @@ body[data-compact-consult="1"] #reader #p3 [data-tool] button {
 #reader #p3 [data-tool].on {
   overflow-x: auto;
   flex-wrap: nowrap;
+}
+
+/* Desktop/laptop: labeled provider strip — one row, slide for overflow */
+#reader #p3 [data-tool="consult:web"].on {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+
+#reader #p3 [data-tool="consult:web"] button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+#reader #p3 [data-provider].is-disarmed {
+  opacity: 0.45;
+}
+
+#ctx-host.is-need-term {
+  outline: 2px solid var(--accent-consult, #0d6b2c);
+  outline-offset: -2px;
+}
+
+#ctx-host.is-need-term::after {
+  content: attr(data-need-term);
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 1.25rem;
+  transform: translateX(-50%);
+  max-width: 90%;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--accent-consult, #0d6b2c);
+  font-size: 0.88rem;
+  text-align: center;
+  z-index: 2;
+  pointer-events: none;
 }
 
 /* Keep page number / search inputs usable when compact */
@@ -2000,10 +2250,39 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
 /* Wide 4-pane help guide (bar info button) */
 #help.help-guide {
   width: min(958px, calc(100vw - 1.5rem));
-  height: min(440px, calc(100vh - var(--chrome) - 2rem));
-  max-height: min(440px, calc(100vh - var(--chrome) - 2rem));
+  height: min(510px, calc(100vh - var(--chrome) - 2rem));
+  max-height: min(510px, calc(100vh - var(--chrome) - 2rem));
   padding: 0;
   overflow: hidden;
+  transform: translate(-50%, calc(-46% - 30px)) scale(0.96);
+}
+
+.help-rotate {
+  display: none;
+  padding: 1.5rem 1.35rem 1.75rem;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--fg);
+}
+
+.help-rotate p {
+  margin: 0;
+}
+
+#help.help-guide.is-phone-portrait {
+  width: min(22rem, 92vw);
+  height: auto;
+  max-height: min(70vh, calc(100vh - var(--chrome) - 2rem));
+}
+
+#help.help-guide.is-phone-portrait .help-guide-body,
+#help.help-guide.is-phone-portrait .help-persist {
+  display: none;
+}
+
+#help.help-guide.is-phone-portrait .help-rotate {
+  display: block;
 }
 
 .modal.is-open,
@@ -2012,6 +2291,10 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
   transform: translate(-50%, -50%) scale(1);
   opacity: 1;
   pointer-events: auto;
+}
+
+#help.help-guide.is-open {
+  transform: translate(-50%, calc(-50% - 30px)) scale(1);
 }
 
 .modal-hint {
@@ -2048,6 +2331,25 @@ hypothesis-sidebar {
   pointer-events: auto !important;
 }
 
+/*
+ * Library preload: embed may already be in the DOM (openSidebar true) but
+ * must not cover covers or Help. Keep it alive for layout; hide interaction.
+ */
+body[data-view="library"] hypothesis-sidebar,
+body[data-view="library"] hypothesis-adder,
+body[data-view="library"] hypothesis-notebook,
+body[data-view="library"] hypothesis-profile,
+body[data-view="library"] .annotator-frame,
+body[data-view="library"] .annotator-outer,
+body[data-view="library"] iframe.hypothesis-sidebar,
+body[data-view="library"] iframe[name*="hypothesis"],
+body[data-view="library"] iframe[src*="hypothes.is"] {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  z-index: 0 !important;
+}
+
 /* Don't let Hypo push body layout */
 html,
 body {
@@ -2061,6 +2363,17 @@ body {
   max-width: 100% !important;
   margin-right: 0 !important;
   box-sizing: border-box !important;
+}
+
+/*
+ * Tablet / phone (notes column folded at ≤1400): Hypo’s collapsed rail sits
+ * on the viewport’s right (~20px). Inset the workspace so book text, page
+ * chrome, and consult don’t slide under it. Desktop keeps p4 as the buffer.
+ */
+@media screen and (max-width: 1400px) {
+  #workspace {
+    padding-right: 20px;
+  }
 }
 
 /* Stay in layout while closing so slide-out can play */
@@ -2108,7 +2421,7 @@ body {
   padding: 0;
   overflow: hidden;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) 56px;
+  grid-template-rows: minmax(0, 1fr) auto var(--chrome);
   flex: 1;
   min-height: 0;
   gap: 0;
@@ -2135,6 +2448,7 @@ body {
   border-right: 1px solid var(--border);
   isolation: isolate;
   overflow: hidden;
+  background: var(--surface);
 }
 
 .help-col:last-child {
@@ -2280,6 +2594,25 @@ html[data-theme="dark"] .help-col::after {
   padding: 0.75rem 0.85rem;
   background: var(--surface);
   color: var(--fg);
+  display: flex;
+  flex-direction: column;
+}
+
+.help-feat-notes,
+.help-pane > .help-feat-note {
+  margin-top: auto;
+}
+
+.help-feat-note {
+  margin: 0;
+  padding-top: 0.55rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.help-feat-note[hidden] {
+  display: none !important;
 }
 
 .help-feats {
@@ -2293,13 +2626,6 @@ html[data-theme="dark"] .help-col::after {
 .help-feats li {
   position: relative;
   padding: 0.15rem 0 0.15rem 0.95rem;
-}
-
-.help-feat-note {
-  margin: 0.65rem 0 0;
-  font-size: 0.72rem;
-  line-height: 1.35;
-  color: var(--muted);
 }
 
 .help-feats li.is-size-restricted {
@@ -2318,39 +2644,66 @@ html[data-theme="dark"] .help-col::after {
   display: none !important;
 }
 
+.help-persist {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.88rem;
+  color: var(--bar-fg);
+  cursor: pointer;
+  user-select: none;
+  border-top: none;
+  background: var(--bar);
+}
+
+.help-persist input {
+  width: auto;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
 .help-devices {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  align-items: center;
-  padding: 0 10px;
-  background: color-mix(in srgb, var(--fg) 4%, var(--surface));
-  border-top: 1px solid var(--border);
+  gap: 0;
+  align-items: stretch;
+  padding: 0;
+  background: var(--bar);
+  border-top: none;
+  color: var(--bar-fg);
+  height: var(--chrome);
+  min-height: var(--chrome);
 }
 
 .help-dev {
-  height: 48px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 8px;
-  color: var(--fg);
+  height: var(--chrome);
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--bar-fg);
   cursor: pointer;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   gap: 8px;
-  padding: 4px 8px;
+  padding: 0 0.85rem;
   font: inherit;
 }
 
 .help-dev:hover {
-  border-color: var(--muted);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: transparent;
+  color: var(--bar-fg);
 }
 
 .help-dev[aria-pressed="true"] {
-  border-color: color-mix(in srgb, var(--fg) 45%, var(--border));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 25%, transparent);
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .help-dev [data-icon],
@@ -2359,9 +2712,6 @@ html[data-theme="dark"] .help-col::after {
   flex-shrink: 0;
   width: 1.25rem;
   height: 1.25rem;
-}
-
-.help-dev svg {
   stroke: currentColor;
   fill: none;
 }
@@ -3426,7 +3776,7 @@ html[data-theme="dark"] #viewport-frame.is-blocked #viewport-label-device {
   }
 }
 
-/* ── Páginas toolbar: provider toggles (Luz / Encyc / Dict) ─ */
+/* ── Páginas toolbar: in-book links on/off ─ */
 #reader [data-tool="read:book"] .tool-sep {
   display: inline-block;
   width: 1px;
@@ -3438,7 +3788,7 @@ html[data-theme="dark"] #viewport-frame.is-blocked #viewport-label-device {
 }
 
 /*
- * Link provider toggles (Luz / Encyc / Dict):
+ * In-book links toggle:
  * ON  = --tab-top-read edge (tracks color guide; brighter in soft/min)
  * OFF = grey edge + muted label
  */
@@ -3447,7 +3797,8 @@ html[data-theme="dark"] #viewport-frame.is-blocked #viewport-label-device {
   /* Override toolbar border:none — top edge is the on/off mark */
   border: none;
   border-top: 3px solid var(--gutter, #c8c8c8) !important;
-  border-right: 1px solid var(--border);
+  border-left: none;
+  border-right: none;
   box-sizing: border-box;
   color: var(--muted);
 }

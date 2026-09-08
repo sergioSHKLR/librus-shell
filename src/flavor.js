@@ -347,23 +347,15 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
     room.value = feat.jaasRoom;
   }
 
-  /* Hide provider buttons not listed for this flavor (when specified) */
+  /* Hide Consulte provider buttons not listed for this flavor (when specified) */
   const allowed = feat.providers;
   if (Array.isArray(allowed) && allowed.length) {
     document.querySelectorAll("[data-provider]").forEach((btn) => {
       const key = btn.getAttribute("data-provider");
       btn.hidden = allowed.indexOf(key) === -1;
     });
-    /* Páginas toolbar: only Luz / Encyc / Dict, further gated by flavor */
-    document.querySelectorAll("[data-link].link-toggle").forEach((btn) => {
-      const key = btn.getAttribute("data-link");
-      btn.hidden = !key || allowed.indexOf(key) === -1;
-    });
   } else {
     document.querySelectorAll("[data-provider]").forEach((btn) => {
-      btn.hidden = false;
-    });
-    document.querySelectorAll("[data-link].link-toggle").forEach((btn) => {
       btn.hidden = false;
     });
   }
