@@ -1,7 +1,8 @@
 /**
  * Build-time feature flags (Vite).
  * Override via env: VITE_FEAT_PDF=1, VITE_FEAT_JAAS=1, VITE_FEAT_HYPO=0, …
- * Defaults: hypo/typo/providers on; pdf/jaas/profiles off.
+ * Defaults: hypo/typo/providers/pdf/jaas on; profiles off.
+ * JaaS chrome is still centro-only (flavors.json).
  */
 function on(key, defaultOn) {
   const v = import.meta.env[key];
@@ -13,8 +14,8 @@ export const FEAT = {
   hypo: on('VITE_FEAT_HYPO', true),
   typo: on('VITE_FEAT_TYPO', true),
   providers: on('VITE_FEAT_PROVIDERS', true),
-  pdf: on('VITE_FEAT_PDF', false),
-  jaas: on('VITE_FEAT_JAAS', false),
+  pdf: on('VITE_FEAT_PDF', true),
+  jaas: on('VITE_FEAT_JAAS', true),
   profiles: on('VITE_FEAT_PROFILES', false)
 };
 
@@ -22,6 +23,8 @@ export const FEAT = {
 export function applyFeatureDom() {
   document.querySelectorAll('[data-feat]').forEach((el) => {
     const name = el.getAttribute('data-feat');
+    /* JaaS chrome is flavor-owned (centro). Don't unhide it from the build flag. */
+    if (name === 'jaas') return;
     const enabled = !!FEAT[name];
     // data-feat-invert: shown only when the feature is OFF
     if (el.hasAttribute('data-feat-invert')) {

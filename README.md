@@ -62,7 +62,7 @@ Status: **BETA v0.9.1** — active-study UX.
 1. Narrow screens are **blocked** until landscape / a wider viewport (no reduced-mode bypass).  
 2. First visit: onboard **Device | How to** (PT: **Dispositivo | Como usar**).  
 3. Chrome: theme · help · settings on the bar; **language** lives in Settings.  
-4. PDF · JaaS · profiles remain **off** by default (mocks unless `build:full`).  
+4. PDF comparison and JaaS (centro flavor) are **on**; profiles remain off. `build:lean` still drops PDF/JaaS.  
 
 ## 🧱 What this repo owns
 
@@ -105,7 +105,7 @@ npm run dev:centro     # http://localhost:5176
    4. hostname map  
    5. `default`  
 
-3. Flags (defaults): hypo · typo · providers **on**; pdf · jaas · profiles **off**.  
+3. Flags (defaults): hypo · typo · providers · pdf · jaas **on**; profiles **off**. JaaS chrome is still **centro-only**.  
 
 ## 🤝 How to help
 
@@ -149,7 +149,7 @@ Estado: **BETA v0.9.1** — UX de estudo ativo.
 1. Telas estreitas ficam **bloqueadas** até paisagem / viewport mais larga (sem atalho de modo reduzido).  
 2. Primeira visita: onboard **Dispositivo | Como usar** (EN: **Device | How to**).  
 3. Chrome: tema · ajuda · ajustes na barra; **idioma** fica em Ajustes.  
-4. PDF · JaaS · profiles continuam **desligados** por padrão (mocks, salvo `build:full`).  
+4. Comparação de PDF e JaaS (sabor centro) estão **ligados**; profiles continuam desligados. `build:lean` ainda omite PDF/JaaS.  
 
 ## 🧱 O que este repo possui
 
@@ -185,7 +185,7 @@ npm run dev:centro     # http://localhost:5176
 
 1. Edite **`public/flavors.json`**.  
 2. Ordem de resolução: `?flavor=` → `VITE_FLAVOR` → `localStorage` → hostname → `default`.  
-3. Flags padrão: hypo · typo · providers **ligados**; pdf · jaas · profiles **desligados**.  
+3. Flags padrão: hypo · typo · providers · pdf · jaas **ligados**; profiles **desligados**. JaaS continua **só no sabor centro**.  
 
 ## 🤝 Como ajudar
 

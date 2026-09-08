@@ -21,7 +21,11 @@ export default defineConfig(({ mode }) => {
     server: {
       host: true,
       port: 5174,
-      strictPort: false
+      strictPort: false,
+      headers: {
+        "Permissions-Policy":
+          'camera=*, microphone=*, display-capture=*, autoplay=*',
+      },
     },
     preview: {
       host: true,
@@ -32,8 +36,8 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_FEAT_HYPO': JSON.stringify(feat('VITE_FEAT_HYPO', '1')),
       'import.meta.env.VITE_FEAT_TYPO': JSON.stringify(feat('VITE_FEAT_TYPO', '1')),
       'import.meta.env.VITE_FEAT_PROVIDERS': JSON.stringify(feat('VITE_FEAT_PROVIDERS', '1')),
-      'import.meta.env.VITE_FEAT_PDF': JSON.stringify(feat('VITE_FEAT_PDF', '0')),
-      'import.meta.env.VITE_FEAT_JAAS': JSON.stringify(feat('VITE_FEAT_JAAS', '0')),
+      'import.meta.env.VITE_FEAT_PDF': JSON.stringify(feat('VITE_FEAT_PDF', '1')),
+      'import.meta.env.VITE_FEAT_JAAS': JSON.stringify(feat('VITE_FEAT_JAAS', '1')),
       'import.meta.env.VITE_FEAT_PROFILES': JSON.stringify(feat('VITE_FEAT_PROFILES', '0')),
       /* Optional single-flavor deploy; leave empty to resolve via hostname / ?flavor= */
       'import.meta.env.VITE_FLAVOR': JSON.stringify(feat('VITE_FLAVOR', ''))

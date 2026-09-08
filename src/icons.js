@@ -61,6 +61,12 @@ const PATHS = {
   moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
   monitor:
     '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
+  laptop:
+    '<path d="M18 5a2 2 0 0 1 2 2v8.526a2 2 0 0 0 .212.897l1.068 2.127a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45l1.068-2.127A2 2 0 0 0 4 15.526V7a2 2 0 0 1 2-2z"/><path d="M20.054 15.987H3.946"/>',
+  tablet:
+    '<rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><line x1="12" x2="12.01" y1="18" y2="18"/>',
+  smartphone:
+    '<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>',
   /* Compact language marks (not emoji — reliable on Linux) */
   'flag-br':
     '<rect width="24" height="24" rx="3" fill="#009c3b"/>' +
@@ -112,8 +118,9 @@ const PATHS = {
 /** Friendly aliases matching simple/ Lucide names */
 const ALIAS = {
   home: 'house',
+  phone: 'smartphone',
   'align-left': 'text-align-start',
-  'align-justify': 'text-align-justify'
+  'align-justify': 'text-align-justify',
 };
 
 /**

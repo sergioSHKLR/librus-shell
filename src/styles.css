@@ -274,6 +274,17 @@ html.bar-scroll-hidden [data-screen] {
   bottom: 0;
 }
 
+/* Phone overlays are viewport-tall (under the bar). When the bar hides,
+ * they already reach the bottom — no leftover chrome-height gap. */
+html.bar-scroll-hidden #p1.overlay,
+html.bar-scroll-hidden #p1.overlay-single,
+html.bar-scroll-hidden #p1.is-closing,
+html.bar-scroll-hidden #p3.overlay,
+html.bar-scroll-hidden #p3.overlay-single,
+html.bar-scroll-hidden #p3.is-closing {
+  bottom: 0;
+}
+
 /* Color guide only affects reader chrome — hide that block on library */
 body[data-view="library"] #settings fieldset:has([name="color-guide"]),
 body[data-view="library"] #settings [data-reader-only] {
@@ -1535,19 +1546,63 @@ html[data-theme="dark"] .ctx-hint {
 }
 
 #pdf-placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 1.5rem;
   color: var(--muted);
+  text-align: center;
+}
+
+#pdf-placeholder[hidden] {
+  display: none !important;
+}
+
+#pdf-placeholder p {
+  margin: 0;
+  max-width: 22rem;
+  line-height: 1.4;
+}
+
+#pdf-panel.is-drop {
+  outline: 2px dashed var(--accent);
+  outline-offset: -8px;
 }
 
 #pdf-canvas {
   display: block;
-  margin: 0 auto;
-  max-width: 100%;
+  margin: 0.75rem auto;
+  flex: 0 0 auto;
+  max-width: none;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+#pdf-canvas[hidden] {
+  display: none !important;
 }
 
 #meet-jaas-host {
-  min-height: 16rem;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   height: 100%;
+}
+
+#meet-jaas-host iframe {
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+  display: block;
+}
+
+#video-panel.is-live #video-mock {
+  display: none !important;
+}
+
+#video-panel.is-live #meet-jaas-host {
+  display: block;
 }
 
 #p4 [data-body] p {
@@ -1612,7 +1667,7 @@ html[data-theme="dark"] .ctx-hint {
   }
 }
 
-/* Portrait phone: single Read column; Consulte is a slide-over drawer */
+/* Portrait phone: Read + Ache overlay; Consulte is off */
 @media screen and (max-width: 920px) and (orientation: portrait) {
   #workspace {
     grid-template-columns: minmax(0, 1fr);
@@ -1621,34 +1676,18 @@ html[data-theme="dark"] .ctx-hint {
   }
 
   #p1 {
-    width: min(94vw, 26rem);
+    width: 85%;
+    max-width: 85%;
+    min-width: 0;
+    bottom: 0;
   }
 
   #p2::after {
-    display: none; /* consult is overlay, not a column */
-  }
-
-  #p3 {
-    /* Same trick: park on read so it doesn’t leave an empty 2nd track */
-    grid-area: read;
-    position: fixed;
-    right: 0;
-    top: var(--chrome);
-    bottom: var(--chrome);
-    width: min(94vw, 32rem);
-    z-index: 40;
-    transform: translateX(105%);
-    transition: transform 0.25s ease;
-    box-shadow: 0 0 24px rgba(0, 0, 0, 0.2);
-    border-left: 1px solid var(--border);
-  }
-
-  #p3::after {
     display: none;
   }
 
-  #p3.overlay {
-    transform: translateX(0);
+  #p3 {
+    display: none !important;
   }
 }
 
@@ -1756,7 +1795,7 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
   min-width: 6rem;
 }
 
-/* Chrome — above Hypothesis sidebar (Hypo ~450) so Home/Settings stay clickable */
+/* Chrome — above overlays (40) and Hypothesis (~450) so Home/Settings stay clickable */
 #bar {
   position: fixed;
   left: 0;
@@ -2296,12 +2335,12 @@ html[data-theme="dark"] .help-col::after {
   border-radius: 8px;
   color: var(--fg);
   cursor: pointer;
-  display: grid;
-  grid-template-rows: 1fr auto;
-  justify-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
   align-items: center;
-  gap: 2px;
-  padding: 4px 4px 5px;
+  gap: 8px;
+  padding: 4px 8px;
   font: inherit;
 }
 
@@ -2314,17 +2353,24 @@ html[data-theme="dark"] .help-col::after {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fg) 25%, transparent);
 }
 
+.help-dev [data-icon],
 .help-dev svg {
   display: block;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.help-dev svg {
   stroke: currentColor;
   fill: none;
-  stroke-width: 1.6;
 }
 
 .help-dev span {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1;
+  white-space: nowrap;
 }
 
 #settings fieldset {

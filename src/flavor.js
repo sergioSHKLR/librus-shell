@@ -12,6 +12,8 @@
  * Engine code should not hard-code product names beyond this module.
  */
 
+import { FEAT } from "./features.js";
+
 const STORAGE_KEY = "librus-flavor";
 
 /** @type {object | null} */
@@ -314,8 +316,8 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
 
   const feat = flavor.features || {};
 
-  /* Video / JaaS: opt-in per flavor (centro on; librus & doutrina off) */
-  const jaasOn = feat.jaas === true;
+  /* Video / JaaS: build flag AND flavor (centro). */
+  const jaasOn = FEAT.jaas === true && feat.jaas === true;
   document.documentElement.dataset.flavorJaas = jaasOn ? "1" : "0";
   document.querySelectorAll(
     '[data-mode="consult:video"], [data-tool="consult:video"], [data-panel="consult:video"], fieldset[data-feat="jaas"], #help-feat-jaas, [data-feat="jaas"]',

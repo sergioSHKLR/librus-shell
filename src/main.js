@@ -1,7 +1,7 @@
 /**
  * librus-shell — lean multi-flavor reader
  * Views · i18n · light/dark · 4 panes → 1 · typo · providers · Hypothesis
- * Optional: PDF / JaaS via FEAT flags
+ * PDF + JaaS (centro) on by default; mocks remain for lean builds
  */
 import "./styles.css";
 import { registerSW } from "virtual:pwa-register";
@@ -37,9 +37,9 @@ const GUIDE_KEY = "librus-color-guide";
 let colorGuide = "full";
 const LANG_KEY = "librus-lang";
 /**
- * Viewport ladder (width — landscape on tablet/phone restores wider tiers).
- * Matches Help device story: desktop → laptop (fold find) → tablet (no notes,
- * slim providers) → phone (fold consult, no video).
+ * Viewport ladder (width). Phone landscape is blocked (rotate to portrait).
+ * Matches Help: desktop → laptop (fold find) → tablet (no notes, slim
+ * providers) → phone portrait (Leia + Ache overlay; no Consulte, no links).
  */
 const VP = {
   FOLD_FIND: 1650,
@@ -70,19 +70,31 @@ function isLandscape(
   return w > 0 && h > 0 && w > h;
 }
 
-/**
- * Portrait phone only. Landscape phone (≤920 but wide) keeps Read+Consult
- * as real columns — single-column overlay is nearly unusable at ~400px tall.
- */
+/** Phone (≤920) in landscape — gate asks for portrait. */
+function isPhoneLandscape(
+  w = window.innerWidth || 0,
+  h = window.innerHeight || 0,
+) {
+  return vpTier(w) === "phone" && isLandscape(w, h);
+}
+
+/** Phone: no Consulte overlay (reader + Ache only). */
 function shouldFoldConsult(
   w = window.innerWidth || 0,
   h = window.innerHeight || 0,
 ) {
-  return w <= VP.FOLD_CONSULT && !isLandscape(w, h);
+  void w;
+  void h;
+  return false;
 }
 
-/** PDF on desktop/laptop only; video not on phone; other modes always size-ok. */
+function phoneReaderOnly(w = window.innerWidth || 0) {
+  return vpTier(w) === "phone";
+}
+
+/** PDF on desktop/laptop only; no Consulte on phone; video not on phone. */
 function toolAllowedBySize(mode, tier = vpTier()) {
+  if (String(mode).startsWith("consult:") && tier === "phone") return false;
   if (mode === "consult:pdf") return tier === "desktop" || tier === "laptop";
   if (mode === "consult:video") return tier !== "phone";
   return true;
@@ -108,7 +120,7 @@ const I18N = {
     "tab.typo": "Tipo",
     "tab.context": "Contexto",
     "tab.pdf": "PDF",
-    "tab.video": "Vídeo",
+    "tab.video": "Conf",
     "tab.notes": "Notas",
     "btn.prev": "Anterior",
     "btn.next": "Próxima",
@@ -194,14 +206,14 @@ const I18N = {
     "help.feat.notes":
       "Grifos e notas podem ser públicas, privadas ou de grupo.",
     "help.feat.footnote":
-      "* Consulte completo (vários portais, PDF, vídeo) é para estudo com teclado — notebook ou desktop. Em tablet/celular mantemos Enciclopédia e Dicionário de propósito: dá para estudar no toque, sem sobrecarregar. Paisagem mais larga no notebook devolve as ferramentas.",
+      "* Consulte completo (vários portais, PDF, vídeo) é para teclado — notebook ou desktop. Em tablet mantemos Enciclopédia e Dicionário. No celular: só retrato; Leia + Ache por cima; sem Consulte e sem ligações no texto.",
     "help.dev.desktop": "Desktop",
     "help.dev.laptop": "Notebook",
     "help.dev.tablet": "Tablet",
     "help.dev.phone": "Celular",
-    "orient.title": "Tela estreita",
+    "orient.title": "Gire o aparelho",
     "orient.body":
-      "Painéis se dobram na coluna Leia. O Consulte completo fica para notebook/desktop (teclado); no toque usamos um conjunto mais enxuto.",
+      "No celular, o estudo é só em retrato: Leia e Ache. Sem Consulte e sem ligações no texto. Gire para retrato (ou use uma tela maior).",
     "onboard.title": "Onde você estuda",
     "onboard.titleHow": "Como utilizar",
     "onboard.whereBody":
@@ -265,9 +277,11 @@ const I18N = {
     "set.version": "Versão",
     "set.repo": "Repositório",
     "set.repoOpen": "Abrir repositório no GitHub",
-    "pdf.upload": "Upload",
-    "pdf.unload": "Unload",
+    "pdf.upload": "Enviar",
+    "pdf.unload": "Remover",
     "pdf.uploadTitle": "Envie um PDF pela barra acima.",
+    "pdf.loading": "A carregar PDF…",
+    "pdf.error": "Não foi possível abrir este PDF.",
     "pdf.mockTitle": "Documento de exemplo",
     "pdf.mockPage": "Página {n} de {total}",
     "pdf.mockHint": "Mock PDF — use a barra para navegar e ampliar.",
@@ -280,7 +294,12 @@ const I18N = {
     "search.hitsCapped": "Mostrando os primeiros {n} resultados",
     "search.nowhere": "Sem seção",
     "meet.hint": "Configure o App ID JaaS em Ajustes.",
+    "meet.ready": "Pronto · {room}. Clique em Vídeo ou Voz para entrar.",
+    "meet.idleHint":
+      "Vídeo e voz via 8x8 JaaS. Defina o App ID em Ajustes, depois entre pela aba Vídeo.",
     "meet.needAppId": "Informe o App ID JaaS em Ajustes.",
+    "meet.needHttps":
+      "O 8x8 precisa de HTTPS ou localhost (WebRTC). Abra http://localhost — o IP da rede em http:// não funciona.",
     "meet.connecting": "A conectar…",
     "meet.loadError": "Não foi possível carregar o JaaS.",
     "meet.inVideo": "Em vídeo · {room}",
@@ -305,7 +324,7 @@ const I18N = {
     "tab.typo": "Type",
     "tab.context": "Context",
     "tab.pdf": "PDF",
-    "tab.video": "Video",
+    "tab.video": "Conf",
     "tab.notes": "Notes",
     "btn.prev": "Previous",
     "btn.next": "Next",
@@ -390,14 +409,14 @@ const I18N = {
     "help.feat.notes":
       "Highlights and notes can be public, private, or group.",
     "help.feat.footnote":
-      "* Full Consulte (extra portals, PDF, video) is for keyboard study — laptop or desktop. On tablet/phone we keep Encyclopedia and Dictionary on purpose: touch-friendly, not overloaded. A wider laptop layout restores the rest.",
+      "* Full Consulte (extra portals, PDF, video) is for keyboard — laptop or desktop. Tablet keeps Encyclopedia and Dictionary. On a phone: portrait only; Read + Find overlay; no Consulte and no in-book links.",
     "help.dev.desktop": "Desktop",
     "help.dev.laptop": "Laptop",
     "help.dev.tablet": "Tablet",
     "help.dev.phone": "Mobile",
-    "orient.title": "Narrow screen",
+    "orient.title": "Rotate the device",
     "orient.body":
-      "Panes fold into the Read column. Full Consulte stays on laptop/desktop (keyboard); touch gets a leaner set on purpose.",
+      "On a phone, study is portrait only: Read and Find. No Consulte and no in-book links. Rotate to portrait (or use a larger screen).",
     "onboard.title": "Where you study",
     "onboard.titleHow": "How to use",
     "onboard.whereBody":
@@ -459,8 +478,10 @@ const I18N = {
     "set.repo": "Repository",
     "set.repoOpen": "Open repository on GitHub",
     "pdf.upload": "Upload",
-    "pdf.unload": "Unload",
+    "pdf.unload": "Remove",
     "pdf.uploadTitle": "Upload a PDF from the toolbar above.",
+    "pdf.loading": "Loading PDF…",
+    "pdf.error": "Could not open this PDF.",
     "pdf.mockTitle": "Sample document",
     "pdf.mockPage": "Page {n} of {total}",
     "pdf.mockHint": "Mock PDF — use the toolbar to page and zoom.",
@@ -473,7 +494,12 @@ const I18N = {
     "search.hitsCapped": "Showing first {n} results",
     "search.nowhere": "No section",
     "meet.hint": "Set JaaS App ID in Settings.",
+    "meet.ready": "Ready · {room}. Click Video or Voice to join.",
+    "meet.idleHint":
+      "Video and voice via 8x8 JaaS. Set the App ID in Settings, then join from the Video tab.",
     "meet.needAppId": "Enter JaaS App ID in Settings.",
+    "meet.needHttps":
+      "8x8 needs HTTPS or localhost (WebRTC). Open http://localhost — a LAN http:// IP will not work.",
     "meet.connecting": "Connecting…",
     "meet.loadError": "Could not load JaaS.",
     "meet.inVideo": "In video · {room}",
@@ -600,15 +626,30 @@ function applyI18n() {
   if (typeof syncLinkControls === "function") syncLinkControls();
   if (typeof syncChromeBar === "function") syncChromeBar();
   if (typeof syncTooltips === "function") syncTooltips();
-  if (
-    import.meta.env.VITE_FEAT_PDF !== "1" &&
-    typeof renderMockPdf === "function"
-  ) {
+  if (!FEAT.pdf && typeof renderMockPdf === "function") {
     renderMockPdf();
   }
-  if (import.meta.env.VITE_FEAT_JAAS !== "1" && !mockMeetMode) {
+  if (!FEAT.jaas && !mockMeetMode) {
     const el = document.getElementById("meet-status");
     if (el) el.textContent = t("meet.mockIdle");
+  } else if (FEAT.jaas && !mockMeetMode) {
+    const el = document.getElementById("meet-status");
+    const host = document.getElementById("meet-jaas-host");
+    if (el && host?.hidden) {
+      let appId = "";
+      let room = "librus-estudo";
+      try {
+        const s = JSON.parse(localStorage.getItem("librus-jaas") || "{}");
+        appId = (s.appId || "").trim();
+        if (s.room) room = s.room;
+      } catch (_) {
+        /* ignore */
+      }
+      const typed = document.getElementById("jitsi-app-id")?.value.trim();
+      el.textContent = typed || appId
+        ? t("meet.ready").replace("{room}", room)
+        : t("meet.hint");
+    }
   }
 }
 
@@ -1331,14 +1372,15 @@ function setMode(group, panel) {
 }
 
 function openMode(mode) {
-  /* Flavor may disable video (librus / doutrina); size may also strip it */
+  if (String(mode).startsWith("consult:") && phoneReaderOnly()) return;
   if (mode === "consult:video") {
     const f = typeof getFlavor === "function" ? getFlavor() : null;
-    if (!f?.features || f.features.jaas !== true) {
+    if (!FEAT.jaas || f?.features?.jaas !== true) {
       mode = "consult:web";
     }
   }
   if (mode && !toolAllowedBySize(mode)) {
+    if (String(mode).startsWith("consult:") && vpTier() === "phone") return;
     mode = String(mode).startsWith("consult:") ? "consult:web" : mode;
   }
   const [group, panel] = String(mode || "").split(":");
@@ -1595,28 +1637,38 @@ function pageLinkProvidersForFlavor() {
 
 function defaultLinkProvidersOn() {
   const tier = vpTier();
+  /* Phone: no in-book inject links at all */
+  if (tier === "phone") return;
   pageLinkProvidersForFlavor().forEach((k) => {
-    /* Dict: no LED — on everywhere except phone */
-    if (k === "dict" && tier === "phone") return;
     linkProvidersOn.add(k);
   });
 }
 
-/** Sync dict inject with viewport (no user toggle). */
+/** Phone clears all inject providers; leaving phone restores flavor defaults. */
+let linkInjectTier = "";
 function syncDictInjectForTier(tier = vpTier()) {
   const pageKeys = new Set(pageLinkProvidersForFlavor());
+  const wasPhone = linkInjectTier === "phone";
+  linkInjectTier = tier;
+  if (tier === "phone") {
+    PAGE_LINK_PROVIDERS.forEach((k) => linkProvidersOn.delete(k));
+    return;
+  }
+  if (wasPhone) {
+    pageLinkProvidersForFlavor().forEach((k) => linkProvidersOn.add(k));
+    return;
+  }
   if (!pageKeys.has("dict")) {
     linkProvidersOn.delete("dict");
     return;
   }
-  if (tier === "phone") linkProvidersOn.delete("dict");
-  else linkProvidersOn.add("dict");
+  linkProvidersOn.add("dict");
 }
 
 /**
  * Show/hide inject links by provider on-state.
- * All data-link-interest levels stay visible when a provider is on.
- * Dict is auto-managed (off on phone); Luz/Encyc use Páginas LEDs.
+ * Phone: every in-book inject link is off (no fat-finger consult).
+ * Larger: Luz/Encyc use Páginas LEDs; dict is auto-on.
  */
 function applyLinkFilters() {
   const book = bookEl();
@@ -1628,6 +1680,7 @@ function applyLinkFilters() {
     if (!pageKeys.has(k)) linkProvidersOn.delete(k);
   });
   syncDictInjectForTier();
+  const noLinks = vpTier() === "phone";
 
   book.querySelectorAll("a[data-link-provider], a[data-doutrina-link]").forEach(
     (a) => {
@@ -1639,8 +1692,8 @@ function applyLinkFilters() {
       ).toLowerCase();
       const key = LINK_PROVIDER_KEY[code] || "";
 
-      let show = true;
-      if (PAGE_LINK_PROVIDERS.includes(key) && !linkProvidersOn.has(key)) {
+      let show = !noLinks;
+      if (show && PAGE_LINK_PROVIDERS.includes(key) && !linkProvidersOn.has(key)) {
         show = false;
       }
 
@@ -1656,6 +1709,14 @@ function applyLinkFilters() {
 function syncLinkControls() {
   const pageKeys = pageLinkProvidersForFlavor();
   const tier = vpTier();
+  if (tier === "phone") {
+    document
+      .querySelectorAll("[data-link].link-toggle, [data-link-controls]")
+      .forEach((el) => {
+        if (el instanceof HTMLElement) el.hidden = true;
+      });
+    return;
+  }
   document.querySelectorAll("[data-link].link-toggle").forEach((btn) => {
     const key = btn.getAttribute("data-link");
     if (!key) return;
@@ -2726,6 +2787,7 @@ function loadCtx(url, { push = true, term = "", provider = "" } = {}) {
   frame.addEventListener("error", done);
   /* Safety: don't spin forever on blocked/cross-origin quirks */
   setTimeout(done, 12000);
+  if (phoneReaderOnly()) return;
   frame.src = url;
   setMode("consult", "web");
   /* Ensure back/reload icons paint when consult chrome first appears */
@@ -2739,7 +2801,7 @@ function loadCtx(url, { push = true, term = "", provider = "" } = {}) {
 
 /** Open a provider from toolbar (selection = query for search). */
 async function openProvider(key) {
-  if (isStudyReduced()) return;
+  if (phoneReaderOnly() || isStudyReduced()) return;
   const term = selectionTerm();
   const url = await resolveProviderUrl(key, term);
   if (url) loadCtx(url, { term, provider: key });
@@ -2752,6 +2814,7 @@ async function openProvider(key) {
  */
 async function openBookLink(href, anchor) {
   if (!href) return;
+  if (phoneReaderOnly()) return;
   /* Reduced mode: no simultaneous consult — ignore consultation triggers */
   if (isStudyReduced()) {
     const code = (anchor?.getAttribute("data-link-provider") || "").toLowerCase();
@@ -3207,19 +3270,20 @@ function wire() {
     closeAllDrawers();
   });
 
-  // PDF / Video: real modules when flagged, otherwise interactive mocks
-  if (import.meta.env.VITE_FEAT_PDF === "1") {
+  /* PDF / Video: real modules when flagged, otherwise interactive mocks */
+  if (FEAT.pdf) {
     import("./features/pdf.js")
-      .then((m) => m.wirePdfUi(openMode))
+      .then((m) => m.wirePdfUi(openMode, t))
       .catch((e) => console.warn(e));
   } else {
     wireMockPdf();
   }
-  if (import.meta.env.VITE_FEAT_JAAS === "1") {
+  const flavorJaas = getFlavor()?.features?.jaas === true;
+  if (FEAT.jaas && flavorJaas) {
     import("./features/jaas.js")
-      .then((m) => m.wireJaasUi(t))
+      .then((m) => m.wireJaasUi(t, () => currentLang))
       .catch((e) => console.warn(e));
-  } else {
+  } else if (flavorJaas) {
     wireMockVideo();
   }
 }
@@ -3336,7 +3400,7 @@ function applyViewportHandicaps() {
   const tier = vpTier();
   const flavor = typeof getFlavor === "function" ? getFlavor() : null;
   const allowed = flavor?.features?.providers;
-  const jaasOn = flavor?.features?.jaas === true;
+  const jaasOn = FEAT.jaas === true && flavor?.features?.jaas === true;
 
   document.documentElement.dataset.vpTier = tier;
   document.body.dataset.vpTier = tier;
@@ -3352,6 +3416,7 @@ function applyViewportHandicaps() {
       el.classList.remove("on");
     } else {
       el.removeAttribute("data-size-off");
+      if (el.matches("[data-mode], [data-tool]")) el.hidden = false;
     }
   };
 
@@ -3369,7 +3434,7 @@ function applyViewportHandicaps() {
     )
     .forEach((el) => setSizeOff(el, !videoOk));
   const helpJaas = document.getElementById("help-feat-jaas");
-  if (helpJaas && !jaasOn) helpJaas.hidden = true;
+  if (helpJaas) helpJaas.hidden = !jaasOn;
 
   document.querySelectorAll("[data-provider]").forEach((btn) => {
     const key = btn.getAttribute("data-provider");
@@ -3379,8 +3444,19 @@ function applyViewportHandicaps() {
     btn.hidden = !(flavorOk && sizeOk);
   });
 
-  /* If focus is on a now-handicapped tool, fall back to web */
-  if (String(focusMode || "").startsWith("consult:")) {
+  /* Phone: drop Consulte; other tiers fall back to web if a tool is size-off */
+  if (tier === "phone") {
+    const p3el = document.getElementById("p3");
+    if (p3el) p3el.classList.remove("overlay", "overlay-single", "is-closing");
+    if (String(focusMode || "").startsWith("consult:")) {
+      const parts = String(lastReadMode || "read:book").split(":");
+      try {
+        setMode(parts[0] || "read", parts[1] || "book");
+      } catch (_) {
+        /* ignore */
+      }
+    }
+  } else if (String(focusMode || "").startsWith("consult:")) {
     if (!toolAllowedBySize(focusMode, tier)) {
       try {
         setMode("consult", "web");
@@ -3421,9 +3497,31 @@ function applyViewportHandicaps() {
   }
 }
 
-/** @deprecated no-op gate open — hard block removed */
 function openOrientGate(el) {
-  if (el) closeOrientGate(el);
+  if (!el) return;
+  MODAL_IDS.forEach((id) => {
+    const o = document.getElementById(id);
+    if (o) {
+      o.classList.remove("is-open", "is-closing");
+      o.hidden = true;
+    }
+  });
+  const scrim = document.getElementById("scrim");
+  el.hidden = false;
+  el.classList.remove("is-closing");
+  if (scrim) {
+    scrim.hidden = false;
+    scrim.classList.remove("is-closing");
+  }
+  el.setAttribute("aria-hidden", "false");
+  document.documentElement.classList.add("is-portrait-blocked");
+  document.body.classList.add("is-portrait-blocked");
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      el.classList.add("is-open");
+      if (scrim) scrim.classList.add("is-open");
+    });
+  });
 }
 
 function closeOrientGate(el) {
@@ -3446,14 +3544,13 @@ function closeOrientGate(el) {
   }
 }
 
-/** Sync fold + handicaps on resize/orientation (landscape restores width tiers). */
+/** Phone landscape → block; otherwise fold + handicaps. */
 function updateOrientLock() {
-  /* Ensure legacy gate never sticks open */
   const el = document.getElementById("orient");
-  if (el && (!el.hidden || el.classList.contains("is-open"))) {
-    closeOrientGate(el);
-  }
   applyViewportHandicaps();
+  if (!el) return;
+  if (isPhoneLandscape()) openOrientGate(el);
+  else if (el.classList.contains("is-open") || !el.hidden) closeOrientGate(el);
 }
 
 let orientResizeTimer = null;

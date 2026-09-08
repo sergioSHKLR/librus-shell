@@ -3,6 +3,14 @@
  * Device viewports keep card sizes; overlay dims out-of-viewport columns
  * (header+body); folded pane icons park on column 2 (left / right by side).
  */
+import { hydrateIcons } from "./icons.js";
+
+const CHIP_ICONS = {
+  1: "list",
+  2: "type",
+  3: "globe",
+  4: "sticky-note",
+};
 
 const MAP = {
   desktop: [1, 2, 3, 4],
@@ -38,8 +46,11 @@ function makeChip(n) {
   chip.dataset.card = String(n);
   chip.title = t(TITLE_KEYS[n] || "");
   chip.setAttribute("aria-hidden", "true");
-  const tpl = document.getElementById("help-ico-" + n);
-  if (tpl) chip.appendChild(tpl.content.cloneNode(true));
+  const i = document.createElement("i");
+  i.setAttribute("data-icon", CHIP_ICONS[n] || "list");
+  i.setAttribute("aria-hidden", "true");
+  chip.appendChild(i);
+  hydrateIcons(chip);
   return chip;
 }
 
@@ -61,8 +72,9 @@ function placeChips(root, folded) {
 
 /**
  * Dim Help feature rows that are size-handicapped at the previewed device.
- * Stance A: full Consulte is keyboard/desk (laptop+); tablet/phone stay lean
- * on purpose (PDF off; video off on phone; portals → encyc+dict).
+ * Stance A: full Consulte is keyboard/desk (laptop+); tablet stays lean
+ * (PDF off; portals → encyc+dict). Phone is portrait-only: Leia + Ache overlay;
+ * no Consulte, no in-book links.
  */
 function syncHelpSizeHints(root, vp) {
   const help = root?.closest("#help") || document.getElementById("help");
@@ -72,7 +84,7 @@ function syncHelpSizeHints(root, vp) {
     const kind = li.getAttribute("data-help-size");
     let restricted = false;
     if (kind === "pdf") restricted = tier === "tablet" || tier === "phone";
-    else if (kind === "jaas") restricted = tier === "phone";
+    else if (kind === "jaas") restricted = tier === "tablet" || tier === "phone";
     else if (kind === "providers")
       restricted = tier === "tablet" || tier === "phone";
     li.classList.toggle("is-size-restricted", restricted);
@@ -120,6 +132,7 @@ export function syncHelpI18n() {
 export function initHelp() {
   const root = document.getElementById("help-cols");
   if (!root) return;
+  hydrateIcons(document.getElementById("help"));
   const buttons = [
     ...document.querySelectorAll("#help .help-dev[data-vp]"),
   ];
