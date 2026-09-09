@@ -13,6 +13,9 @@ const PATHS = {
   'house-heart':
     '<path d="M8.62 13.8A2.25 2.25 0 1 1 12 10.836a2.25 2.25 0 1 1 3.38 2.966l-2.626 2.856a1.05 1.05 0 0 1-1.507 0z"/><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  /* Lucide circle-help / help-circle */
+  help:
+    '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
   'life-buoy':
     '<circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/>',
   settings:
@@ -124,6 +127,8 @@ const PATHS = {
 const ALIAS = {
   home: 'house',
   phone: 'smartphone',
+  'circle-help': 'help',
+  'help-circle': 'help',
   'align-left': 'text-align-start',
   'align-justify': 'text-align-justify',
   'table-of-contents': 'toc',

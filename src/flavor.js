@@ -349,16 +349,19 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
 
   /* Hide Consulte provider buttons not listed for this flavor (when specified) */
   const allowed = feat.providers;
-  if (Array.isArray(allowed) && allowed.length) {
-    document.querySelectorAll("[data-provider]").forEach((btn) => {
-      const key = btn.getAttribute("data-provider");
-      btn.hidden = allowed.indexOf(key) === -1;
-    });
-  } else {
-    document.querySelectorAll("[data-provider]").forEach((btn) => {
-      btn.hidden = false;
-    });
-  }
+  const hideKey = (key) =>
+    Array.isArray(allowed) && allowed.length
+      ? allowed.indexOf(key) === -1
+      : false;
+  document.querySelectorAll("[data-provider]").forEach((btn) => {
+    const key = btn.getAttribute("data-provider");
+    btn.hidden = hideKey(key);
+  });
+  document.querySelectorAll("[data-provider-row]").forEach((el) => {
+    const key = el.getAttribute("data-provider-row");
+    const row = el.closest("li") || el;
+    row.hidden = hideKey(key);
+  });
 }
 
 /**

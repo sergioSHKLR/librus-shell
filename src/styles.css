@@ -1000,12 +1000,20 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tabs] > button:not(.on) 
 
 /* Toolbars follow selected tab (paper). Min guide overrides via --chrome-active-bg. */
 #reader #p1 [data-tool],
-#reader #p2 [data-tool],
-#reader #p3 [data-tool] {
+#reader #p2 [data-tool] {
   background: var(--chrome-active-bg);
   border-bottom: 1px solid var(--border);
   /* Hairline below the 50px row — children would cover an in-box border */
   box-shadow: 0 1px 0 var(--border);
+}
+
+/* Consulte: no in-box border (buttons cover it) and no overflow-clipped shadow.
+   Seam is on the body, 1px up, full pane width (not the scrolled button strip). */
+#reader #p3 [data-tool] {
+  position: relative;
+  background: var(--chrome-active-bg);
+  border-bottom: none;
+  box-shadow: none;
 }
 
 #reader #p4 [data-tool] {
@@ -1264,6 +1272,7 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tabs] > button:not(.on) 
 
 #p3 > [data-body] {
   padding: 0;
+  box-shadow: 0 -1px 0 var(--border);
 }
 
 #ctx-host,
@@ -1295,44 +1304,124 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tabs] > button:not(.on) 
   position: absolute;
 }
 
-/* Empty-state: discover select-to-search */
-.ctx-hint {
+/* Consulte empty: toolbar icon + official provider banner */
+.ctx-providers {
+  --prov-logo-h: 1.85rem;
   position: absolute;
   inset: 0;
   z-index: 2;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  padding: 1.25rem 1.5rem;
   box-sizing: border-box;
-  text-align: center;
+  padding: 0.7rem 0.65rem 0.85rem;
+  overflow: auto;
   background: var(--surface);
   color: var(--fg);
-  pointer-events: none;
 }
 
-.ctx-hint[hidden] {
+.ctx-providers[hidden] {
   display: none !important;
 }
 
-.ctx-hint-title {
+.ctx-providers-list {
+  list-style: none;
   margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
-.ctx-hint > p:not(.ctx-hint-title) {
-  margin: 0;
-  max-width: 28rem;
-  font-size: 0.9rem;
-  line-height: 1.45;
-  color: var(--muted);
+.ctx-providers-list li[hidden] {
+  display: none !important;
 }
 
-html[data-theme="dark"] .ctx-hint {
+.ctx-providers-row {
+  display: grid;
+  grid-template-columns: var(--ctrl-h) minmax(0, 1fr);
+  align-items: stretch;
+  width: 100%;
+  min-height: 3.4rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
   background: var(--surface);
+  color: inherit;
+  pointer-events: none;
+}
+
+.ctx-providers-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ctrl-h);
+  background: none;
+  color: inherit;
+  border-right: 0;
+}
+
+.ctx-providers-icon [data-icon] svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.ctx-providers-banner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 0.35rem 0.7rem;
+  box-sizing: border-box;
+  background: none;
+}
+
+.ctx-providers-banner img,
+.ctx-providers-mark {
+  display: block;
+  height: var(--prov-logo-h, 1.85rem);
+  max-height: var(--prov-logo-h, 1.85rem);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+/* WMF wordmarks are letter-tight strips — cap to name/Kardec x-height, not lockup box.
+   Must beat `.ctx-providers-banner img` (class+element). */
+.ctx-providers-banner img.ctx-providers-wordmark {
+  display: block;
+  height: 1.15rem;
+  max-height: 1.15rem;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.ctx-providers-mark {
+  flex: 0 0 auto;
+  width: var(--prov-logo-h, 1.85rem);
+}
+
+.ctx-providers-mark.is-round {
+  border-radius: 0.45rem;
+}
+
+.ctx-providers-name {
+  font-family: var(--sans);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html[data-theme="dark"] .ctx-providers-banner.is-encyc .ctx-providers-wordmark,
+html[data-theme="dark"] .ctx-providers-banner.is-dict .ctx-providers-wordmark {
+  filter: invert(1);
 }
 
 #ctx-loading.pane-spinner {
@@ -1954,15 +2043,14 @@ html.hypo-in-pane #p4 [data-body] > p {
 }
 
 /*
- * Narrow / folded chrome: hide text labels on tabs + toolbar buttons (icons only).
+ * Narrow / folded chrome: hide text labels on tabs + find/notes toolbars (icons only).
+ * Leia Páginas / Tipo keep labels and slide (same as Consulte providers).
  * body[data-compact="1"] from handleTabFolding (fold find or ≤1800).
- * body[data-compact-consult="1"] ≤2500 — Context provider row (labels need room below ~2400).
+ * body[data-compact-consult="1"] — Consulte icon-only only when that pane is folded.
  */
 body[data-compact="1"] #reader [data-tabs] > button > span,
 body[data-compact="1"] #reader #p1 [data-tool] button > span,
-body[data-compact="1"] #reader #p2 [data-tool] button > span,
 body[data-compact="1"] #reader #p4 [data-tool] button > span,
-body[data-compact="1"] #reader [data-tool] [data-typo-label],
 body[data-compact-consult="1"] #reader #p3 [data-tool] button > span {
   position: absolute;
   width: 1px;
@@ -1982,7 +2070,6 @@ body[data-compact="1"] #reader [data-tabs] > [data-i18n^="pane."] {
 
 body[data-compact="1"] #reader [data-tabs] > button,
 body[data-compact="1"] #reader #p1 [data-tool] button,
-body[data-compact="1"] #reader #p2 [data-tool] button,
 body[data-compact="1"] #reader #p4 [data-tool] button,
 body[data-compact-consult="1"] #reader #p3 [data-tool] button {
   padding: 0;
@@ -1990,17 +2077,57 @@ body[data-compact-consult="1"] #reader #p3 [data-tool] button {
   gap: 0;
 }
 
-/* Keep consult tool row scrollable instead of crushing icons */
+/* Sliding tool rows: labels stay; overflow scrolls instead of going icon-only */
+#reader #p2 [data-tool].on,
 #reader #p3 [data-tool].on {
   overflow-x: auto;
+  overflow-y: hidden;
   flex-wrap: nowrap;
+  scrollbar-width: none;
+}
+
+#reader #p2 [data-tool].on::-webkit-scrollbar,
+#reader #p3 [data-tool].on::-webkit-scrollbar {
+  height: 0;
+  display: none;
+}
+
+/* Overflow cue: 3rem paper fade, sticky to the visible edge; 1px short so the seam shows. */
+#reader #p2 [data-tool].on.is-overflow-start::before,
+#reader #p3 [data-tool].on.is-overflow-start::before {
+  content: "";
+  position: sticky;
+  left: 0;
+  flex: 0 0 3rem;
+  width: 3rem;
+  height: calc(var(--ctrl-h) - 1px);
+  margin-right: -3rem;
+  align-self: flex-start;
+  pointer-events: none;
+  z-index: 3;
+  background: linear-gradient(90deg, var(--chrome-active-bg), transparent);
+}
+
+#reader #p2 [data-tool].on.is-overflow-end::after,
+#reader #p3 [data-tool].on.is-overflow-end::after {
+  content: "";
+  position: sticky;
+  right: 0;
+  flex: 0 0 3rem;
+  width: 3rem;
+  height: calc(var(--ctrl-h) - 1px);
+  margin-left: -3rem;
+  align-self: flex-start;
+  pointer-events: none;
+  z-index: 3;
+  background: linear-gradient(90deg, transparent, var(--chrome-active-bg));
 }
 
 /* Desktop/laptop: labeled provider strip — one row, slide for overflow */
 #reader #p3 [data-tool="consult:web"].on {
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
 #reader #p3 [data-tool="consult:web"] button {
@@ -2257,6 +2384,362 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
   transform: translate(-50%, calc(-46% - 30px)) scale(0.96);
 }
 
+/* Full-bleed 1×4 help overlay — sits above the reader, under the bar */
+#help.help-map {
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: var(--chrome);
+  width: auto;
+  height: auto;
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
+  transform: none;
+  opacity: 0;
+  z-index: 510;
+  display: flex;
+  flex-direction: column;
+}
+
+#help.help-map.is-open,
+#help.help-map.is-closing {
+  transform: none;
+}
+
+.help-map-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  cursor: pointer;
+}
+
+.help-map-cols {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 300fr 580fr 580fr 460fr;
+}
+
+.help-map-col {
+  position: relative;
+  min-width: 0;
+  overflow: visible;
+  padding: 0;
+  box-sizing: border-box;
+  background: var(--chrome-find);
+  color: var(--accent-find);
+}
+
+.help-map-col[data-col="2"] {
+  background: var(--chrome-read);
+  color: var(--accent-read);
+}
+.help-map-col[data-col="3"] {
+  background: var(--chrome-consult);
+  color: var(--accent-consult);
+}
+.help-map-col[data-col="4"] {
+  background: var(--chrome-annotate);
+  color: var(--accent-annotate);
+}
+
+/* Same 1px pane seams as the live reader — pastels 2|3 especially merge without them. */
+.help-map-col[data-col="1"]::after,
+.help-map-col[data-col="2"]::after,
+.help-map-col[data-col="3"]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Same type + inset as live pane titles (1. Ache …) */
+.help-map-col h2 {
+  margin: 0;
+  height: var(--ctrl-h);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-left: 1.75rem;
+  padding-right: 3.25rem;
+  box-sizing: border-box;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.help-map-col[data-col="4"] h2 {
+  padding-left: 2rem;
+  padding-right: 4.5rem;
+}
+
+#help-map[data-step="2"] .help-map-col:not([data-col="1"]),
+#help-map[data-step="3"] .help-map-col:not([data-col="2"]),
+#help-map[data-step="4"] .help-map-col:not([data-col="3"]),
+#help-map[data-step="5"] .help-map-col:not([data-col="4"]) {
+  background: #c8c8c8;
+  color: #6a6a6a;
+}
+
+.help-map-card {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(13.5rem, calc(100% - 1.2rem));
+  box-sizing: border-box;
+  padding: 1.1rem 0.85rem;
+  background: #fff;
+  color: #111;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.help-map-card p {
+  margin: 0;
+}
+
+#help-map[data-step="2"] .help-map-col[data-col="1"] > .help-map-card,
+#help-map[data-step="3"] .help-map-col[data-col="2"] > .help-map-card {
+  display: block;
+}
+
+.help-map-callout {
+  display: none;
+  position: absolute;
+  top: 50%;
+  right: 6%;
+  transform: translateY(-50%);
+  align-items: center;
+  flex-direction: row;
+  z-index: 2;
+}
+
+#help-map[data-step="4"] .help-map-col[data-col="3"] > .help-map-callout,
+#help-map[data-step="5"] .help-map-col[data-col="4"] > .help-map-callout {
+  display: flex;
+}
+
+#help-map[data-step="4"] .help-map-col[data-col="3"] > .help-map-callout {
+  left: -35%;
+  right: 8%;
+}
+
+#help-map[data-step="5"] .help-map-col[data-col="4"] > .help-map-callout {
+  left: -120%;
+  right: 6%;
+}
+
+.help-map-callout .help-map-card {
+  display: block;
+  position: static;
+  left: auto;
+  top: auto;
+  transform: none;
+  flex: 0 0 auto;
+  width: min(13.5rem, 72%);
+}
+
+.help-map-arrow {
+  flex: 1 1 4.5rem;
+  min-width: 3.2rem;
+  height: 2.35rem;
+  background: #fff;
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 14px 100%, 0 50%);
+}
+
+.help-map-arrow-long {
+  min-width: 5rem;
+}
+
+#help.help-map > header.help-map-head {
+  position: static;
+  flex: 0 0 var(--ctrl-h);
+  height: var(--ctrl-h);
+  min-height: var(--ctrl-h);
+  max-height: var(--ctrl-h);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.5rem 0 1rem;
+  z-index: 6;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.help-map-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.help-map-head .help-persist {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0 0.35rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--fg);
+  cursor: pointer;
+  user-select: none;
+  border: 0;
+  background: none;
+}
+
+.help-map-head .help-persist span {
+  white-space: nowrap;
+}
+
+.help-map-head button {
+  border: none;
+  background: transparent;
+  font-size: 1.35rem;
+  line-height: 1;
+  width: var(--ctrl-h);
+  height: var(--ctrl-h);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--fg);
+  flex: 0 0 var(--ctrl-h);
+}
+
+#help.help-map > nav.help-map-pager {
+  flex: 0 0 var(--ctrl-h);
+  height: var(--ctrl-h);
+  min-height: var(--ctrl-h);
+  max-height: var(--ctrl-h);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0 0.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  cursor: default;
+  z-index: 6;
+}
+
+.help-map-pager [data-help-dir] {
+  border: none;
+  background: transparent;
+  width: var(--ctrl-h);
+  height: var(--ctrl-h);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--fg);
+  flex: 0 0 var(--ctrl-h);
+}
+
+.help-map-pager [data-help-dir]:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.help-map-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.help-map-dot {
+  width: 1.7rem;
+  height: var(--ctrl-h);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.help-map-dot::after {
+  content: "";
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: 1.5px solid var(--fg);
+  background: transparent;
+}
+
+.help-map-dot[aria-current="step"]::after {
+  background: var(--fg);
+}
+
+.help-map-pager button:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: -6px;
+}
+
+html:has(#help.help-map.is-open) #scrim {
+  bottom: var(--chrome);
+}
+
+html:has(#help.help-map.is-open) #bar {
+  z-index: 540;
+}
+
+@media screen and (max-width: 720px) {
+  .help-map-card {
+    font-size: 0.78rem;
+    padding: 0.7rem 0.45rem;
+  }
+  .help-map-arrow {
+    height: 1.6rem;
+    min-width: 1.6rem;
+  }
+  .help-map-head .help-persist span {
+    max-width: 7.5rem;
+    line-height: 1.2;
+  }
+}
+
+/* Portrait: Consulte is off-screen — no squeezed lookup card in that column. */
+@media screen and (max-width: 920px) and (orientation: portrait) {
+  #help-map[data-step="4"] .help-map-col[data-col="3"] > .help-map-callout,
+  .help-map-col[data-col="3"] .help-map-callout {
+    display: none;
+  }
+}
+
 .help-rotate {
   display: none;
   padding: 1.5rem 1.35rem 1.75rem;
@@ -2402,11 +2885,33 @@ body {
   font-weight: 600;
 }
 
+#settings > header {
+  flex: 0 0 var(--ctrl-h);
+  height: var(--ctrl-h);
+  min-height: var(--ctrl-h);
+  max-height: var(--ctrl-h);
+  box-sizing: border-box;
+  padding: 0 0.5rem 0 1rem;
+}
+
 #settings > header button,
 #help > header button {
   border: none;
   background: transparent;
   font-size: 1.35rem;
+}
+
+#settings > header button {
+  width: var(--ctrl-h);
+  height: var(--ctrl-h);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--ctrl-h);
+  line-height: 1;
+  cursor: pointer;
+  color: var(--fg);
 }
 
 #settings > div {

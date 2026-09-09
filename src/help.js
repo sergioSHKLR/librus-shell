@@ -125,17 +125,8 @@ function syncHelpSizeHints(root, vp) {
   });
 }
 
-/** Phone portrait: hide the 4-pane guide and ask to rotate. */
-export function syncHelpPortraitGate() {
-  const help = document.getElementById("help");
-  if (!help) return;
-  const w = window.innerWidth || 0;
-  const h = window.innerHeight || 0;
-  const phonePort = w > 0 && w <= 920 && w <= h;
-  help.classList.toggle("is-phone-portrait", phonePort);
-  const rot = document.getElementById("help-rotate");
-  if (rot) rot.hidden = !phonePort;
-}
+/** Phone portrait uses the same 1×4 map — no rotate gate. */
+export function syncHelpPortraitGate() {}
 
 function setVp(root, buttons, vp) {
   const cols = [...root.querySelectorAll(".help-col")];
@@ -185,21 +176,117 @@ export function syncHelpViewport(vp) {
 /** Refresh chip titles after language change. */
 export function syncHelpI18n() {
   const root = document.getElementById("help-cols");
-  if (!root?.dataset.vp) return;
-  const buttons = [
-    ...document.querySelectorAll("#help .help-dev[data-vp]"),
-  ];
-  setVp(root, buttons, root.dataset.vp);
+  if (root?.dataset.vp) {
+    const buttons = [
+      ...document.querySelectorAll("#help .help-dev[data-vp]"),
+    ];
+    setVp(root, buttons, root.dataset.vp);
+  }
+  syncHelpMapPager();
 }
 
 export function initHelp() {
   const root = document.getElementById("help-cols");
-  if (!root) return;
-  hydrateIcons(document.getElementById("help"));
-  const buttons = [
-    ...document.querySelectorAll("#help .help-dev[data-vp]"),
-  ];
-  buttons.forEach((b) => {
-    b.addEventListener("click", () => applyVp(root, buttons, b.dataset.vp));
+  if (root) {
+    hydrateIcons(document.getElementById("help"));
+    const buttons = [
+      ...document.querySelectorAll("#help .help-dev[data-vp]"),
+    ];
+    buttons.forEach((b) => {
+      b.addEventListener("click", () => applyVp(root, buttons, b.dataset.vp));
+    });
+  }
+  initHelpMap();
+}
+
+export function syncHelpPaneFeatures() {}
+
+export function finishHelpPaneIntro() {
+  document.getElementById("reader")?.classList.remove("is-help-spotlight");
+}
+
+/** Retired — Consulte empty body stays blank (provider banners later). */
+export function startHelpPaneIntro() {
+  finishHelpPaneIntro();
+}
+
+const HELP_MAP_STEPS = 5;
+let helpMapBound = false;
+
+export function resetHelpMap() {
+  setHelpMapStep(1);
+}
+
+function setHelpMapStep(n) {
+  const stage = document.getElementById("help-map");
+  if (!stage) return;
+  const step = Math.min(HELP_MAP_STEPS, Math.max(1, n));
+  stage.dataset.step = String(step);
+  syncHelpMapPager();
+}
+
+function syncHelpMapPager() {
+  const stage = document.getElementById("help-map");
+  const nav = document.getElementById("help-map-pager");
+  if (!stage || !nav) return;
+  const step = Number(stage.dataset.step) || 1;
+  nav.setAttribute("aria-label", t("help.map.pager"));
+  nav.querySelectorAll("[data-help-step]").forEach((btn) => {
+    const n = Number(btn.getAttribute("data-help-step"));
+    btn.setAttribute("aria-label", `${t("help.map.step")} ${n}`);
+    if (n === step) btn.setAttribute("aria-current", "step");
+    else btn.removeAttribute("aria-current");
+  });
+  const prev = nav.querySelector('[data-help-dir="-1"]');
+  const next = nav.querySelector('[data-help-dir="1"]');
+  if (prev instanceof HTMLButtonElement) prev.disabled = step <= 1;
+  if (next instanceof HTMLButtonElement) next.disabled = step >= HELP_MAP_STEPS;
+}
+
+function initHelpMap() {
+  const help = document.getElementById("help");
+  const stage = document.getElementById("help-map");
+  const nav = document.getElementById("help-map-pager");
+  if (!help || !stage || helpMapBound) return;
+  helpMapBound = true;
+  hydrateIcons(help);
+  syncHelpMapPager();
+  stage.addEventListener("click", (ev) => {
+    const t = ev.target;
+    if (!(t instanceof Element)) return;
+    if (t.closest(".help-map-head, .help-map-head-actions, [data-close], .help-persist, .help-map-pager")) return;
+    const cur = Number(stage.dataset.step) || 1;
+    if (cur < HELP_MAP_STEPS) setHelpMapStep(cur + 1);
+  });
+  nav?.addEventListener("click", (ev) => {
+    const t = ev.target;
+    if (!(t instanceof Element)) return;
+    const dirBtn = t.closest("[data-help-dir]");
+    if (dirBtn) {
+      ev.preventDefault();
+      const cur = Number(stage.dataset.step) || 1;
+      setHelpMapStep(cur + Number(dirBtn.getAttribute("data-help-dir")));
+      return;
+    }
+    const stepBtn = t.closest("[data-help-step]");
+    if (stepBtn) {
+      ev.preventDefault();
+      setHelpMapStep(Number(stepBtn.getAttribute("data-help-step")));
+    }
+  });
+  document.addEventListener("keydown", (ev) => {
+    if (help.hidden || !help.classList.contains("is-open")) return;
+    const typing =
+      ev.target instanceof Element &&
+      ev.target.closest("button, input, textarea, select, a");
+    if (ev.key === "ArrowRight" || (ev.key === " " && !typing)) {
+      ev.preventDefault();
+      const cur = Number(stage.dataset.step) || 1;
+      if (cur < HELP_MAP_STEPS) setHelpMapStep(cur + 1);
+    } else if (ev.key === "ArrowLeft") {
+      ev.preventDefault();
+      const cur = Number(stage.dataset.step) || 1;
+      if (cur > 1) setHelpMapStep(cur - 1);
+    }
   });
 }

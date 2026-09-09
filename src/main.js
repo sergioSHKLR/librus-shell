@@ -26,6 +26,10 @@ import {
   syncHelpI18n,
   syncHelpViewport,
   syncHelpPortraitGate,
+  startHelpPaneIntro,
+  finishHelpPaneIntro,
+  syncHelpPaneFeatures,
+  resetHelpMap,
 } from "./help.js";
 import {
   loadFlavor,
@@ -179,6 +183,8 @@ const I18N = {
     "ctx.hintTitle": "Como consultar",
     "ctx.hintBody":
       "Selecione um termo no painel Leia e clique num provedor acima (Luz Espírita, Enciclopédia, Dicionário, etc). Também pode usar um link existente — a consulta abre neste painel.",
+    "ctx.providersLead":
+      "Selecione um termo no texto e escolha um buscador.",
     "notes.hypo": "Anotações",
     "notes.hint":
       "Notas abrem na barra lateral do Hypothesis (ícone no canto).",
@@ -228,9 +234,33 @@ const I18N = {
     "help.dev.phone": "Celular",
     "boot.loading": "Carregando…",
     "help.dismiss": "Não mostrar novamente",
+    "help.map.ache.a": "Sumário",
+    "help.map.ache.b": "Busca",
+    "help.map.read.a": "Escolha página",
+    "help.map.read.b": "Ajustes de tipo",
+    "help.map.consult.a": "Selecione ali",
+    "help.map.consult.b": "Escolha buscador",
+    "help.map.consult.c": "Abre aqui",
+    "help.map.annotate.a": "Selecione ali",
+    "help.map.annotate.b": "Grifo e notas aqui",
+    "help.map.pager": "Passos",
+    "help.map.prev": "Anterior",
+    "help.map.next": "Próximo",
+    "help.map.step": "Passo",
     "help.rotate": "Gire o aparelho para a horizontal para ver a ajuda.",
     "help.note.pdf": "Comparação de PDF",
     "help.note.conf": "Videoconferência",
+    "help.pane.region": "Ajuda",
+    "help.pane.skip": "Pular introdução",
+    "help.pane.ache.toc": "Sumário",
+    "help.pane.ache.search": "Busca",
+    "help.pane.read.pages": "Controle de páginas",
+    "help.pane.read.typo": "Ajustes tipográficos",
+    "help.pane.consult.select": "Selecione para buscar",
+    "help.pane.consult.pdf": "Leitor de PDF",
+    "help.pane.consult.jaas": "Videoconferência",
+    "help.pane.annotate.hl": "Grifos",
+    "help.pane.annotate.notes": "Anotações",
     "ctx.needTerm": "Selecione um termo no texto para consultar.",
     "orient.title": "Gire o aparelho",
     "orient.body":
@@ -395,6 +425,7 @@ const I18N = {
     "ctx.hintTitle": "How to consult",
     "ctx.hintBody":
       "Select a term in the Read pane and click a provider above (Luz Espírita, Encyclopedia, Dictionary, etc). You can also use an existing link — the result opens in this pane.",
+    "ctx.providersLead": "Select a term in the text, then a lookup.",
     "notes.hypo": "Hypothesis",
     "notes.hint": "Notes open in the Hypothesis sidebar (corner control).",
     "notes.off": "Hypothesis disabled in this build.",
@@ -443,9 +474,33 @@ const I18N = {
     "help.dev.phone": "Mobile",
     "boot.loading": "Loading…",
     "help.dismiss": "Don't show again",
+    "help.map.ache.a": "Contents",
+    "help.map.ache.b": "Search",
+    "help.map.read.a": "Choose a page",
+    "help.map.read.b": "Type settings",
+    "help.map.consult.a": "Select there",
+    "help.map.consult.b": "Choose a lookup",
+    "help.map.consult.c": "Opens here",
+    "help.map.annotate.a": "Select there",
+    "help.map.annotate.b": "Highlight and notes here",
+    "help.map.pager": "Steps",
+    "help.map.prev": "Previous",
+    "help.map.next": "Next",
+    "help.map.step": "Step",
     "help.rotate": "Rotate the device to landscape to see Help.",
     "help.note.pdf": "PDF comparison",
     "help.note.conf": "Video conference",
+    "help.pane.region": "Help",
+    "help.pane.skip": "Skip intro",
+    "help.pane.ache.toc": "Table of contents",
+    "help.pane.ache.search": "Search",
+    "help.pane.read.pages": "Page controls",
+    "help.pane.read.typo": "Typography controls",
+    "help.pane.consult.select": "Select to search",
+    "help.pane.consult.pdf": "PDF reader",
+    "help.pane.consult.jaas": "Video conference",
+    "help.pane.annotate.hl": "Highlights",
+    "help.pane.annotate.notes": "Notes",
     "ctx.needTerm": "Select a term in the text to look up.",
     "orient.title": "Rotate the device",
     "orient.body":
@@ -651,6 +706,7 @@ function applyI18n() {
   document.documentElement.lang = currentLang === "en" ? "en" : "pt-BR";
   document.body.dataset.lang = currentLang;
   if (typeof syncHelpI18n === "function") syncHelpI18n();
+  if (typeof syncHelpPaneFeatures === "function") syncHelpPaneFeatures();
   if (typeof syncTypoButtons === "function") syncTypoButtons();
   if (typeof syncLinkControls === "function") syncLinkControls();
   if (typeof syncChromeBar === "function") syncChromeBar();
@@ -1169,6 +1225,9 @@ async function enterReader(slug, page = 0) {
     /* ignore */
   }
   syncMainStripActive();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => startHelpPaneIntro());
+  });
 }
 
 function bootHypothesis() {
@@ -1450,6 +1509,7 @@ function setMode(group, panel) {
   }
 
   applyOverlaySingleTool();
+  requestAnimationFrame(syncSlidingToolOverflow);
 }
 
 function openMode(mode) {
@@ -1499,6 +1559,7 @@ function handleTabFolding(force = false) {
 
   if (!force && foldKey === lastFoldKey) {
     applyOverlaySingleTool();
+    requestAnimationFrame(syncSlidingToolOverflow);
     return;
   }
   lastFoldKey = foldKey;
@@ -1576,6 +1637,31 @@ function handleTabFolding(force = false) {
   applyOverlaySingleTool();
   hydrateIcons(strip);
   syncTooltips(strip);
+  requestAnimationFrame(syncSlidingToolOverflow);
+}
+
+function syncToolOverflow(el) {
+  if (!(el instanceof HTMLElement)) return;
+  const max = el.scrollWidth - el.clientWidth;
+  const sl = el.scrollLeft;
+  const overflow = max > 2;
+  el.classList.toggle("is-overflow-start", overflow && sl > 1);
+  el.classList.toggle("is-overflow-end", overflow && max - sl > 1);
+}
+
+function syncSlidingToolOverflow() {
+  document
+    .querySelectorAll("#p2 [data-tool].on, #p3 [data-tool].on")
+    .forEach((el) => syncToolOverflow(el));
+}
+
+function bindSlidingToolOverflow() {
+  document.querySelectorAll("#p2 [data-tool], #p3 [data-tool]").forEach((el) => {
+    if (el.dataset.overflowBound) return;
+    el.dataset.overflowBound = "1";
+    el.addEventListener("scroll", () => syncToolOverflow(el), { passive: true });
+  });
+  requestAnimationFrame(syncSlidingToolOverflow);
 }
 
 let foldResizeTimer = null;
@@ -2736,6 +2822,7 @@ function setCtxHintVisible(on) {
     hint.hidden = !on;
     hint.setAttribute("aria-hidden", on ? "false" : "true");
   }
+  if (!on) finishHelpPaneIntro();
 }
 
 function loadCtx(url, { push = true, term = "", provider = "" } = {}) {
@@ -3011,6 +3098,7 @@ function wire() {
     applyFeatureDom();
     hydrateIcons();
     syncTooltips();
+    bindSlidingToolOverflow();
   } catch (err) {
     console.warn("[POC] chrome init", err);
   }
@@ -3225,6 +3313,7 @@ function wire() {
         if (key) openProvider(key);
       });
     });
+
     document.addEventListener("selectionchange", syncProviderArmed);
     syncProviderArmed();
     document.querySelectorAll('[data-ctx="back"]').forEach((btn) => {
@@ -3329,16 +3418,21 @@ function openDrawer(id) {
   hydrateIcons(el);
   if (id === "help") {
     try {
-      syncHelpViewport(vpTier());
-      syncHelpPortraitGate();
+      finishHelpPaneIntro();
+      resetHelpMap();
     } catch (_) {
       /* ignore */
+    }
+    /* Overlay is the dim; keep the bottom bar uncovered. */
+    if (scrim) {
+      scrim.classList.remove("is-open", "is-closing");
+      scrim.hidden = true;
     }
   }
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       el.classList.add("is-open");
-      if (scrim) scrim.classList.add("is-open");
+      if (id !== "help" && scrim) scrim.classList.add("is-open");
     });
   });
 }
@@ -3366,15 +3460,7 @@ function noteHelpClosing(el) {
 }
 
 function maybeOfferHelp() {
-  if (bootSplashUp()) return;
-  if (helpDismissed()) return;
-  if (document.body.dataset.view !== "library") return;
-  const orient = document.getElementById("orient");
-  if (orient && orient.classList.contains("is-open")) return;
-  if (isOnboardOpen()) return;
-  const help = document.getElementById("help");
-  if (help?.classList.contains("is-open") && !help.hidden) return;
-  openDrawer("help");
+  /* First-run help is the Consulte 2×2, started from enterReader. */
 }
 
 function closeDrawerAnimated(el, onDone) {
@@ -3535,6 +3621,7 @@ function applyViewportHandicaps() {
   try {
     handleTabFolding(true);
     syncMainStripActive();
+    syncHelpPaneFeatures();
   } catch (_) {
     /* ignore */
   }
