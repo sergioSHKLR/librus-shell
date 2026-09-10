@@ -10,20 +10,22 @@
    1. 🎯 [Audience](#-audience)
    2. 🗺️ [Pipeline position](#-pipeline-position)
    3. 🌐 [Live flavors](#-live-flavors)
-   4. 🧱 [What this repo owns](#-what-this-repo-owns)
-   5. 🚀 [Local development](#-local-development)
-   6. 🚢 [Deploy to hosts](#-deploy-to-hosts)
-   7. 🎛️ [Flavors & feature flags](#️-flavors--feature-flags)
-   8. 🤝 [How to help](#-how-to-help)
+   4. 🧊 [Interface freeze](#-interface-freeze)
+   5. 🧱 [What this repo owns](#-what-this-repo-owns)
+   6. 🚀 [Local development](#-local-development)
+   7. 🚢 [Deploy to hosts](#-deploy-to-hosts)
+   8. 🎛️ [Flavors & feature flags](#️-flavors--feature-flags)
+   9. 🤝 [How to help](#-how-to-help)
 2. 🇧🇷 [Português](#-português--etapa-3-de-4)
    1. 🎯 [Público](#-público)
    2. 🗺️ [Posição no pipeline](#-posição-no-pipeline)
    3. 🌐 [Sabores ao vivo](#-sabores-ao-vivo)
-   4. 🧱 [O que este repo possui](#-o-que-este-repo-possui)
-   5. 🚀 [Desenvolvimento local](#-desenvolvimento-local)
-   6. 🚢 [Publicar nos hosts](#-publicar-nos-hosts)
-   7. 🎛️ [Sabores e flags](#️-sabores-e-flags)
-   8. 🤝 [Como ajudar](#-como-ajudar)
+   4. 🧊 [Congelamento da interface](#-congelamento-da-interface)
+   5. 🧱 [O que este repo possui](#-o-que-este-repo-possui)
+   6. 🚀 [Desenvolvimento local](#-desenvolvimento-local)
+   7. 🚢 [Publicar nos hosts](#-publicar-nos-hosts)
+   8. 🎛️ [Sabores e flags](#️-sabores-e-flags)
+   9. 🤝 [Como ajudar](#-como-ajudar)
 
 ---
 
@@ -57,12 +59,20 @@ doutrina-content  →  librus-linker  →  librus-shell  →  host Pages
 2. [doutrina.org](https://doutrina.org) — Kardec codification  
 3. [centro.doutrina.org](https://centro.doutrina.org) — center + codification  
 
-Status: **BETA v0.9.9** — active-study UX.
+Status: **BETA v0.9.9** — interface freeze **2026-09-10**.
 
 1. Narrow screens are **blocked** until landscape / a wider viewport (no reduced-mode bypass).  
 2. Help is a 1×4 pane map from the bar; first visit is **How to** only (Device tab hidden).  
 3. Chrome: theme · help · settings on the bar; **language** and version live in Settings.  
 4. PDF comparison and JaaS (centro flavor) are **on**; PWA fullscreen + landscape for tablet study; profiles remain off. `build:lean` still drops PDF/JaaS.  
+
+## 🧊 Interface freeze
+
+Chrome is frozen at **v0.9.9** (2026-09-10). Spec: [docs/INTERFACE.md](docs/INTERFACE.md).
+
+1. Do **not** add panes, bar items, Help beats, or flavor marks unless the freeze is lifted.  
+2. Next work is **book presentation** (`#book` CSS, `public/books/`) and editorial in `doutrina-content` / `librus-linker`.  
+3. Library CTA is `Ache · Leia · Consulte · Anote` / `Find · Read · Lookup · Note` on all flavors.  
 
 ## 🧱 What this repo owns
 
@@ -110,7 +120,7 @@ npm run dev:centro     # http://localhost:5176
 ## 🤝 How to help
 
 1. Run a flavor locally; file issues with viewport + flavor id.  
-2. Propose UX fixes that keep **active study** (not passive media).  
+2. Propose UX fixes that keep **active study** (not passive media). Shell chrome is frozen — prefer book/CSS issues.  
 3. Keep PRs focused; do not hand-edit host `dist/` — change the shell and deploy.  
 
 ## 🏅 Credits
@@ -144,12 +154,20 @@ SPA Vite em vanilla: biblioteca + leitor em quatro painéis (Ache · Leia · Con
 2. [doutrina.org](https://doutrina.org)  
 3. [centro.doutrina.org](https://centro.doutrina.org)  
 
-Estado: **BETA v0.9.9** — UX de estudo ativo.
+Estado: **BETA v0.9.9** — interface congelada em **2026-09-10**.
 
 1. Telas estreitas ficam **bloqueadas** até paisagem / viewport mais larga (sem atalho de modo reduzido).  
 2. Ajuda é um mapa 1×4 das colunas, pela barra; primeira visita é só **Como usar** (aba Dispositivo oculta).  
 3. Chrome: tema · ajuda · ajustes na barra; **idioma** e versão ficam em Ajustes.  
 4. Comparação de PDF e JaaS (sabor centro) estão **ligados**; PWA em tela cheia + paisagem no tablet; profiles continuam desligados. `build:lean` ainda omite PDF/JaaS.  
+
+## 🧊 Congelamento da interface
+
+Chrome congelado em **v0.9.9** (2026-09-10). Especificação: [docs/INTERFACE.md](docs/INTERFACE.md).
+
+1. **Não** acrescentar painéis, itens de barra, beats de Ajuda ou marcas de sabor sem descongelar.  
+2. Próximo trabalho: **apresentação dos livros** (CSS de `#book`, `public/books/`) e editorial em `doutrina-content` / `librus-linker`.  
+3. CTA da biblioteca: `Ache · Leia · Consulte · Anote` / `Find · Read · Lookup · Note` nos três sabores.  
 
 ## 🧱 O que este repo possui
 
@@ -190,7 +208,7 @@ npm run dev:centro     # http://localhost:5176
 ## 🤝 Como ajudar
 
 1. Rode um sabor localmente; abra issues com viewport + id do sabor.  
-2. Proponha UX que preserve **estudo ativo** (não mídia passiva).  
+2. Proponha UX que preserve **estudo ativo** (não mídia passiva). Chrome congelado — prefira issues de livro/CSS.  
 3. PRs focados; não edite `dist/` nos hosts à mão — altere o shell e faça deploy.  
 
 ## 🏅 Créditos

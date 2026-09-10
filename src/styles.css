@@ -2575,7 +2575,7 @@ body[data-view="library"] #bar [data-go="library"],
 }
 
 #help-map[data-step="5"] .help-map-col[data-col="4"] > .help-map-callout {
-  left: -120%;
+  left: -175%;
   right: 6%;
 }
 
@@ -2780,23 +2780,33 @@ html:has(#help.help-map.is-open) #bar {
     letter-spacing: 0;
   }
 
-  .help-map-callout,
-  #help-map[data-step="4"] .help-map-col[data-col="3"] > .help-map-callout,
+  /* Arrow still points at Leia (col 2): span left, card stays in the active column. */
+  .help-map-callout {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  #help-map[data-step="4"] .help-map-col[data-col="3"] > .help-map-callout {
+    left: -100%;
+    right: 6%;
+  }
+
   #help-map[data-step="5"] .help-map-col[data-col="4"] > .help-map-callout {
-    left: 0.35rem;
-    right: 0.35rem;
-    top: 50%;
-    transform: translateY(-50%);
-    flex-direction: column;
-    align-items: stretch;
+    left: -200%;
+    right: 6%;
   }
 
   .help-map-arrow {
-    display: none;
+    display: block;
+    flex: 1 1 auto;
+    min-width: 1.6rem;
+    height: 1.6rem;
   }
 
   .help-map-callout .help-map-card {
-    width: 100%;
+    flex: 0 1 auto;
+    width: auto;
+    max-width: calc(100% - 1.6rem);
   }
 }
 

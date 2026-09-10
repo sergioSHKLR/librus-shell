@@ -61,7 +61,7 @@ const VP = {
 const STUDY_REDUCED_MAX_W = VP.FOLD_CONSULT;
 /** Providers kept on tablet/phone (flavor allowlist still applies). */
 const NARROW_PROVIDERS = ["encyc", "dict"];
-const APP_VERSION = "0.9.9";
+const APP_VERSION = "0.9.9"; // interface freeze 2026-09-10 — see docs/INTERFACE.md
 
 /**
  * @param {number} [w]
