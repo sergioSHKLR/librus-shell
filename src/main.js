@@ -114,9 +114,11 @@ function canToggleFullscreen() {
 }
 
 function enterDocFullscreen() {
+  if (fsUnsticky) return;
   const el = document.documentElement;
   const fn = el.requestFullscreen || el.webkitRequestFullscreen;
   if (!fn) return;
+  fsEnteredAt = Date.now();
   const run = (opts) => {
     try {
       const out =
@@ -147,18 +149,23 @@ function exitDocFullscreen() {
 }
 
 /**
- * Phones often install the PWA as standalone (status bar stays). Tablets may
- * get display:fullscreen. Do not treat standalone as already immersive.
+ * Phones often install as standalone. requestFullscreen then flashes and
+ * Chrome drops back (orientation: landscape + standalone). Detect that
+ * kick-out and stop retrying so we don't flicker the grey status bar.
  */
 let fsAutoTries = 0;
+let fsEnteredAt = 0;
+let fsUnsticky = false;
+
 function requestAppFullscreen() {
-  if (isTrueFullscreen() || !isHandheldAppViewport()) return;
-  if (fsAutoTries >= 4) return;
+  if (fsUnsticky || isTrueFullscreen() || !isHandheldAppViewport()) return;
+  if (fsAutoTries >= 2) return;
   fsAutoTries += 1;
   enterDocFullscreen();
 }
 
 function toggleAppFullscreen() {
+  if (fsUnsticky && !isDocFullscreen()) return;
   if (isDocFullscreen()) exitDocFullscreen();
   else enterDocFullscreen();
 }
@@ -166,7 +173,7 @@ function toggleAppFullscreen() {
 function syncFsButton() {
   const btn = document.getElementById("book-fs");
   if (!btn) return;
-  const api = canToggleFullscreen();
+  const api = canToggleFullscreen() && !fsUnsticky;
   btn.hidden = !api;
   const on = isTrueFullscreen();
   btn.classList.toggle("is-on", on);
@@ -183,18 +190,30 @@ function syncFsButton() {
 }
 
 function bindAppFullscreen() {
-  const kick = () => requestAppFullscreen();
-  /* pointerup is a user activation on Android Chrome; once:true skipped
-   * standalone phones before they could retry. */
+  const kick = (e) => {
+    const t = e.target;
+    if (t && typeof t.closest === "function" && t.closest("#book-fs")) return;
+    requestAppFullscreen();
+  };
   document.addEventListener("pointerup", kick, { capture: true });
-  const stop = () => {
-    if (isTrueFullscreen()) {
+  const onFs = () => {
+    if (isDocFullscreen()) {
+      fsEnteredAt = Date.now();
+      document.removeEventListener("pointerup", kick, { capture: true });
+    } else if (fsEnteredAt && Date.now() - fsEnteredAt < 1500) {
+      /* Entered then dropped — Android standalone PWA. Don't loop the flash. */
+      fsUnsticky = true;
       document.removeEventListener("pointerup", kick, { capture: true });
     }
     syncFsButton();
+    try {
+      syncBrowserChrome(currentTheme, themePref);
+    } catch (_) {
+      /* boot order */
+    }
   };
-  document.addEventListener("fullscreenchange", stop);
-  document.addEventListener("webkitfullscreenchange", stop);
+  document.addEventListener("fullscreenchange", onFs);
+  document.addEventListener("webkitfullscreenchange", onFs);
   syncFsButton();
 }
 
@@ -1022,6 +1041,11 @@ function syncChromeBar() {
     setBtn.setAttribute("aria-label", t("bar.settings"));
   }
   syncFsButton();
+  try {
+    syncBrowserChrome(currentTheme, themePref);
+  } catch (_) {
+    /* ignore */
+  }
 }
 
 function cycleLang() {
@@ -1045,10 +1069,28 @@ const CHROME_GREY_DARK = "#1a1a1a";
  * @param {'light'|'dark'} resolved
  * @param {'system'|'light'|'dark'} [pref]
  */
+function statusBarPaint(resolved) {
+  if (document.body?.dataset.view === "reader") {
+    const tabs = document.querySelector("#p2 [data-tabs]");
+    if (tabs) {
+      const c = getComputedStyle(tabs).backgroundColor;
+      if (c && c !== "transparent" && !c.includes("rgba(0, 0, 0, 0)")) {
+        const m = c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (m) {
+          const h = (n) => Number(n).toString(16).padStart(2, "0");
+          return "#" + h(m[1]) + h(m[2]) + h(m[3]);
+        }
+        return c;
+      }
+    }
+  }
+  return resolved === "dark" ? CHROME_GREY_DARK : CHROME_GREY_LIGHT;
+}
+
 function syncBrowserChrome(resolved, pref = themePref) {
   const light = CHROME_GREY_LIGHT;
   const dark = CHROME_GREY_DARK;
-  const paint = resolved === "dark" ? dark : light;
+  const paint = statusBarPaint(resolved);
   const meta = document.getElementById("meta-theme-color");
   if (meta) meta.content = paint;
   /* media-tagged metas: when user locks light/dark, both match lock */

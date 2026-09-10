@@ -22,7 +22,7 @@ Chrome, Help, flavors, and Consulte empty-state are **frozen** (v0.9.9). **v0.9.
 8. **Consulte empty state** — provider banners. Wikipedia/Wikcionário wordmarks `#4D4D4D` + `invert(1)` in dark. Luz and Bible are SVG lockups (`public/providers/luz.svg`, `bible.svg`). Kardecpedia / OSM unchanged. Web tab label is **Consulte** / **Consult** (not Context). PDF tab follows Consulte (tablet+; off on phone).  
 9. **Viewport** — phone landscape blocked (rotate to portrait). Portrait phone: Leia + Ache overlay; Consulte off. Names: Consult not Context.  
    Installed / handheld: edge-to-edge (`display: fullscreen`, `viewport-fit=cover`, `black-translucent`). Floor bar and workspace use `safe-area-inset-*`. Hide-on-scroll floor bar: phone **and** tablet (≤1400).  
-   Android phones often install as **standalone** (status bar stays); we still call `requestFullscreen({ navigationUI: "hide" })` — do not treat standalone as already immersive. Tablets may get true `display: fullscreen`.  
+   Tablets may get true `display: fullscreen`. Android phones often install as **standalone** and kick out of the Fullscreen API after a flash — we detect that and stop retrying. Manifest `orientation` is `any` (not landscape) so portrait phones aren’t yanked. Status `theme-color` follows the Leia tab band in the reader so a leftover bar isn’t a grey strip.  
 10. **Páginas toolbar** — hard/folio pages: `‹ n / X ›`. Unpaged: live `n%` of `#book` scroll. Links on/off (inset bottom accent; hidden on phone). Fullscreen toggle **right-aligned** on this row (not Tipo); inset for the collapsed Hypothesis rail at ≤1400. Tab accents stay on **top**.  
 11. **Tipo defaults** — tablet/phone: wide column + justify. Desktop/laptop: medium + start. User cycles win for the session.
 
