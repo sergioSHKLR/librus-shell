@@ -61,7 +61,7 @@ const VP = {
 const STUDY_REDUCED_MAX_W = VP.FOLD_CONSULT;
 /** Providers kept on tablet/phone (flavor allowlist still applies). */
 const NARROW_PROVIDERS = ["encyc", "dict"];
-const APP_VERSION = "0.9.11"; // 2026-09-10 — no auto Fullscreen API on Android PWA
+const APP_VERSION = "0.9.12"; // 2026-09-10 — manual FS button, no auto-enter
 
 /** Installed PWA / iOS home-screen. Standalone still shows the Android status bar. */
 function isStandaloneApp() {
@@ -165,13 +165,7 @@ let fsAutoTries = 0;
 let fsEnteredAt = 0;
 let fsUnsticky = false;
 
-function lockFsIfInstalledAndroid() {
-  if (!isAndroidUa()) return;
-  if (isStandaloneApp() || isDisplayFullscreen()) fsUnsticky = true;
-}
-
 function toggleAppFullscreen() {
-  lockFsIfInstalledAndroid();
   if (fsUnsticky && !isDocFullscreen()) return;
   if (isDocFullscreen()) exitDocFullscreen();
   else enterDocFullscreen();
@@ -180,7 +174,7 @@ function toggleAppFullscreen() {
 function syncFsButton() {
   const btn = document.getElementById("book-fs");
   if (!btn) return;
-  const api = canToggleFullscreen() && !fsUnsticky;
+  const api = canToggleFullscreen();
   btn.hidden = !api;
   const on = isTrueFullscreen();
   btn.classList.toggle("is-on", on);
@@ -197,7 +191,6 @@ function syncFsButton() {
 }
 
 function bindAppFullscreen() {
-  lockFsIfInstalledAndroid();
   const onFs = () => {
     if (isDocFullscreen()) {
       fsEnteredAt = Date.now();
