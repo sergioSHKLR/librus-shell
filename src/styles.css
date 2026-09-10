@@ -408,6 +408,37 @@ body[data-view="library"] #settings [data-reader-only] {
   pointer-events: none;
 }
 
+#reader [data-tool] .scroll-pct {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+  min-width: 3.25rem;
+  padding: 0 0.75rem;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+#reader [data-tool] .scroll-pct[hidden] {
+  display: none !important;
+}
+
+#reader [data-tool="read:book"] #book-fs {
+  margin-left: auto;
+  min-width: var(--ctrl-h);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* Folded notes: collapsed Hypo rail (~20px) — workspace already insets 20px.
+ * Keep the control inside the Leia pane so it doesn’t sit under the bucket. */
+@media screen and (max-width: 1400px) {
+  #reader [data-tool="read:book"] #book-fs {
+    margin-right: 2px;
+  }
+}
+
 /*
  * Library: one centered stack (brand → heading → covers).
  * Flex wrap for covers (not auto-fill grid) so incomplete rows stay centered
@@ -4389,8 +4420,8 @@ html[data-theme="dark"] #viewport-frame.is-blocked #viewport-label-device {
   align-self: center;
 }
 
-#reader [data-tool="read:book"] .page-nav[hidden] + .tool-sep {
-  display: none;
+#reader [data-tool="read:book"] .tool-sep[hidden] {
+  display: none !important;
 }
 
 /*

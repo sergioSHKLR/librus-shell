@@ -61,7 +61,7 @@ const VP = {
 const STUDY_REDUCED_MAX_W = VP.FOLD_CONSULT;
 /** Providers kept on tablet/phone (flavor allowlist still applies). */
 const NARROW_PROVIDERS = ["encyc", "dict"];
-const APP_VERSION = "0.9.9"; // interface freeze 2026-09-10 — see docs/INTERFACE.md
+const APP_VERSION = "0.9.10"; // freeze 2026-09-10 + handheld polish — see docs/INTERFACE.md
 
 function isStandaloneApp() {
   try {
@@ -85,12 +85,22 @@ function isHandheldAppViewport() {
   return minSide <= VP.FOLD_CONSULT;
 }
 
-/** Cover device status / nav bars. Needs a user gesture when not already a PWA. */
-function requestAppFullscreen() {
-  if (isStandaloneApp() || !isHandheldAppViewport()) return;
-  const doc = document;
-  if (doc.fullscreenElement || doc.webkitFullscreenElement) return;
-  const el = doc.documentElement;
+function isDocFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
+function canToggleFullscreen() {
+  const el = document.documentElement;
+  return !!(
+    el.requestFullscreen ||
+    el.webkitRequestFullscreen ||
+    document.exitFullscreen ||
+    document.webkitExitFullscreen
+  );
+}
+
+function enterDocFullscreen() {
+  const el = document.documentElement;
   const fn = el.requestFullscreen || el.webkitRequestFullscreen;
   if (!fn) return;
   try {
@@ -101,9 +111,58 @@ function requestAppFullscreen() {
   }
 }
 
+function exitDocFullscreen() {
+  const doc = document;
+  const fn = doc.exitFullscreen || doc.webkitExitFullscreen;
+  if (!fn) return;
+  try {
+    const out = fn.call(doc);
+    if (out && typeof out.catch === "function") out.catch(() => {});
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+/** Cover device status / nav bars. Needs a user gesture when not already a PWA. */
+function requestAppFullscreen() {
+  if (isStandaloneApp() || !isHandheldAppViewport()) return;
+  if (isDocFullscreen()) return;
+  enterDocFullscreen();
+}
+
+function toggleAppFullscreen() {
+  if (isDocFullscreen()) exitDocFullscreen();
+  else enterDocFullscreen();
+}
+
+function syncFsButton() {
+  const btn = document.getElementById("book-fs");
+  if (!btn) return;
+  const api = canToggleFullscreen();
+  btn.hidden = !api;
+  const on = isDocFullscreen();
+  btn.classList.toggle("is-on", on);
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  const tip = t(on ? "tip.fs.exit" : "tip.fs.enter");
+  btn.title = tip;
+  btn.setAttribute("aria-label", tip);
+  const host = btn.querySelector("[data-icon]");
+  if (host) {
+    host.setAttribute("data-icon", on ? "minimize" : "maximize");
+    host.innerHTML = "";
+    hydrateIcons(btn);
+  }
+}
+
 function bindAppFullscreen() {
-  const kick = () => requestAppFullscreen();
-  document.addEventListener("pointerdown", kick, { capture: true, once: true });
+  document.addEventListener(
+    "pointerdown",
+    () => requestAppFullscreen(),
+    { capture: true, once: true },
+  );
+  document.addEventListener("fullscreenchange", syncFsButton);
+  document.addEventListener("webkitfullscreenchange", syncFsButton);
+  syncFsButton();
 }
 
 /**
@@ -212,6 +271,9 @@ const I18N = {
     "tip.typo.font": "Fonte",
     "tip.page.prev": "Página anterior",
     "tip.page.next": "Próxima página",
+    "tip.scroll.pct": "Posição na leitura",
+    "tip.fs.enter": "Tela cheia",
+    "tip.fs.exit": "Tela normal",
     "tip.ctx.back": "Voltar na consulta",
     "tip.ctx.reload": "Recarregar página de consulta",
     "tip.close": "Fechar",
@@ -454,6 +516,9 @@ const I18N = {
     "tip.typo.font": "Font family",
     "tip.page.prev": "Previous page",
     "tip.page.next": "Next page",
+    "tip.scroll.pct": "Reading position",
+    "tip.fs.enter": "Full screen",
+    "tip.fs.exit": "Exit full screen",
     "tip.ctx.back": "Go back in consult",
     "tip.ctx.reload": "Reload consult page",
     "tip.close": "Close",
@@ -923,6 +988,7 @@ function syncChromeBar() {
     setBtn.title = t("bar.settings");
     setBtn.setAttribute("aria-label", t("bar.settings"));
   }
+  syncFsButton();
 }
 
 function cycleLang() {
@@ -1852,6 +1918,7 @@ function applyTypography() {
     face === "serif" ? "var(--book-serif)" : "var(--book-sans)",
   );
   syncTypoButtons();
+  syncScrollPct();
 }
 
 /**
@@ -2347,6 +2414,9 @@ function renderPage() {
     nav.hidden = !hardPages;
     nav.classList.toggle("is-disabled", !hardPages);
   });
+  const pctWrap = document.querySelector("[data-scroll-pct]");
+  if (pctWrap instanceof HTMLElement) pctWrap.hidden = hardPages;
+  syncScrollPct();
   document.querySelectorAll("[data-page]").forEach((b) => {
     b.disabled = !hardPages;
     b.setAttribute("aria-disabled", hardPages ? "false" : "true");
@@ -3439,6 +3509,9 @@ function wire() {
   document.getElementById("book-links")?.addEventListener("click", () => {
     toggleBookLinks();
   });
+  document.getElementById("book-fs")?.addEventListener("click", () => {
+    toggleAppFullscreen();
+  });
   try {
     localStorage.removeItem("librus-link-density");
     const stored = localStorage.getItem(BOOK_LINKS_KEY);
@@ -3895,6 +3968,36 @@ function isBarScrollSource(el) {
   return false;
 }
 
+function bookScrollPct() {
+  const el = bookEl();
+  if (!el) return 0;
+  const max = el.scrollHeight - el.clientHeight;
+  if (!(max > 0)) return 0;
+  const raw = (100 * el.scrollTop) / max;
+  return Math.max(0, Math.min(100, Math.round(raw)));
+}
+
+function syncScrollPct() {
+  const el = document.getElementById("scroll-pct");
+  const wrap = document.querySelector("[data-scroll-pct]");
+  if (!el || wrap?.hidden) return;
+  el.textContent = bookScrollPct() + "%";
+  const tip = t("tip.scroll.pct");
+  wrap.setAttribute("title", tip);
+  wrap.setAttribute("aria-label", tip);
+}
+
+function initBookScrollPct() {
+  document.addEventListener(
+    "scroll",
+    (ev) => {
+      if (ev.target === bookEl()) syncScrollPct();
+    },
+    { capture: true, passive: true },
+  );
+  window.addEventListener("resize", () => syncScrollPct());
+}
+
 function initBarScrollHide() {
   document.addEventListener(
     "scroll",
@@ -3943,6 +4046,7 @@ async function boot() {
     /* Viewport tiers: fold + handicaps (no hard size gate) */
     initOrientLock();
     initBarScrollHide();
+    initBookScrollPct();
   } catch (err) {
     console.warn("[POC] orient", err);
   }
