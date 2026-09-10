@@ -59,16 +59,17 @@ doutrina-content  →  librus-linker  →  librus-shell  →  host Pages
 2. [doutrina.org](https://doutrina.org) — Kardec codification  
 3. [centro.doutrina.org](https://centro.doutrina.org) — center + codification  
 
-Status: **BETA v0.9.10** — interface freeze **2026-09-10** (handheld polish).
+Status: **BETA v0.9.13** — interface freeze **2026-09-10**.
 
 1. Narrow screens are **blocked** until landscape / a wider viewport (no reduced-mode bypass).  
 2. Help is a 1×4 pane map from the bar; first visit is **How to** only (Device tab hidden).  
 3. Chrome: theme · help · settings on the bar; **language** and version live in Settings.  
-4. PDF comparison and JaaS (centro flavor) are **on**; PWA fullscreen + landscape for tablet study; profiles remain off. `build:lean` still drops PDF/JaaS.  
+4. PDF comparison and JaaS (centro flavor) are **on**; profiles remain off. `build:lean` still drops PDF/JaaS.  
+5. PWA is `display: standalone`. Fullscreen API is **off** on tall Android phones (known Chrome/OEM bug). Manual `#book-fs` remains on slates (Tab M9) and desktop. See [docs/KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md).
 
 ## 🧊 Interface freeze
 
-Chrome is frozen at **v0.9.9**; **v0.9.10** is handheld/toolbar polish on that freeze (2026-09-10). Spec: [docs/INTERFACE.md](docs/INTERFACE.md).
+Chrome is frozen at **v0.9.9**; polish through **v0.9.13** (2026-09-10). Spec: [docs/INTERFACE.md](docs/INTERFACE.md).
 
 1. Do **not** add panes, bar items, Help beats, or flavor marks unless the freeze is lifted.  
 2. Next work is **book presentation** (`#book` CSS, `public/books/`) and editorial in `doutrina-content` / `librus-linker`.  
@@ -102,7 +103,7 @@ npm run dev:centro     # http://localhost:5176
 2. Triggers: push to `main` · `workflow_dispatch`  
 3. Secret on **this** repo: `DEPLOY_TOKEN` (Contents R/W on `librus`, `doutrina`, `centro`)  
 4. Publish writes `index.html` → `404.html`, `.nojekyll`, `CNAME`  
-5. **centro** publish preserves `flavor.json`, `manual/`, `instance/` (not `assets/`)  
+5. **centro** publish preserves `flavor.json`, `manual/`, `instance/` (not `assets/`)
 
 ## 🎛️ Flavors & feature flags
 
@@ -154,16 +155,17 @@ SPA Vite em vanilla: biblioteca + leitor em quatro painéis (Ache · Leia · Con
 2. [doutrina.org](https://doutrina.org)  
 3. [centro.doutrina.org](https://centro.doutrina.org)  
 
-Estado: **BETA v0.9.10** — interface congelada em **2026-09-10** (polimento handheld).
+Estado: **BETA v0.9.13** — interface congelada em **2026-09-10**.
 
 1. Telas estreitas ficam **bloqueadas** até paisagem / viewport mais larga (sem atalho de modo reduzido).  
 2. Ajuda é um mapa 1×4 das colunas, pela barra; primeira visita é só **Como usar** (aba Dispositivo oculta).  
 3. Chrome: tema · ajuda · ajustes na barra; **idioma** e versão ficam em Ajustes.  
-4. Comparação de PDF e JaaS (sabor centro) estão **ligados**; PWA em tela cheia + paisagem no tablet; profiles continuam desligados. `build:lean` ainda omite PDF/JaaS.  
+4. Comparação de PDF e JaaS (sabor centro) estão **ligados**; profiles continuam desligados. `build:lean` ainda omite PDF/JaaS.  
+5. PWA é `standalone`. Sem Fullscreen API em celular Android alto (limitação conhecida). Botão manual no tablet (Tab M9) e no desktop. Ver [docs/KNOWN-LIMITATIONS.md](docs/KNOWN-LIMITATIONS.md).
 
 ## 🧊 Congelamento da interface
 
-Chrome congelado em **v0.9.9**; **v0.9.10** é polimento handheld/toolbar nessa congelação (2026-09-10). Especificação: [docs/INTERFACE.md](docs/INTERFACE.md).
+Chrome congelado em **v0.9.9**; polimento até **v0.9.13** (2026-09-10). Especificação: [docs/INTERFACE.md](docs/INTERFACE.md).
 
 1. **Não** acrescentar painéis, itens de barra, beats de Ajuda ou marcas de sabor sem descongelar.  
 2. Próximo trabalho: **apresentação dos livros** (CSS de `#book`, `public/books/`) e editorial em `doutrina-content` / `librus-linker`.  
