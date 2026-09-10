@@ -1114,7 +1114,10 @@
           <legend data-i18n="set.about">Sobre</legend>
           <p class="settings-meta">
             <span data-i18n="set.version">Versão</span>
-            <span id="app-version">v0.9.1</span>
+            <span class="settings-ver">
+              <span id="app-version">v0.9.9</span>
+              <span class="settings-beta" aria-label="Beta">BETA</span>
+            </span>
           </p>
           <p class="settings-meta">
             <span data-i18n="set.repo">Repositório</span>
@@ -1135,8 +1138,7 @@
       <button type="button" data-go="library" title="Home" aria-label="Home">
         <i data-icon="home" data-icon-size="22"></i>
       </button>
-      <span id="app-title">LIBRUS</span>
-      <span id="bar-beta" aria-label="Beta">BETA</span>
+      <span id="app-title" hidden></span>
       <div id="bar-end">
         <button type="button" data-open="help" title="Help" aria-label="Help">
           <i data-icon="help" data-icon-size="22"></i>

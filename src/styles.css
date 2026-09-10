@@ -44,7 +44,7 @@
   --tab-top-consult: var(--accent-consult);
   --tab-top-annotate: var(--accent-annotate);
   /*
-   * Pane title / bottom-bar accents — WebAIM AA normal text on white (≥4.5:1).
+   * Pane title accents — WebAIM AA normal text on white (≥4.5:1).
    * Checked: crimson≈5.0, #0b5cad≈6.7, #0d6b2c≈6.7, #7a5c00≈6.3 on #fff.
    * (dodgerblue / limegreen / #ffcc00 failed AA on white.)
    */
@@ -1419,7 +1419,7 @@ html[data-theme="dark"][data-guide="min"] #reader [data-tabs] > button:not(.on) 
   text-overflow: ellipsis;
 }
 
-html[data-theme="dark"] .ctx-providers-banner.is-encyc .ctx-providers-wordmark,
+/* Wikipedia wordmark carries its own white stroke (readable on dark surface). */
 html[data-theme="dark"] .ctx-providers-banner.is-dict .ctx-providers-wordmark {
   filter: invert(1);
 }
@@ -2083,13 +2083,37 @@ body[data-compact-consult="1"] #reader #p3 [data-tool] button {
   overflow-x: auto;
   overflow-y: hidden;
   flex-wrap: nowrap;
+}
+
+/* Leia: paper-fade cue, no bar (50px row). Consulte: thin scrollbar. */
+#reader #p2 [data-tool].on {
   scrollbar-width: none;
 }
 
-#reader #p2 [data-tool].on::-webkit-scrollbar,
-#reader #p3 [data-tool].on::-webkit-scrollbar {
+#reader #p2 [data-tool].on::-webkit-scrollbar {
   height: 0;
   display: none;
+}
+
+#reader #p3 [data-tool].on {
+  /* Room for the 5px thumb under the 50px controls */
+  height: auto;
+  min-height: var(--ctrl-h);
+  max-height: calc(var(--ctrl-h) + 5px);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--fg) 35%, transparent) transparent;
+}
+
+#reader #p3 [data-tool].on::-webkit-scrollbar {
+  height: 5px;
+}
+
+#reader #p3 [data-tool].on::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#reader #p3 [data-tool].on::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--fg) 32%, transparent);
 }
 
 /* Overflow cue: 3rem paper fade, sticky to the visible edge; 1px short so the seam shows. */
@@ -2123,11 +2147,16 @@ body[data-compact-consult="1"] #reader #p3 [data-tool] button {
   background: linear-gradient(90deg, transparent, var(--chrome-active-bg));
 }
 
+/* Keep Consulte fades off the scrollbar strip */
+#reader #p3 [data-tool].on.is-overflow-start::before,
+#reader #p3 [data-tool].on.is-overflow-end::after {
+  height: calc(var(--ctrl-h) - 6px);
+}
+
 /* Desktop/laptop: labeled provider strip — one row, slide for overflow */
 #reader #p3 [data-tool="consult:web"].on {
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: none;
 }
 
 #reader #p3 [data-tool="consult:web"] button {
@@ -2182,7 +2211,7 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
   min-height: var(--chrome);
   display: flex;
   align-items: stretch;
-  /* Left: home + title · Right: controls — avoids title/control collision on narrow */
+  /* Left: Home + book trail (reader) · Right: Help / Settings */
   justify-content: flex-start;
   gap: 0;
   padding: 0;
@@ -2194,19 +2223,19 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
 }
 
 /*
- * App title: left-aligned after Home (filled Quicksand, not stroked).
+ * Reader trail after Home (book title). Hidden on Library.
+ * Tracking/weight of the old flavor wordmark do not apply to titles.
  */
 #app-title {
   flex: 1 1 auto;
   min-width: 0;
   align-self: center;
   margin: 0;
-  /* Clear air after accent home square (DOUTRINA / LIBRUS / CENTRO) */
-  padding: 0 0.5rem 0 0.85rem;
+  padding: 0 0.5rem 0 0.35rem;
   font-family: var(--sans);
   font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  letter-spacing: 0;
   line-height: 1;
   white-space: nowrap;
   overflow: hidden;
@@ -2216,24 +2245,25 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
   user-select: none;
 }
 
-/* Centered product stage mark — as tall as the bar allows */
-#bar-beta {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  margin: 0;
-  padding: 0;
-  font-family: var(--sans);
-  /* Fill bar height (50px chrome); slight headroom for glyph ascent */
-  font-size: calc(var(--chrome) * 0.72);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  line-height: 1;
-  color: #ffcc00;
-  pointer-events: none;
-  user-select: none;
-  white-space: nowrap;
+#app-title[hidden],
+body[data-view="library"] #app-title {
+  display: none !important;
+}
+
+#app-title[data-kind="book"]::before {
+  content: "›";
+  margin-right: 0.45rem;
+  font-weight: 500;
+  opacity: 0.45;
+}
+
+#app-title[data-kind="book"] .bar-book-emoji {
+  margin-right: 0.35rem;
+}
+
+body[data-view="library"] #bar [data-go="library"],
+#bar [data-go="library"][hidden] {
+  display: none !important;
 }
 
 #bar-end {
@@ -3287,11 +3317,29 @@ html[data-theme="dark"] .help-col::after {
   text-decoration: underline;
 }
 
+#settings .settings-ver {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
 #settings #app-version {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--muted);
+}
+
+#settings .settings-beta {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #c9a000;
+  line-height: 1;
+}
+
+html[data-theme="dark"] #settings .settings-beta {
+  color: #e6c200;
 }
 
 /* Search hit mark in book — yellow fill; current = orange ring (no radius) */

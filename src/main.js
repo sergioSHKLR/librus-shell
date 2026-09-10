@@ -61,7 +61,7 @@ const VP = {
 const STUDY_REDUCED_MAX_W = VP.FOLD_CONSULT;
 /** Providers kept on tablet/phone (flavor allowlist still applies). */
 const NARROW_PROVIDERS = ["encyc", "dict"];
-const APP_VERSION = "0.9.1";
+const APP_VERSION = "0.9.9";
 
 /**
  * @param {number} [w]
@@ -992,11 +992,13 @@ function setLang(lang, { persist = true } = {}) {
           if (keepPage > 0) goToPage(keepPage);
         })
         .catch((err) => console.warn("[POC] lang book swap", err));
+      syncBarTitle();
       return;
     }
     renderToc();
     renderPage();
   }
+  syncBarTitle();
 }
 
 function systemIsDark() {
@@ -1062,6 +1064,7 @@ function setTheme(pref, { persist = true, reloadHypo = true } = {}) {
       /* ignore */
     }
   }
+  syncBarTitle();
 }
 
 function watchSystemTheme() {
@@ -1076,6 +1079,66 @@ function watchSystemTheme() {
 }
 
 /* ── Routing / views ────────────────────────────── */
+
+function bookCatalogEntry(book) {
+  const id = (book && book.id) || currentSlug;
+  if (!id) return null;
+  return (
+    CATALOG_ALL.find((e) => e && e.id === id) ||
+    CATALOG.find((e) => e && e.id === id) ||
+    null
+  );
+}
+
+function bookDisplayTitle(book) {
+  if (!book) return "";
+  if (currentLang === "pt" && book.titlePt) return book.titlePt;
+  return book.title || "";
+}
+
+function bookDisplayEmoji(book) {
+  const entry = bookCatalogEntry(book);
+  return (entry && entry.emoji) || book?.emoji || "";
+}
+
+/** Library: no Home, no bar title. Reader: Home › emoji + book. Owns document.title. */
+function syncBarTitle() {
+  const onReader = document.body?.dataset?.view === "reader";
+  const homeBtn = document.querySelector('#bar [data-go="library"]');
+  const titleEl = document.getElementById("app-title");
+  const brand = getFlavor()?.brand || {};
+  const flavorName = brand.title || brand.name || "LIBRUS";
+  const bookTitle = bookDisplayTitle(currentBook);
+  const emoji = bookDisplayEmoji(currentBook);
+
+  if (homeBtn) homeBtn.hidden = !onReader;
+
+  if (titleEl) {
+    titleEl.replaceChildren();
+    if (onReader && bookTitle) {
+      titleEl.hidden = false;
+      titleEl.removeAttribute("aria-hidden");
+      titleEl.dataset.kind = "book";
+      titleEl.setAttribute("aria-current", "page");
+      if (emoji) {
+        const mark = document.createElement("span");
+        mark.className = "bar-book-emoji";
+        mark.setAttribute("aria-hidden", "true");
+        mark.textContent = emoji;
+        titleEl.append(mark, document.createTextNode(bookTitle));
+      } else {
+        titleEl.textContent = bookTitle;
+      }
+    } else {
+      titleEl.hidden = true;
+      titleEl.setAttribute("aria-hidden", "true");
+      titleEl.removeAttribute("data-kind");
+      titleEl.removeAttribute("aria-current");
+    }
+  }
+
+  document.title = onReader && bookTitle ? bookTitle + " · " + flavorName : flavorName;
+}
 
 function setView(name) {
   /* Only library + reader remain as full screens */
@@ -1120,6 +1183,7 @@ function setView(name) {
   if (name === "library") {
     requestAnimationFrame(() => maybeOfferHelp());
   }
+  syncBarTitle();
   syncChromeBar();
 }
 

@@ -202,7 +202,6 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
   document.documentElement.dataset.flavor = id;
   if (document.body) document.body.dataset.flavor = id;
 
-  if (brand.title) document.title = brand.title;
   if (brand.description) {
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute("content", brand.description);
@@ -262,12 +261,6 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
       titleEl.textContent = brand.name;
     }
     titleEl.removeAttribute("data-i18n");
-  }
-
-  /* Bottom bar product name (filled text) */
-  const barTitle = document.getElementById("app-title");
-  if (barTitle && brand.name) {
-    barTitle.textContent = brand.name;
   }
 
   const ctaNode =
