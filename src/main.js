@@ -61,7 +61,7 @@ const VP = {
 const STUDY_REDUCED_MAX_W = VP.FOLD_CONSULT;
 /** Providers kept on tablet/phone (flavor allowlist still applies). */
 const NARROW_PROVIDERS = ["encyc", "dict"];
-const APP_VERSION = "0.9.10"; // freeze 2026-09-10 + handheld polish — see docs/INTERFACE.md
+const APP_VERSION = "0.9.11"; // 2026-09-10 — no auto Fullscreen API on Android PWA
 
 /** Installed PWA / iOS home-screen. Standalone still shows the Android status bar. */
 function isStandaloneApp() {
@@ -75,7 +75,7 @@ function isStandaloneApp() {
   }
 }
 
-/** Manifest `display: fullscreen` actually applied (Tab M9 yes; many phones no). */
+/** Manifest display:fullscreen applied (rare on phones; we ship standalone). */
 function isDisplayFullscreen() {
   try {
     return window.matchMedia("(display-mode: fullscreen)").matches;
@@ -113,6 +113,10 @@ function canToggleFullscreen() {
   );
 }
 
+function isAndroidUa() {
+return /Android/i.test(navigator.userAgent || "");
+}
+
 function enterDocFullscreen() {
   if (fsUnsticky) return;
   const el = document.documentElement;
@@ -132,8 +136,9 @@ function enterDocFullscreen() {
       if (opts !== undefined) run(undefined);
     }
   };
-  /* navigationUI hide is the immersive path; some WebViews reject the options bag. */
-  run({ navigationUI: "hide" });
+  /* navigationUI: "hide" is immersive — Chrome on Motorola flashes black. */
+  if (isAndroidUa()) run(undefined);
+  else run({ navigationUI: "hide" });
 }
 
 function exitDocFullscreen() {
@@ -152,19 +157,21 @@ function exitDocFullscreen() {
  * Phones often install as standalone. requestFullscreen then flashes and
  * Chrome drops back (orientation: landscape + standalone). Detect that
  * kick-out and stop retrying so we don't flicker the grey status bar.
+ * Android installed PWAs already occupy the display. Auto-calling the
+ * Fullscreen API stacks immersive mode on standalone and trips OEM toasts
+ * (Moto G Stylus 2025: black frame + "exit full screen" hint).
  */
 let fsAutoTries = 0;
 let fsEnteredAt = 0;
 let fsUnsticky = false;
 
-function requestAppFullscreen() {
-  if (fsUnsticky || isTrueFullscreen() || !isHandheldAppViewport()) return;
-  if (fsAutoTries >= 2) return;
-  fsAutoTries += 1;
-  enterDocFullscreen();
+function lockFsIfInstalledAndroid() {
+  if (!isAndroidUa()) return;
+  if (isStandaloneApp() || isDisplayFullscreen()) fsUnsticky = true;
 }
 
 function toggleAppFullscreen() {
+  lockFsIfInstalledAndroid();
   if (fsUnsticky && !isDocFullscreen()) return;
   if (isDocFullscreen()) exitDocFullscreen();
   else enterDocFullscreen();
@@ -190,20 +197,12 @@ function syncFsButton() {
 }
 
 function bindAppFullscreen() {
-  const kick = (e) => {
-    const t = e.target;
-    if (t && typeof t.closest === "function" && t.closest("#book-fs")) return;
-    requestAppFullscreen();
-  };
-  document.addEventListener("pointerup", kick, { capture: true });
+  lockFsIfInstalledAndroid();
   const onFs = () => {
     if (isDocFullscreen()) {
       fsEnteredAt = Date.now();
-      document.removeEventListener("pointerup", kick, { capture: true });
     } else if (fsEnteredAt && Date.now() - fsEnteredAt < 1500) {
-      /* Entered then dropped — Android standalone PWA. Don't loop the flash. */
       fsUnsticky = true;
-      document.removeEventListener("pointerup", kick, { capture: true });
     }
     syncFsButton();
     try {
