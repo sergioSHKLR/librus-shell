@@ -61,7 +61,7 @@ const VP = {
 const STUDY_REDUCED_MAX_W = VP.FOLD_CONSULT;
 /** Providers kept on tablet/phone (flavor allowlist still applies). */
 const NARROW_PROVIDERS = ["encyc", "dict"];
-const APP_VERSION = "0.9.12"; // 2026-09-10 — manual FS button, no auto-enter
+const APP_VERSION = "0.9.13"; // 2026-09-10 — no FS API on tall Android phones
 
 /** Installed PWA / iOS home-screen. Standalone still shows the Android status bar. */
 function isStandaloneApp() {
@@ -114,11 +114,28 @@ function canToggleFullscreen() {
 }
 
 function isAndroidUa() {
-return /Android/i.test(navigator.userAgent || "");
+  return /Android/i.test(navigator.userAgent || "");
+}
+
+/** Tall phones (Moto G Stylus class) vs slates (Tab M9). */
+function isTallAndroidPhone() {
+  if (!isAndroidUa()) return false;
+  const w = window.innerWidth || 0;
+  const h = window.innerHeight || 0;
+  const short = Math.min(w, h);
+  const long = Math.max(w, h);
+  if (!short) return true;
+  return long / short >= 1.85;
+}
+
+function allowFullscreenApi() {
+  if (!canToggleFullscreen()) return false;
+  if (isTallAndroidPhone()) return false;
+  return true;
 }
 
 function enterDocFullscreen() {
-  if (fsUnsticky) return;
+  if (!allowFullscreenApi() || fsUnsticky) return;
   const el = document.documentElement;
   const fn = el.requestFullscreen || el.webkitRequestFullscreen;
   if (!fn) return;
@@ -166,6 +183,7 @@ let fsEnteredAt = 0;
 let fsUnsticky = false;
 
 function toggleAppFullscreen() {
+  if (!allowFullscreenApi() && !isDocFullscreen()) return;
   if (fsUnsticky && !isDocFullscreen()) return;
   if (isDocFullscreen()) exitDocFullscreen();
   else enterDocFullscreen();
@@ -174,7 +192,7 @@ function toggleAppFullscreen() {
 function syncFsButton() {
   const btn = document.getElementById("book-fs");
   if (!btn) return;
-  const api = canToggleFullscreen();
+  const api = allowFullscreenApi();
   btn.hidden = !api;
   const on = isTrueFullscreen();
   btn.classList.toggle("is-on", on);
