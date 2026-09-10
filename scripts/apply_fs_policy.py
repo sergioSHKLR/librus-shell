@@ -2,6 +2,9 @@ from pathlib import Path
 
 p = Path("src/main.js")
 s = p.read_text()
+if "function isTallAndroidPhone()" in s:
+    print("already patched")
+    raise SystemExit(0)
 s = s.replace(
     'const APP_VERSION = "0.9.12"; // 2026-09-10 — manual FS button, no auto-enter',
     'const APP_VERSION = "0.9.13"; // 2026-09-10 — no FS API on tall Android phones',
