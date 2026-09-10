@@ -1,0 +1,198 @@
+name: Patch Android fullscreen
+
+on:
+  push:
+    paths:
+      - ".github/workflows/patch-android-fs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Patch src/main.js
+        run: |
+          python3 << 'PY'
+          from pathlib import Path
+          p = Path("src/main.js")
+          s = p.read_text()
+          n = 0
+
+          def sub(old, new, label):
+              global s, n
+              if old not in s:
+                  raise SystemExit(f"missing block: {label}")
+              s = s.replace(old, new, 1)
+              n += 1
+
+          sub(
+              'const APP_VERSION = "0.9.10"; // freeze 2026-09-10 + handheld polish — see docs/INTERFACE.md',
+              'const APP_VERSION = "0.9.11"; // 2026-09-10 — no auto Fullscreen API on Android PWA',
+              "version",
+          )
+          sub(
+              '/** Manifest `display: fullscreen` actually applied (Tab M9 yes; many phones no). */',
+              '/** Manifest display:fullscreen applied (rare on phones; we ship standalone). */',
+              "display comment",
+          )
+          sub(
+          '''function enterDocFullscreen() {
+            if (fsUnsticky) return;
+            const el = document.documentElement;
+            const fn = el.requestFullscreen || el.webkitRequestFullscreen;
+            if (!fn) return;
+            fsEnteredAt = Date.now();
+            const run = (opts) => {
+              try {
+                const out =
+                  opts !== undefined ? fn.call(el, opts) : fn.call(el);
+                if (out && typeof out.catch === "function") {
+                  out.catch(() => {
+                    if (opts !== undefined) run(undefined);
+                  });
+                }
+              } catch (_) {
+                if (opts !== undefined) run(undefined);
+              }
+            };
+            /* navigationUI hide is the immersive path; some WebViews reject the options bag. */
+            run({ navigationUI: "hide" });
+          }'''.replace('            ', ''),
+          '''function isAndroidUa() {
+          return /Android/i.test(navigator.userAgent || "");
+          }
+
+          function enterDocFullscreen() {
+            if (fsUnsticky) return;
+            const el = document.documentElement;
+            const fn = el.requestFullscreen || el.webkitRequestFullscreen;
+            if (!fn) return;
+            fsEnteredAt = Date.now();
+            const run = (opts) => {
+              try {
+                const out =
+                  opts !== undefined ? fn.call(el, opts) : fn.call(el);
+                if (out && typeof out.catch === "function") {
+                  out.catch(() => {
+                    if (opts !== undefined) run(undefined);
+                  });
+                }
+              } catch (_) {
+                if (opts !== undefined) run(undefined);
+              }
+            };
+            /* navigationUI: "hide" is immersive — Chrome on Motorola flashes black. */
+            if (isAndroidUa()) run(undefined);
+            else run({ navigationUI: "hide" });
+          }'''.replace('            ', ''),
+              "enterDocFullscreen",
+          )
+          sub(
+          '''function requestAppFullscreen() {
+            if (fsUnsticky || isTrueFullscreen() || !isHandheldAppViewport()) return;
+            if (fsAutoTries >= 2) return;
+            fsAutoTries += 1;
+            enterDocFullscreen();
+          }
+
+          function toggleAppFullscreen() {
+            if (fsUnsticky && !isDocFullscreen()) return;
+            if (isDocFullscreen()) exitDocFullscreen();
+            else enterDocFullscreen();
+          }'''.replace('            ', ''),
+          '''function lockFsIfInstalledAndroid() {
+            if (!isAndroidUa()) return;
+            if (isStandaloneApp() || isDisplayFullscreen()) fsUnsticky = true;
+          }
+
+          function toggleAppFullscreen() {
+            lockFsIfInstalledAndroid();
+            if (fsUnsticky && !isDocFullscreen()) return;
+            if (isDocFullscreen()) exitDocFullscreen();
+            else enterDocFullscreen();
+          }'''.replace('            ', ''),
+              "request/toggle",
+          )
+          sub(
+          '''function bindAppFullscreen() {
+            const kick = (e) => {
+              const t = e.target;
+              if (t && typeof t.closest === "function" && t.closest("#book-fs")) return;
+              requestAppFullscreen();
+            };
+            document.addEventListener("pointerup", kick, { capture: true });
+            const onFs = () => {
+              if (isDocFullscreen()) {
+                fsEnteredAt = Date.now();
+                document.removeEventListener("pointerup", kick, { capture: true });
+              } else if (fsEnteredAt && Date.now() - fsEnteredAt < 1500) {
+                /* Entered then dropped — Android standalone PWA. Don't loop the flash. */
+                fsUnsticky = true;
+                document.removeEventListener("pointerup", kick, { capture: true });
+              }
+              syncFsButton();
+              try {
+                syncBrowserChrome(currentTheme, themePref);
+              } catch (_) {
+                /* boot order */
+              }
+            };
+            document.addEventListener("fullscreenchange", onFs);
+            document.addEventListener("webkitfullscreenchange", onFs);
+            syncFsButton();
+          }'''.replace('            ', ''),
+          '''function bindAppFullscreen() {
+            lockFsIfInstalledAndroid();
+            const onFs = () => {
+              if (isDocFullscreen()) {
+                fsEnteredAt = Date.now();
+              } else if (fsEnteredAt && Date.now() - fsEnteredAt < 1500) {
+                fsUnsticky = true;
+              }
+              syncFsButton();
+              try {
+                syncBrowserChrome(currentTheme, themePref);
+              } catch (_) {
+                /* boot order */
+              }
+            };
+            document.addEventListener("fullscreenchange", onFs);
+            document.addEventListener("webkitfullscreenchange", onFs);
+            syncFsButton();
+          }'''.replace('            ', ''),
+              "bindAppFullscreen",
+          )
+
+          extra = '''\n * Android installed PWAs already occupy the display. Auto-calling the\n * Fullscreen API stacks immersive mode on standalone and trips OEM toasts\n * (Moto G Stylus 2025: black frame + "exit full screen" hint).\n'''
+          needle = "so we don't flicker the grey status bar.\n */"
+          if needle not in s:
+              raise SystemExit("missing fs comment tail")
+          s = s.replace(needle, "so we don't flicker the grey status bar." + extra + " */", 1)
+          p.write_text(s)
+          if "requestAppFullscreen" in s:
+              raise SystemExit("requestAppFullscreen still present")
+          if "pointerup" in s and "requestAppFullscreen" in s:
+              raise SystemExit("auto kick still present")
+          print("patched", n, "blocks", p.stat().st_size)
+          PY
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main.js
+          if git diff --staged --quiet; then
+            echo "main.js already patched"
+            exit 0
+          fi
+          git commit -m "fix(pwa): stop Android Fullscreen API auto-enter (Moto black flash)"
+          git rm -f .github/workflows/patch-android-fs.yml || true
+          git commit -m "chore: remove one-shot Android FS patch workflow" || true
+          git push origin HEAD:main
