@@ -14,35 +14,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          python3 -c "
-          from pathlib import Path
-          p = Path('src/main.js')
-          s = p.read_text()
-          s = s.replace('0.9.11', '0.9.12', 1)
-          s = s.replace('lockFsIfInstalledAndroid();\n  ', '', 2)
-          s = s.replace('''function lockFsIfInstalledAndroid():\n  if (!isAndroidUa()) return;\n  if (isStandaloneApp() || isDisplayFullscreen()) fsUnsticky = True;\n\n'''.replace('True','true'), '')
-          "
-          python3 <<'END'
-          from pathlib import Path
-          p = Path('src/main.js')
-          s = p.read_text()
-          s = s.replace('const APP_VERSION = "0.9.11"; // 2026-09-10 — no auto Fullscreen API on Android PWA', 'const APP_VERSION = "0.9.12"; // 2026-09-10 — manual FS button, no auto-enter', 1)
-          s = s.replace('  lockFsIfInstalledAndroid();\n', '')
-          start = s.find('function lockFsIfInstalledAndroid()')
-          if start < 0:
-              raise SystemExit('no lock fn')
-          end = s.find('function toggleAppFullscreen()', start)
-          s = s[:start] + s[end:]
-          s = s.replace('const api = canToggleFullscreen() && !fsUnsticky;', 'const api = canToggleFullscreen();', 1)
-          p.write_text(s)
-          assert 'lockFsIfInstalledAndroid' not in s
-          print('patched')
-          END
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/main.js
-          git commit -m 'fix(pwa): show manual fullscreen button on Android portrait'
-          git rm -f .github/workflows/patch-fs-btn.yml
-          git commit -m 'chore: remove one-shot FS button workflow'
-          git push origin HEAD:main
+      - name: Edit main.js
+        run: python3 scripts/restore_fs_btn.py
