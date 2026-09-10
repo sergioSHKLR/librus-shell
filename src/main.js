@@ -63,12 +63,22 @@ const STUDY_REDUCED_MAX_W = VP.FOLD_CONSULT;
 const NARROW_PROVIDERS = ["encyc", "dict"];
 const APP_VERSION = "0.9.10"; // freeze 2026-09-10 + handheld polish — see docs/INTERFACE.md
 
+/** Installed PWA / iOS home-screen. Standalone still shows the Android status bar. */
 function isStandaloneApp() {
   try {
     if (window.navigator.standalone) return true;
     return window.matchMedia(
       "(display-mode: fullscreen), (display-mode: standalone), (display-mode: minimal-ui)",
     ).matches;
+  } catch (_) {
+    return false;
+  }
+}
+
+/** Manifest `display: fullscreen` actually applied (Tab M9 yes; many phones no). */
+function isDisplayFullscreen() {
+  try {
+    return window.matchMedia("(display-mode: fullscreen)").matches;
   } catch (_) {
     return false;
   }
@@ -89,6 +99,10 @@ function isDocFullscreen() {
   return !!(document.fullscreenElement || document.webkitFullscreenElement);
 }
 
+function isTrueFullscreen() {
+  return isDocFullscreen() || isDisplayFullscreen();
+}
+
 function canToggleFullscreen() {
   const el = document.documentElement;
   return !!(
@@ -103,12 +117,21 @@ function enterDocFullscreen() {
   const el = document.documentElement;
   const fn = el.requestFullscreen || el.webkitRequestFullscreen;
   if (!fn) return;
-  try {
-    const out = fn.call(el, { navigationUI: "hide" });
-    if (out && typeof out.catch === "function") out.catch(() => {});
-  } catch (_) {
-    /* iOS Safari / denied */
-  }
+  const run = (opts) => {
+    try {
+      const out =
+        opts !== undefined ? fn.call(el, opts) : fn.call(el);
+      if (out && typeof out.catch === "function") {
+        out.catch(() => {
+          if (opts !== undefined) run(undefined);
+        });
+      }
+    } catch (_) {
+      if (opts !== undefined) run(undefined);
+    }
+  };
+  /* navigationUI hide is the immersive path; some WebViews reject the options bag. */
+  run({ navigationUI: "hide" });
 }
 
 function exitDocFullscreen() {
@@ -123,10 +146,15 @@ function exitDocFullscreen() {
   }
 }
 
-/** Cover device status / nav bars. Needs a user gesture when not already a PWA. */
+/**
+ * Phones often install the PWA as standalone (status bar stays). Tablets may
+ * get display:fullscreen. Do not treat standalone as already immersive.
+ */
+let fsAutoTries = 0;
 function requestAppFullscreen() {
-  if (isStandaloneApp() || !isHandheldAppViewport()) return;
-  if (isDocFullscreen()) return;
+  if (isTrueFullscreen() || !isHandheldAppViewport()) return;
+  if (fsAutoTries >= 4) return;
+  fsAutoTries += 1;
   enterDocFullscreen();
 }
 
@@ -140,7 +168,7 @@ function syncFsButton() {
   if (!btn) return;
   const api = canToggleFullscreen();
   btn.hidden = !api;
-  const on = isDocFullscreen();
+  const on = isTrueFullscreen();
   btn.classList.toggle("is-on", on);
   btn.setAttribute("aria-pressed", on ? "true" : "false");
   const tip = t(on ? "tip.fs.exit" : "tip.fs.enter");
@@ -155,13 +183,18 @@ function syncFsButton() {
 }
 
 function bindAppFullscreen() {
-  document.addEventListener(
-    "pointerdown",
-    () => requestAppFullscreen(),
-    { capture: true, once: true },
-  );
-  document.addEventListener("fullscreenchange", syncFsButton);
-  document.addEventListener("webkitfullscreenchange", syncFsButton);
+  const kick = () => requestAppFullscreen();
+  /* pointerup is a user activation on Android Chrome; once:true skipped
+   * standalone phones before they could retry. */
+  document.addEventListener("pointerup", kick, { capture: true });
+  const stop = () => {
+    if (isTrueFullscreen()) {
+      document.removeEventListener("pointerup", kick, { capture: true });
+    }
+    syncFsButton();
+  };
+  document.addEventListener("fullscreenchange", stop);
+  document.addEventListener("webkitfullscreenchange", stop);
   syncFsButton();
 }
 
