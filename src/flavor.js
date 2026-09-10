@@ -220,11 +220,11 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
     fav.href = href;
   }
 
-  /* Top browser/PWA chrome: neutral grey only (syncBrowserChrome in main owns it) */
+  /* OS bars: match --bg (syncBrowserChrome in main owns the rest) */
   try {
     const metaTheme = document.getElementById("meta-theme-color");
     if (metaTheme) {
-      metaTheme.content = resolvedTheme === "dark" ? "#202124" : "#e8eaed";
+      metaTheme.content = resolvedTheme === "dark" ? "#1a1a1a" : "#f5f5f5";
     }
   } catch (_) {
     /* ignore */

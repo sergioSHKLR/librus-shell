@@ -116,7 +116,7 @@ function syncHelpSizeHints(root, vp) {
     else if (kind === "pdf")
       show =
         document.documentElement.dataset.featPdf === "1" &&
-        (tier === "desktop" || tier === "laptop");
+        (tier === "desktop" || tier === "laptop" || tier === "tablet");
     else if (kind === "jaas")
       show =
         document.documentElement.dataset.flavorJaas === "1" &&

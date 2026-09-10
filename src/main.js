@@ -63,6 +63,49 @@ const STUDY_REDUCED_MAX_W = VP.FOLD_CONSULT;
 const NARROW_PROVIDERS = ["encyc", "dict"];
 const APP_VERSION = "0.9.9"; // interface freeze 2026-09-10 — see docs/INTERFACE.md
 
+function isStandaloneApp() {
+  try {
+    if (window.navigator.standalone) return true;
+    return window.matchMedia(
+      "(display-mode: fullscreen), (display-mode: standalone), (display-mode: minimal-ui)",
+    ).matches;
+  } catch (_) {
+    return false;
+  }
+}
+
+/** Phone / tablet (coarse pointer or short side ≤920). Desktop mouse stays windowed. */
+function isHandheldAppViewport() {
+  try {
+    if (window.matchMedia("(pointer: coarse)").matches) return true;
+  } catch (_) {
+    /* ignore */
+  }
+  const minSide = Math.min(window.innerWidth || 0, window.innerHeight || 0);
+  return minSide <= VP.FOLD_CONSULT;
+}
+
+/** Cover device status / nav bars. Needs a user gesture when not already a PWA. */
+function requestAppFullscreen() {
+  if (isStandaloneApp() || !isHandheldAppViewport()) return;
+  const doc = document;
+  if (doc.fullscreenElement || doc.webkitFullscreenElement) return;
+  const el = doc.documentElement;
+  const fn = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (!fn) return;
+  try {
+    const out = fn.call(el, { navigationUI: "hide" });
+    if (out && typeof out.catch === "function") out.catch(() => {});
+  } catch (_) {
+    /* iOS Safari / denied */
+  }
+}
+
+function bindAppFullscreen() {
+  const kick = () => requestAppFullscreen();
+  document.addEventListener("pointerdown", kick, { capture: true, once: true });
+}
+
 /**
  * @param {number} [w]
  * @returns {'desktop'|'laptop'|'tablet'|'phone'}
@@ -72,6 +115,12 @@ function vpTier(w = window.innerWidth || 0) {
   if (w > VP.FOLD_NOTES) return "laptop";
   if (w > VP.FOLD_CONSULT) return "tablet";
   return "phone";
+}
+
+/** Hide-on-scroll floor bar: phone and tablet (≤1400). */
+function barHidesOnScroll(w = window.innerWidth || 0) {
+  const tier = vpTier(w);
+  return tier === "phone" || tier === "tablet";
 }
 
 function isLandscape(
@@ -103,11 +152,10 @@ function phoneReaderOnly(w = window.innerWidth || 0) {
   return vpTier(w) === "phone";
 }
 
-/** PDF on desktop/laptop only; no Consulte on phone; video not on phone. */
+/** No Consulte tools on phone. PDF and video follow the Consulte column (tablet+). */
 function toolAllowedBySize(mode, tier = vpTier()) {
   if (String(mode).startsWith("consult:") && tier === "phone") return false;
-  if (mode === "consult:pdf") return tier === "desktop" || tier === "laptop";
-  if (mode === "consult:video") return tier !== "phone";
+  if (mode === "consult:pdf" || mode === "consult:video") return tier !== "phone";
   return true;
 }
 
@@ -660,6 +708,8 @@ let lineHeight = 1.65;
 let measure = "medium";
 let textAlign = "start";
 let fontFamily = "serif";
+/** True after the user cycles measure or align this session. */
+let typoUserOverride = false;
 /**
  * In-book inject links (Páginas). One on/off — not per-provider.
  * Phone forces off. Toggling does not open Consulte.
@@ -814,12 +864,14 @@ function tipForButton(btn) {
 
 function setTip(el, text) {
   if (!el || !text) return;
-  el.setAttribute("title", text);
-  /* Don't clobber richer aria if already set to something longer */
+  const prevTitle = el.getAttribute("title");
   const existing = el.getAttribute("aria-label");
+  el.setAttribute("title", text);
+  /* Keep a richer aria-label; still replace the old title clone (e.g. hardcoded "Home"). */
   if (
     !existing ||
-    existing === el.getAttribute("title") ||
+    existing === prevTitle ||
+    existing === text ||
     existing.length < 2
   ) {
     el.setAttribute("aria-label", text);
@@ -885,13 +937,12 @@ function syncThemeInputs() {
   });
 }
 
-/** Default OS/PWA title-bar greys (not pure white/black, not brand). */
-const CHROME_GREY_LIGHT = "#e8eaed";
-const CHROME_GREY_DARK = "#202124";
+/** Match --bg so system bars blend when the PWA is not fully fullscreen. */
+const CHROME_GREY_LIGHT = "#f5f5f5";
+const CHROME_GREY_DARK = "#1a1a1a";
 
 /**
- * Top browser / installed-PWA chrome only — neutral chrome grey.
- * Brand colors stay in-app (mark, accents); never paint the OS status/title bar.
+ * OS status / nav bar color — same as app --bg (not a separate grey strip).
  * @param {'light'|'dark'} resolved
  * @param {'system'|'light'|'dark'} [pref]
  */
@@ -1111,7 +1162,11 @@ function syncBarTitle() {
   const bookTitle = bookDisplayTitle(currentBook);
   const emoji = bookDisplayEmoji(currentBook);
 
-  if (homeBtn) homeBtn.hidden = !onReader;
+  if (homeBtn) {
+    homeBtn.hidden = !onReader;
+    homeBtn.title = t("tip.home");
+    homeBtn.setAttribute("aria-label", t("tip.home"));
+  }
 
   if (titleEl) {
     titleEl.replaceChildren();
@@ -1755,6 +1810,24 @@ function nearest(list, value) {
     }
   }
   return best;
+}
+
+function handheldReading(w = window.innerWidth || 0) {
+  const tier = vpTier(w);
+  return tier === "phone" || tier === "tablet";
+}
+
+/** Tablet/phone default: wide + justify. Desk: medium + start. Skip if user cycled. */
+function syncViewportTypoDefaults() {
+  if (typoUserOverride) return;
+  if (handheldReading()) {
+    measure = "wide";
+    textAlign = "justify";
+  } else {
+    measure = "medium";
+    textAlign = "start";
+  }
+  applyTypography();
 }
 
 function applyTypography() {
@@ -3347,8 +3420,14 @@ function wire() {
           fontSize = cycle(FONT_SIZES, nearest(FONT_SIZES, fontSize));
         if (a === "line")
           lineHeight = cycle(LINE_HEIGHTS, nearest(LINE_HEIGHTS, lineHeight));
-        if (a === "measure") measure = cycle(MEASURES, measure);
-        if (a === "align") textAlign = cycle(ALIGNS, textAlign);
+        if (a === "measure") {
+          measure = cycle(MEASURES, measure);
+          typoUserOverride = true;
+        }
+        if (a === "align") {
+          textAlign = cycle(ALIGNS, textAlign);
+          typoUserOverride = true;
+        }
         if (a === "font") fontFamily = cycle(FONTS, fontFamily);
         applyTypography();
       });
@@ -3690,8 +3769,10 @@ function applyViewportHandicaps() {
     /* ignore */
   }
 
-  /* Leaving phone → always show bottom bar again */
-  if (tier !== "phone") setBarScrollHidden(false);
+  /* Leaving phone/tablet → always show bottom bar again */
+  if (!barHidesOnScroll()) setBarScrollHidden(false);
+
+  syncViewportTypoDefaults();
 
   /* Landscape phone: drop Consulte overlay so dual-column CSS can show it */
   if (!shouldFoldConsult()) {
@@ -3787,13 +3868,13 @@ function initOrientLock() {
   setTimeout(updateOrientLock, 100);
 }
 
-/* ── Phone: hide bottom bar while scrolling down ─── */
+/* ── Phone / tablet: hide bottom bar while scrolling down ─── */
 
 let barScrollHidden = false;
 let barScrollLastY = 0;
 
 function setBarScrollHidden(hidden) {
-  const on = !!hidden && vpTier() === "phone";
+  const on = !!hidden && barHidesOnScroll();
   if (on === barScrollHidden) {
     document.documentElement.classList.toggle("bar-scroll-hidden", on);
     return;
@@ -3818,7 +3899,7 @@ function initBarScrollHide() {
   document.addEventListener(
     "scroll",
     (ev) => {
-      if (vpTier() !== "phone") {
+      if (!barHidesOnScroll()) {
         setBarScrollHidden(false);
         return;
       }
@@ -3989,6 +4070,7 @@ async function boot() {
     setView("library");
   }
   syncChromeBar();
+  bindAppFullscreen();
   try {
     const hypo = preloadHypothesis();
     await Promise.race([

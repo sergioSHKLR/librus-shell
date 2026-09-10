@@ -8,6 +8,10 @@
   /* Reader chrome rhythm: buttons = 50px; tabs / toolbars / inputs match */
   --ctrl-h: 50px;
   --chrome: 50px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* Floor bar + home indicator / Android nav (0 on desktop) */
+  --chrome-bottom: calc(var(--chrome) + var(--safe-bottom));
   --find-w: 300px;
   --notes-w: 460px;
   /* UI chrome — Quicksand pairs with Lucide’s rounded geometry */
@@ -106,6 +110,8 @@ html,
 body {
   margin: 0;
   height: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
   font: 15px/1.45 var(--sans);
   background: var(--bg);
   color: var(--fg);
@@ -287,7 +293,8 @@ input[type="text"] {
   display: none !important;
   position: fixed;
   inset: 0;
-  bottom: var(--chrome);
+  top: var(--safe-top);
+  bottom: var(--chrome-bottom);
   overflow: auto;
   background: var(--bg);
 }
@@ -312,7 +319,7 @@ body[data-view="reader"] #bar {
 }
 
 /*
- * Phone: scroll-down hides bottom bar to free vertical space (esp. landscape).
+ * Phone / tablet: scroll-down hides bottom bar to free vertical space.
  * Tabs stay. Reveal on scroll-up / near top / chrome tap.
  */
 html.bar-scroll-hidden #bar {
@@ -321,10 +328,10 @@ html.bar-scroll-hidden #bar {
 }
 
 html.bar-scroll-hidden [data-screen] {
-  bottom: 0;
+  bottom: var(--safe-bottom);
 }
 
-/* Phone overlays are viewport-tall (under the bar). When the bar hides,
+/* Overlays are viewport-tall (under the bar). When the bar hides,
  * they already reach the bottom — no leftover chrome-height gap. */
 html.bar-scroll-hidden #p1.overlay,
 html.bar-scroll-hidden #p1.overlay-single,
@@ -332,7 +339,7 @@ html.bar-scroll-hidden #p1.is-closing,
 html.bar-scroll-hidden #p3.overlay,
 html.bar-scroll-hidden #p3.overlay-single,
 html.bar-scroll-hidden #p3.is-closing {
-  bottom: 0;
+  bottom: var(--safe-bottom);
 }
 
 /* Color guide only affects reader chrome — hide that block on library */
@@ -1921,8 +1928,8 @@ html.hypo-in-pane #p4 [data-body] > p {
     grid-area: read;
     position: fixed;
     left: 0;
-    top: var(--chrome);
-    bottom: var(--chrome);
+    top: var(--safe-top);
+    bottom: var(--chrome-bottom);
     /* Wider find overlay on tablet */
     width: min(42vw, 28rem);
     min-width: 18rem;
@@ -2207,14 +2214,16 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
   left: 0;
   right: 0;
   bottom: 0;
-  height: var(--chrome);
-  min-height: var(--chrome);
+  box-sizing: border-box;
+  height: var(--chrome-bottom);
+  min-height: var(--chrome-bottom);
   display: flex;
   align-items: stretch;
   /* Left: Home + book trail (reader) · Right: Help / Settings */
   justify-content: flex-start;
   gap: 0;
   padding: 0;
+  padding-bottom: var(--safe-bottom);
   background: var(--bar);
   color: var(--bar-fg);
   z-index: 500;
@@ -2387,7 +2396,7 @@ body[data-view="library"] #bar [data-go="library"],
   left: 50%;
   top: 50%;
   width: min(420px, 92vw);
-  max-height: min(80vh, calc(100% - var(--chrome) - 2rem));
+  max-height: min(80vh, calc(100% - var(--chrome-bottom) - 2rem));
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -2407,8 +2416,8 @@ body[data-view="library"] #bar [data-go="library"],
 /* Wide 4-pane help guide (bar info button) */
 #help.help-guide {
   width: min(958px, calc(100vw - 1.5rem));
-  height: min(510px, calc(100vh - var(--chrome) - 2rem));
-  max-height: min(510px, calc(100vh - var(--chrome) - 2rem));
+  height: min(510px, calc(100vh - var(--chrome-bottom) - 2rem));
+  max-height: min(510px, calc(100vh - var(--chrome-bottom) - 2rem));
   padding: 0;
   overflow: hidden;
   transform: translate(-50%, calc(-46% - 30px)) scale(0.96);
@@ -2417,9 +2426,9 @@ body[data-view="library"] #bar [data-go="library"],
 /* Full-bleed 1×4 help overlay — sits above the reader, under the bar */
 #help.help-map {
   left: 0;
-  top: 0;
+  top: var(--safe-top);
   right: 0;
-  bottom: var(--chrome);
+  bottom: var(--chrome-bottom);
   width: auto;
   height: auto;
   max-height: none;
@@ -2740,7 +2749,7 @@ body[data-view="library"] #bar [data-go="library"],
 }
 
 html:has(#help.help-map.is-open) #scrim {
-  bottom: var(--chrome);
+  bottom: var(--chrome-bottom);
 }
 
 html:has(#help.help-map.is-open) #bar {
@@ -2826,7 +2835,7 @@ html:has(#help.help-map.is-open) #bar {
 #help.help-guide.is-phone-portrait {
   width: min(22rem, 92vw);
   height: auto;
-  max-height: min(70vh, calc(100vh - var(--chrome) - 2rem));
+  max-height: min(70vh, calc(100vh - var(--chrome-bottom) - 2rem));
 }
 
 #help.help-guide.is-phone-portrait .help-guide-body,
@@ -2878,7 +2887,7 @@ iframe[src*="hypothes.is"] {
 hypothesis-sidebar {
   top: 0 !important;
   right: 0 !important;
-  bottom: var(--chrome) !important;
+  bottom: var(--chrome-bottom) !important;
   height: auto !important;
   max-height: none !important;
   pointer-events: auto !important;
@@ -3489,7 +3498,7 @@ html.is-portrait-blocked #scrim.is-open {
   z-index: 545;
   /* Leave clear air above the bottom chrome bar; match window aspect */
   --onboard-max-w: 81vw; /* 90vw × 0.9 */
-  --onboard-max-h: calc((100dvh - var(--chrome) - 2.75rem) * 0.9);
+  --onboard-max-h: calc((100dvh - var(--chrome-bottom) - 2.75rem) * 0.9);
   --onboard-r: var(--vp-ratio, 1.5);
   width: min(
     var(--onboard-max-w),
@@ -4380,18 +4389,20 @@ html[data-theme="dark"] #viewport-frame.is-blocked #viewport-label-device {
   align-self: center;
 }
 
+#reader [data-tool="read:book"] .page-nav[hidden] + .tool-sep {
+  display: none;
+}
+
 /*
  * In-book links toggle:
- * ON  = --tab-top-read edge (tracks color guide; brighter in soft/min)
- * OFF = grey edge + muted label
+ * ON  = inset bottom --tab-top-read (does not cover the toolbar hairline)
+ * OFF = grey inset bottom + muted label
  */
 #reader [data-tool="read:book"] button.link-toggle {
   background: transparent;
-  /* Override toolbar border:none — top edge is the on/off mark */
-  border: none;
-  border-top: 3px solid var(--gutter, #c8c8c8) !important;
-  border-left: none;
-  border-right: none;
+  border: none !important;
+  box-shadow: inset 0 calc(-1 * var(--chrome-tab-top, 3px)) 0
+    var(--gutter, #c8c8c8);
   box-sizing: border-box;
   color: var(--muted);
 }
@@ -4407,7 +4418,7 @@ html[data-theme="dark"] #viewport-frame.is-blocked #viewport-label-device {
 #reader [data-tool="read:book"] button.link-toggle.is-on,
 #reader [data-tool="read:book"] button.link-toggle[aria-pressed="true"] {
   background: transparent;
-  border-top-color: var(--tab-top-read) !important;
+  box-shadow: inset 0 calc(-1 * var(--chrome-tab-top, 3px)) 0 var(--tab-top-read);
   color: var(--chrome-label, var(--fg));
 }
 
@@ -4420,7 +4431,7 @@ html[data-theme="dark"] #viewport-frame.is-blocked #viewport-label-device {
 }
 
 html[data-theme="dark"] #reader [data-tool="read:book"] button.link-toggle {
-  border-top-color: #555 !important;
+  box-shadow: inset 0 calc(-1 * var(--chrome-tab-top, 3px)) 0 #555;
   color: var(--muted);
 }
 
@@ -4432,7 +4443,7 @@ html[data-theme="dark"]
   #reader
   [data-tool="read:book"]
   button.link-toggle[aria-pressed="true"] {
-  border-top-color: var(--tab-top-read) !important;
+  box-shadow: inset 0 calc(-1 * var(--chrome-tab-top, 3px)) 0 var(--tab-top-read);
   color: var(--chrome-label, var(--fg));
 }
 

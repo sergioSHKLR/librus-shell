@@ -20,7 +20,8 @@ Chrome, Help, flavors, and Consulte empty-state are **frozen**. Do not add panes
 6. **Help (bar ?)** — full-bleed 1×4 map, five steps, bar stays visible. Steps 2–3: in-pane cards. Steps 4–5: card in Consulte/Anote with a **left** arrow into **2. Leia**. Portrait (≤920px): equal columns, tighter titles, arrows still to Leia. First-visit Device tab stays hidden.  
 7. **How-to** — first visit, How-to only; do not add beats (already ~10).  
 8. **Consulte empty state** — provider banners. Wikipedia/Wikcionário wordmarks `#4D4D4D` + `invert(1)` in dark. Luz and Bible are SVG lockups (`public/providers/luz.svg`, `bible.svg`). Kardecpedia / OSM unchanged. Web tab label is **Consulte** / **Consult** (not Context).  
-9. **Viewport** — phone landscape blocked (rotate to portrait). Portrait phone: Leia + Ache overlay; Consulte off. Names: Consult not Context.
+9. **Viewport** — phone landscape blocked (rotate to portrait). Portrait phone: Leia + Ache overlay; Consulte off. Names: Consult not Context.  
+   Installed / handheld: edge-to-edge (`display: fullscreen`, `viewport-fit=cover`, `black-translucent`). Floor bar and workspace use `safe-area-inset-*`.
 
 ## Not frozen
 
@@ -48,7 +49,8 @@ Chrome, Help, flavors, and Consulte empty-state are **frozen**. Do not add panes
 3. **Marcas** — três ícones Lucide, só a cor de acento muda.  
 4. **Barra** — Biblioteca: só Ajuda · Ajustes. Leitor: Home › livro. BETA em Ajustes, ao lado de `v0.9.9`.  
 5. **Ajuda** — mapa 1×4, cinco passos; setas dos passos 4–5 apontam para Leia. Retrato: colunas iguais.  
-6. **Consulte** — banners; Wikipedia cinza+invert no escuro; Luz e Bible em SVG. Aba web **Consulte**, não Contexto.
+6. **Consulte** — banners; Wikipedia cinza+invert no escuro; Luz e Bible em SVG. Aba web **Consulte**, não Contexto.  
+7. **Tela cheia** — PWA/tablet/celular cobrem as barras do sistema; a barra do app respeita `safe-area-inset`.
 
 ## Não congelado
 
