@@ -33,7 +33,7 @@ const FALLBACK = {
         name: "LIBRUS",
         title: "LIBRUS",
         description: "LIBRUS",
-        cta: { pt: "Ache · Leia · Consulte · Anote", en: "Find · Read · Consult · Annotate" },
+        cta: { pt: "Ache · Leia · Consulte · Anote", en: "Find · Read · Lookup · Note" },
         tagline: { pt: "annotate to assimilate", en: "annotate to assimilate" },
         icon: "columns-4",
         favicon: "/favicon.svg",

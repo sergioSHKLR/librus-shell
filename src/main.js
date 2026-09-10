@@ -131,7 +131,7 @@ const I18N = {
     "tab.search": "Busca",
     "tab.book": "Páginas",
     "tab.typo": "Tipo",
-    "tab.context": "Contexto",
+    "tab.consult": "Consulte",
     "tab.pdf": "PDF",
     "tab.video": "Conf",
     "tab.notes": "Notas",
@@ -367,13 +367,13 @@ const I18N = {
     "pane.consult": "3. Consult",
     "pane.annotate": "4. Annotate",
     "library.title": "LIBRUS",
-    "library.cta": "Find · Read · Consult · Annotate",
+    "library.cta": "Find · Read · Lookup · Note",
     "library.heading": "Library",
     "tab.toc": "TOC",
     "tab.search": "Search",
     "tab.book": "Pages",
     "tab.typo": "Type",
-    "tab.context": "Context",
+    "tab.consult": "Consult",
     "tab.pdf": "PDF",
     "tab.video": "Conf",
     "tab.notes": "Notes",
@@ -406,8 +406,8 @@ const I18N = {
     "tip.typo.font": "Font family",
     "tip.page.prev": "Previous page",
     "tip.page.next": "Next page",
-    "tip.ctx.back": "Go back in context",
-    "tip.ctx.reload": "Reload context page",
+    "tip.ctx.back": "Go back in consult",
+    "tip.ctx.reload": "Reload consult page",
     "tip.close": "Close",
     "tip.home": "Library",
 
@@ -669,7 +669,7 @@ let bookLinksOn = true;
 let searchQuery = "";
 let hypoTimer = null;
 let lastCtxUrl = "";
-/** Simple iframe history for Context back button */
+/** Simple iframe history for Consulte back button */
 const ctxHistory = [];
 /** Mock PDF state (used when FEAT.pdf is off) */
 let mockPdfPage = 1;
@@ -752,7 +752,7 @@ function tipForButton(btn) {
       "find:search": "tab.search",
       "read:book": "tab.book",
       "read:typo": "tab.typo",
-      "consult:web": "tab.context",
+      "consult:web": "tab.consult",
       "consult:pdf": "tab.pdf",
       "consult:video": "tab.video",
       "annotate:notes": "tab.notes",
@@ -2706,7 +2706,7 @@ function highlightInPage(query, hit) {
   }
 }
 
-/* ── Context / providers ─────────────────────────── */
+/* ── Consulte / providers ─────────────────────────── */
 
 function wikiLang() {
   return currentLang === "en" ? "en" : "pt";
