@@ -308,6 +308,7 @@ const I18N = {
     "btn.prev": "Anterior",
     "btn.next": "Próxima",
     "page.unit": "páginas",
+    "scroll.unit": "leitura",
     "btn.back": "Voltar",
     "btn.reload": "Recarregar",
     "btn.zoomIn": "Mais",
@@ -552,6 +553,7 @@ const I18N = {
     "btn.prev": "Previous",
     "btn.next": "Next",
     "page.unit": "pages",
+    "scroll.unit": "reading",
     "btn.back": "Back",
     "btn.reload": "Reload",
     "btn.zoomIn": "In",
@@ -4064,10 +4066,29 @@ function syncScrollPct() {
   const el = document.getElementById("scroll-pct");
   const wrap = document.querySelector("[data-scroll-pct]");
   if (!el || wrap?.hidden) return;
-  el.textContent = bookScrollPct() + "%";
+  const pct = bookScrollPct();
+  el.textContent = pct + "%";
   const tip = t("tip.scroll.pct");
   wrap.setAttribute("title", tip);
   wrap.setAttribute("aria-label", tip);
+  const book = bookEl();
+  const max = book ? book.scrollHeight - book.clientHeight : 0;
+  const top = book ? book.scrollTop : 0;
+  const prev = wrap.querySelector('[data-scroll="prev"]');
+  const next = wrap.querySelector('[data-scroll="next"]');
+  if (prev instanceof HTMLButtonElement) {
+    prev.disabled = !(max > 0) || top <= 0;
+  }
+  if (next instanceof HTMLButtonElement) {
+    next.disabled = !(max > 0) || top >= max - 1;
+  }
+}
+
+function scrollBookByPage(dir) {
+  const el = bookEl();
+  if (!el) return;
+  const step = Math.max(el.clientHeight * 0.9, 1);
+  el.scrollBy({ top: dir * step, behavior: "smooth" });
 }
 
 function initBookScrollPct() {
@@ -4079,6 +4100,12 @@ function initBookScrollPct() {
     { capture: true, passive: true },
   );
   window.addEventListener("resize", () => syncScrollPct());
+  document.querySelectorAll("[data-scroll]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (btn.getAttribute("data-scroll") === "prev") scrollBookByPage(-1);
+      if (btn.getAttribute("data-scroll") === "next") scrollBookByPage(1);
+    });
+  });
 }
 
 function initBarScrollHide() {

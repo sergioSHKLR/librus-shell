@@ -23,7 +23,7 @@ Chrome, Help, flavors, and Consulte empty-state are **frozen** (v0.9.9). **v0.9.
 9. **Viewport / fullscreen** — phone landscape blocked (rotate to portrait). Portrait phone: Leia + Ache overlay; Consulte off.  
    Installed / handheld: standalone PWA (`display: standalone`, `viewport-fit=cover`, `black-translucent`). Floor bar and workspace use `safe-area-inset-*`. Hide-on-scroll floor bar: phone **and** tablet (≤1400).  
    **Fullscreen API:** off on tall Android phones (aspect ≥ 1.85) — known Chrome/OEM bug (Moto G Stylus 2025: black flash + exit toast). Tab M9–class slates and desktop keep a **manual** `#book-fs` only. Never auto-enter. Never `{ navigationUI: "hide" }` on Android. Manifest `orientation` is `any`. `theme-color` follows the Leia tab band.  
-10. **Páginas toolbar** — left-aligned, no hairline: **Links** · pager (`‹ n / X ›`, or live `n%` if unpaged) · **Tela Cheia** / Full screen (icon + label). Links on/off (inset bottom accent; hidden on phone). Fullscreen on this row when the API is allowed (not Typo); hidden on tall Android phones. No `.tool-sep` on any toolbar. Tab accents stay on **top**.  
+10. **Páginas toolbar** — left-aligned, no hairline: **Links** · pager (`‹ n / X páginas ›`, or `‹ n% leitura ›` / `‹ n% reading ›` if unpaged) · **Tela Cheia** / Full screen (icon + label). Same order on every flavor. Links on/off (inset bottom accent; hidden on phone). Fullscreen on this row when the API is allowed (not Typo); hidden on tall Android phones. No `.tool-sep` on any toolbar. Tab accents stay on **top**.  
 11. **Typo defaults** — tablet/phone: wide column + justify. Desktop/laptop: medium + start. User cycles win for the session. Tab label is **Tipo** (PT) / **Typo** (EN).  
 12. **Hypothesis branding** — `appBackgroundColor` follows `--surface` (`#fff` / `#0a0a0a`). `accentColor` stays `#111` (Hypo TopBar is hardcoded `bg-white`; light ink on that bar is unreadable). CTA is dark fill + white label. Config is boot-time; theme swap updates config only (sidebar catches up on reload).
 
@@ -56,7 +56,7 @@ Chrome, Help, flavors, and Consulte empty-state are **frozen** (v0.9.9). **v0.9.
 5. **Ajuda** — mapa 1×4, cinco passos; setas dos passos 4–5 apontam para Leia. Retrato: colunas iguais.  
 6. **Consulte** — banners; Wikipedia cinza+invert no escuro; Luz e Bible em SVG. Aba web **Consulte**, não Contexto. PDF no tablet. Videoconf sem rodapé de dica.  
 7. **Tela cheia** — PWA standalone. Sem Fullscreen API em celular Android alto (limitação conhecida). Tablet (Tab M9) e desktop: botão manual em Páginas, à esquerda com Links e o pager. Nunca auto-enter.  
-8. **Páginas** — esquerda, sem traço: Links · `‹ n / X ›` (ou `n%`) · Tela Cheia (ícone + rótulo); esconder barra ao rolar no tablet.  
+8. **Páginas** — esquerda, sem traço, mesma ordem em todos os sabores: Links · `‹ n / X páginas ›` (ou `‹ n% leitura ›`) · Tela Cheia (ícone + rótulo); esconder barra ao rolar no tablet.  
 9. **Tipo** — tablet/celular: coluna larga + justificado. Aba **Tipo** (EN **Typo**).  
 10. **Hypothesis** — fundo do painel segue `--surface`; `accentColor` fica `#111` (a TopBar do Hypo é branca). Troca de tema só atualiza o config; o iframe pega no reload.
 
