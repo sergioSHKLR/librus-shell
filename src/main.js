@@ -300,6 +300,7 @@ const I18N = {
     "tab.search": "Busca",
     "tab.book": "Páginas",
     "tab.typo": "Tipo",
+    "tab.fs": "Tela Cheia",
     "tab.consult": "Consulte",
     "tab.pdf": "PDF",
     "tab.video": "Conf",
@@ -518,8 +519,6 @@ const I18N = {
     "search.nowhere": "Sem seção",
     "meet.hint": "Configure o App ID JaaS em Ajustes.",
     "meet.ready": "Pronto · {room}. Clique em Vídeo ou Voz para entrar.",
-    "meet.idleHint":
-      "Vídeo e voz via 8x8 JaaS. Defina o App ID em Ajustes, depois entre pela aba Vídeo.",
     "meet.needAppId": "Informe o App ID JaaS em Ajustes.",
     "meet.needHttps":
       "O 8x8 precisa de HTTPS ou localhost (WebRTC). Abra http://localhost — o IP da rede em http:// não funciona.",
@@ -544,7 +543,8 @@ const I18N = {
     "tab.toc": "TOC",
     "tab.search": "Search",
     "tab.book": "Pages",
-    "tab.typo": "Type",
+    "tab.typo": "Typo",
+    "tab.fs": "Full screen",
     "tab.consult": "Consult",
     "tab.pdf": "PDF",
     "tab.video": "Conf",
@@ -758,8 +758,6 @@ const I18N = {
     "search.nowhere": "No section",
     "meet.hint": "Set JaaS App ID in Settings.",
     "meet.ready": "Ready · {room}. Click Video or Voice to join.",
-    "meet.idleHint":
-      "Video and voice via 8x8 JaaS. Set the App ID in Settings, then join from the Video tab.",
     "meet.needAppId": "Enter JaaS App ID in Settings.",
     "meet.needHttps":
       "8x8 needs HTTPS or localhost (WebRTC). Open http://localhost — a LAN http:// IP will not work.",
@@ -1303,7 +1301,7 @@ function bookDisplayEmoji(book) {
   return (entry && entry.emoji) || book?.emoji || "";
 }
 
-/** Library: no Home, no bar title. Reader: Home › emoji + book. Owns document.title. */
+/** Library: no Home, no bar title. Reader: Home + emoji + book. Owns document.title. */
 function syncBarTitle() {
   const onReader = document.body?.dataset?.view === "reader";
   const homeBtn = document.querySelector('#bar [data-go="library"]');

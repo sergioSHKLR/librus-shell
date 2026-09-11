@@ -425,18 +425,8 @@ body[data-view="library"] #settings [data-reader-only] {
 }
 
 #reader [data-tool="read:book"] #book-fs {
-  margin-left: auto;
   min-width: var(--ctrl-h);
-  padding: 0;
   flex-shrink: 0;
-}
-
-/* Folded notes: collapsed Hypo rail (~20px) — workspace already insets 20px.
- * Keep the control inside the Leia pane so it doesn’t sit under the bucket. */
-@media screen and (max-width: 1400px) {
-  #reader [data-tool="read:book"] #book-fs {
-    margin-right: 2px;
-  }
 }
 
 /*
@@ -1568,8 +1558,7 @@ html[data-theme="dark"] .ctx-providers-banner.is-dict .ctx-providers-wordmark {
   background: #e8e8e8;
 }
 
-#pdf-mock-hint,
-#video-mock-hint {
+#pdf-mock-hint {
   margin: 0;
   font-size: 0.78rem;
   color: var(--muted);
@@ -1613,12 +1602,6 @@ html[data-theme="dark"] .ctx-providers-banner.is-dict .ctx-providers-wordmark {
   margin: 0;
   font-size: 0.95rem;
   font-weight: 500;
-}
-
-#video-mock-hint {
-  padding: 0.65rem 1rem;
-  border-top: 1px solid #2a2a30;
-  color: #9a9aa3;
 }
 
 #book {
@@ -2082,7 +2065,7 @@ html.hypo-in-pane #p4 [data-body] > p {
 
 /*
  * Narrow / folded chrome: hide text labels on tabs + find/notes toolbars (icons only).
- * Leia Páginas / Tipo keep labels and slide (same as Consulte providers).
+ * Leia Páginas / Typo keep labels and slide (same as Consulte providers).
  * body[data-compact="1"] from handleTabFolding (fold find or ≤1800).
  * body[data-compact-consult="1"] — Consulte icon-only only when that pane is folded.
  */
@@ -2288,13 +2271,6 @@ body[data-compact="1"] #reader [data-tool] input[type="search"] {
 #app-title[hidden],
 body[data-view="library"] #app-title {
   display: none !important;
-}
-
-#app-title[data-kind="book"]::before {
-  content: "›";
-  margin-right: 0.45rem;
-  font-weight: 500;
-  opacity: 0.45;
 }
 
 #app-title[data-kind="book"] .bar-book-emoji {
@@ -4410,20 +4386,6 @@ html[data-theme="dark"] #viewport-frame.is-blocked #viewport-label-device {
 }
 
 /* ── Páginas toolbar: in-book links on/off ─ */
-#reader [data-tool="read:book"] .tool-sep {
-  display: inline-block;
-  width: 1px;
-  height: 1.35rem;
-  margin: 0 0.35rem;
-  background: var(--border);
-  flex-shrink: 0;
-  align-self: center;
-}
-
-#reader [data-tool="read:book"] .tool-sep[hidden] {
-  display: none !important;
-}
-
 /*
  * In-book links toggle:
  * ON  = inset bottom --tab-top-read (does not cover the toolbar hairline)

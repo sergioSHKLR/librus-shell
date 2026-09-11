@@ -15,12 +15,20 @@ function branding(theme) {
   const dark = theme === 'dark';
   /* Match pane body paper (--surface), not the old grey aux */
   const bg = dark ? '#0a0a0a' : '#ffffff';
-  const fg = dark ? '#f0f0f0' : '#111111';
+  /*
+   * Hypothesis TopBar is hardcoded `bg-white`. `accentColor` is applied as
+   * `color` on Sign up / Log in (and more/less) sitting on that white chrome
+   * and on white cards — never invert it with the shell theme.
+   */
+  const accentOnWhite = '#111111';
+  /* Post / CTA: dark fill + light label on the white cards in both themes */
+  const ctaBg = '#111111';
+  const ctaFg = '#ffffff';
   return {
     appBackgroundColor: bg,
-    accentColor: fg,
-    ctaBackgroundColor: bg,
-    ctaTextColor: fg,
+    accentColor: accentOnWhite,
+    ctaBackgroundColor: ctaBg,
+    ctaTextColor: ctaFg,
     selectionFontFamily: font,
     annotationFontFamily: font
   };
