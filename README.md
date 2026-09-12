@@ -73,7 +73,7 @@ Chrome is frozen at **v0.9.9**; polish through **v0.9.13** (2026-09-10; Páginas
 
 1. Do **not** add panes, bar items, Help beats, or flavor marks unless the freeze is lifted.  
 2. Next work is **book presentation** (`#book` CSS, `public/books/`) and editorial in `doutrina-content` / `librus-linker`. LDE reader chrome (2026-09-12): voice rails, inline question numbers, Bible cites, in-book hash jumps, Consulte stamped hrefs. Shelf **BETA** on LDM · ESE · CEU · GEN only.  
-3. Library CTA is `Ache · Leia · Consulte · Anote` / `Find · Read · Lookup · Note` on all flavors.  
+3. Library CTA is `Ache · Leia · Consulte · Anote` / `Find · Read · Lookup · Note` on all flavors. Flavor marks are Google Drawings **Dark 1**: LIBRUS `#6aa84f` (`columns-4`) · DOUTRINA `#3c78d8` (`droplet`) · CENTRO `#cc0000` (`house-heart`). A4 brand sheets: [docs/brand/](docs/brand/). Mailbox: `sergio@doutrina.org` only.  
 
 ## 🧱 What this repo owns
 
@@ -169,7 +169,7 @@ Chrome congelado em **v0.9.9**; polimento até **v0.9.13** (2026-09-10; Páginas
 
 1. **Não** acrescentar painéis, itens de barra, beats de Ajuda ou marcas de sabor sem descongelar.  
 2. Próximo trabalho: **apresentação dos livros** (CSS de `#book`, `public/books/`) e editorial em `doutrina-content` / `librus-linker`. LDE (2026-09-12): trilhos das vozes, números de pergunta na linha, cites, saltos `#`, Consulte pelo `href`. **BETA** só nas capas LDM · ESE · CEU · GEN.  
-3. CTA da biblioteca: `Ache · Leia · Consulte · Anote` / `Find · Read · Lookup · Note` nos três sabores.  
+3. CTA da biblioteca: `Ache · Leia · Consulte · Anote` / `Find · Read · Lookup · Note` nos três sabores. Marcas Drawings Dark 1: LIBRUS `#6aa84f` (`columns-4`) · DOUTRINA `#3c78d8` (`droplet`) · CENTRO `#cc0000` (`house-heart`). Folhas A4: [docs/brand/](docs/brand/). Email: só `sergio@doutrina.org`.  
 
 ## 🧱 O que este repo possui
 
