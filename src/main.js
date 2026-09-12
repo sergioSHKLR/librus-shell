@@ -830,6 +830,9 @@ let pageIndex = 0;
  * @type {number[]}
  */
 let folioPages = [];
+/** In-book hash target (footnote / índice) — skip folio snap while set. */
+let inBookAnchor = "";
+let inBookAnchorGen = 0;
 let fontSize = 1;
 let lineHeight = 1.65;
 let measure = "medium";
@@ -1471,6 +1474,11 @@ async function enterReader(slug, page = 0) {
     );
   }
   setView("reader");
+  try {
+    inBookAnchor = decodeURIComponent((location.hash || "").replace(/^#/, ""));
+  } catch (_) {
+    inBookAnchor = "";
+  }
   setMode("find", "toc");
   setMode("read", "book");
   setMode("consult", "web");
@@ -2198,6 +2206,13 @@ function renderLibrary() {
     const meta =
       currentLang === "pt" && entry.metaPt ? entry.metaPt : entry.meta || "";
     small.textContent = [entry.author, meta].filter(Boolean).join(" · ");
+    if (entry.beta) {
+      const badge = document.createElement("span");
+      badge.className = "cover-beta";
+      badge.setAttribute("aria-label", "Beta");
+      badge.textContent = "BETA";
+      btn.appendChild(badge);
+    }
     btn.appendChild(strong);
     btn.appendChild(small);
     btn.addEventListener("click", () => openBook(entry.id));
@@ -2248,6 +2263,126 @@ function scrollToFolio(folioNum, { smooth = false } = {}) {
     block: "start",
     behavior: smooth ? "smooth" : "auto",
   });
+}
+
+function hrefFragment(href) {
+  if (!href) return "";
+  try {
+    if (href.startsWith("#")) return decodeURIComponent(href.slice(1));
+    const u = new URL(href, location.href);
+    if (u.origin === location.origin && u.hash) {
+      return decodeURIComponent(u.hash.slice(1));
+    }
+  } catch (_) {
+    /* ignore */
+  }
+  return "";
+}
+
+function openDetailsAncestors(el) {
+  let n = el?.parentElement;
+  while (n) {
+    if (n instanceof HTMLDetailsElement) n.open = true;
+    n = n.parentElement;
+  }
+}
+
+function folioNumberForElement(el) {
+  const root = bookEl();
+  if (!root || !el || !root.contains(el)) return 0;
+  const starts = root.querySelectorAll(".pdf-page-start[data-page]");
+  let last = 0;
+  for (const s of starts) {
+    if (s === el || s.contains(el)) {
+      return Number(s.getAttribute("data-page")) || last;
+    }
+    const pos = s.compareDocumentPosition(el);
+    if (pos & Node.DOCUMENT_POSITION_FOLLOWING) {
+      last = Number(s.getAttribute("data-page")) || last;
+    } else if (pos & Node.DOCUMENT_POSITION_PRECEDING) {
+      break;
+    }
+  }
+  return last;
+}
+
+function syncFolioChrome(folioNum) {
+  if (!isFolioPaged() || !folioNum) return;
+  const idx = folioIndexForNumber(folioNum);
+  if (idx >= 0) pageIndex = idx;
+  const folio = folioPages[pageIndex] || folioNum;
+  const folioMax = folioPages[folioPages.length - 1] || folio;
+  const input = document.getElementById("page-n");
+  const total = document.getElementById("page-total");
+  if (input) {
+    input.value = String(folio);
+    input.min = String(folioPages[0] || 1);
+    input.max = String(folioMax);
+  }
+  if (total) total.textContent = "/ " + folioMax;
+  const path = pathFor("reader", { slug: currentSlug, page: folio - 1 });
+  if (location.pathname !== path) {
+    try {
+      history.replaceState({ path }, "", path);
+    } catch (_) {
+      /* ignore */
+    }
+  }
+}
+
+/**
+ * In-book #fn / #s… jumps. Native hash leaves focus on the clicked link;
+ * Hypo’s delayed wrap then scrolls that link back into view. Move focus to
+ * the target and pin folio so renderPage does not snap to the old page.
+ */
+function jumpInBook(id, { smooth = false } = {}) {
+  const root = bookEl();
+  if (!root || !id) return false;
+  let target;
+  try {
+    target = root.querySelector("#" + CSS.escape(id));
+  } catch (_) {
+    return false;
+  }
+  if (!target) return false;
+  inBookAnchor = id;
+  openDetailsAncestors(target);
+  const folio = folioNumberForElement(target);
+  if (folio) syncFolioChrome(folio);
+  if (target instanceof HTMLElement) {
+    if (!target.hasAttribute("tabindex")) target.tabIndex = -1;
+    try {
+      target.focus({ preventScroll: true });
+    } catch (_) {
+      /* ignore */
+    }
+  }
+  target.scrollIntoView({
+    block: "start",
+    behavior: smooth ? "smooth" : "auto",
+  });
+  /* Hypo wraps the 2MB body a few seconds later and restores scroll to the
+   * clicked link (up-page). Re-pin only if scroll jumped backward. */
+  const jumpedTo = root.scrollTop;
+  const gen = ++inBookAnchorGen;
+  [80, 400, 1500, 3000, 5000].forEach((ms) => {
+    setTimeout(() => {
+      if (gen !== inBookAnchorGen || inBookAnchor !== id) return;
+      const t = root.querySelector("#" + CSS.escape(id));
+      if (!(t instanceof Element)) return;
+      if (root.scrollTop < jumpedTo - 64) {
+        t.scrollIntoView({ block: "start", behavior: "auto" });
+        if (t instanceof HTMLElement) {
+          try {
+            t.focus({ preventScroll: true });
+          } catch (_) {
+            /* ignore */
+          }
+        }
+      }
+    }, ms);
+  });
+  return true;
 }
 
 function folioIndexForNumber(folioNum) {
@@ -2420,8 +2555,7 @@ function renderToc() {
           return;
         }
       }
-      const target = bookEl()?.querySelector("#" + CSS.escape(item.id));
-      target?.scrollIntoView({ block: "start", behavior: "smooth" });
+      jumpInBook(item.id);
     });
     nav.appendChild(btn);
   });
@@ -2430,6 +2564,48 @@ function renderToc() {
     p.textContent = t("toc.empty");
     nav.appendChild(p);
   }
+}
+
+/**
+ * Folio URL `/books/lde` has no trailing slash, so relative `images/vine.webp`
+ * would resolve to `/books/images/…` (SPA fallback), not the book asset.
+ */
+function resolveBookMedia(root, slug) {
+  if (!root || !slug) return;
+  const prefix = "/books/" + encodeURIComponent(slug) + "/";
+  root.querySelectorAll("img[src]").forEach((img) => {
+    let src = img.getAttribute("src") || "";
+    if (!src) return;
+    src = src.replace(/vine\.png(\?.*)?$/i, "vine.webp$1");
+    if (!/^(?:[a-z][a-z0-9+.-]*:|\/\/|\/)/i.test(src)) {
+      src = prefix + src.replace(/^\.\//, "");
+    }
+    img.setAttribute("src", src);
+  });
+  /* #️⃣ 12 / 790.a → same line as the question. Skip titled H5s (ESE chapters). */
+  root.querySelectorAll("h5").forEach((h) => {
+    if (h.classList.contains("q-num") || h.closest(".q-item")) return;
+    const t = (h.textContent || "").trim();
+    const m = t.match(/^#️⃣\s+(.+)$/u);
+    if (!m) return;
+    let n = m[1].trim();
+    if (!/^[\d.]+[a-z]?$/i.test(n)) return;
+    if (!n.endsWith(".")) n += ".";
+    h.textContent = "#️⃣ " + n;
+    h.classList.add("q-num");
+    const p = h.nextElementSibling;
+    if (!(p instanceof HTMLParagraphElement) || !h.parentNode) return;
+    const wrap = document.createElement("div");
+    wrap.className = "q-item";
+    h.parentNode.insertBefore(wrap, h);
+    wrap.appendChild(h);
+    wrap.appendChild(p);
+  });
+  root.querySelectorAll("p").forEach((p) => {
+    if (p.classList.contains("back-to-parent")) return;
+    const t = (p.textContent || "").replace(/\s+/g, " ").trim();
+    if (/^(↩️\s*)?Voltar para\b/u.test(t)) p.classList.add("back-to-parent");
+  });
 }
 
 function renderPage() {
@@ -2462,6 +2638,7 @@ function renderPage() {
           "</p>";
       el.dataset.folioBook = currentSlug || "";
       paintedSearchQuery = "";
+      resolveBookMedia(el, currentSlug);
     }
   } else {
     delete el.dataset.folioBook;
@@ -2472,6 +2649,7 @@ function renderPage() {
         "</p>";
     /* New DOM — any prior search marks are gone */
     paintedSearchQuery = "";
+    resolveBookMedia(el, currentSlug);
   }
 
   const input = document.getElementById("page-n");
@@ -2513,8 +2691,12 @@ function renderPage() {
   applyLinkFilters();
   if (folioMode) {
     const folio = folioPages[pageIndex] || folioPages[0];
+    const pin = inBookAnchor;
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => scrollToFolio(folio));
+      requestAnimationFrame(() => {
+        if (pin && jumpInBook(pin)) return;
+        scrollToFolio(folio);
+      });
     });
   }
 }
@@ -2529,6 +2711,8 @@ function goToPage(index, opts = {}) {
     if (index < 0 || index >= folioPages.length) return;
     const same = index === pageIndex;
     pageIndex = index;
+    inBookAnchor = "";
+    inBookAnchorGen += 1;
     const folio = folioPages[pageIndex];
     if (!same) renderPage();
     navigate(pathFor("reader", { slug: currentSlug, page: folio - 1 }), {
@@ -2541,6 +2725,8 @@ function goToPage(index, opts = {}) {
   if (index < 0 || index >= pages.length) return;
   const same = index === pageIndex;
   pageIndex = index;
+  inBookAnchor = "";
+  inBookAnchorGen += 1;
   if (!same) {
     renderPage();
     navigate(pathFor("reader", { slug: currentSlug, page: pageIndex }), {
@@ -3137,6 +3323,8 @@ function loadCtx(url, { push = true, term = "", provider = "" } = {}) {
   if (push && lastCtxUrl && lastCtxUrl !== url) {
     ctxHistory.push(lastCtxUrl);
     if (ctxHistory.length > 40) ctxHistory.shift();
+  } else if (push && !lastCtxUrl) {
+    ctxHistory.push("");
   }
   lastCtxUrl = url;
   const prov = provider || providerFromUrl(url);
@@ -3245,17 +3433,18 @@ async function openBookLink(href, anchor) {
     return;
   }
 
+  /* Stamped href is canonical. Re-searching by label sent “Mateus” to the
+   * wiki disambiguation page and “cap. 23” / “vers. 12” to the wrong article. */
+  if (/^https?:\/\//i.test(href)) {
+    loadCtx(href, { term, provider: key || providerFromUrl(href) });
+    return;
+  }
+
   if (key) {
     const url = await resolveProviderUrl(key, term);
     if (url) {
       loadCtx(url, { term, provider: key });
-      return;
     }
-  }
-
-  /* Other absolute links → consult iframe (wiki etc.) */
-  if (/^https?:\/\//i.test(href)) {
-    loadCtx(href, { term, provider: key || providerFromUrl(href) });
   }
 }
 
@@ -3265,9 +3454,12 @@ function ctxGoBack() {
     loadCtx(prev, { push: false });
     return;
   }
-  /* No history: reload provider home for current lang wiki */
-  const home = providerUrl("encyc", "");
-  if (home) loadCtx(home, { push: false });
+  lastCtxUrl = "";
+  const frame = ctxEl();
+  if (frame) frame.src = "about:blank";
+  setCtxHintVisible(true);
+  setCtxLoading(false);
+  syncCtxBackBtn();
 }
 
 function syncCtxBackBtn() {
@@ -3504,6 +3696,26 @@ function wire() {
       closeFoldOverlays({ restoreRead: true });
     }
   });
+
+  /* In-book #fn / #s… — capture so native hash + Hypo cannot snap back */
+  document.addEventListener(
+    "click",
+    (e) => {
+      if (e.defaultPrevented || e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      const t = e.target;
+      if (!(t instanceof Element)) return;
+      const book = bookEl();
+      if (!book) return;
+      const a = t.closest("a[href]");
+      if (!a || !book.contains(a)) return;
+      const id = hrefFragment(a.getAttribute("href") || "");
+      if (!id) return;
+      e.preventDefault();
+      jumpInBook(id);
+    },
+    true,
+  );
 
   document.querySelectorAll("[data-mode]").forEach((btn) => {
     btn.addEventListener("click", () =>

@@ -29,11 +29,11 @@
   --surface: #fff;
   --border: #ccc;
   --gutter: #c8c8c8;
-  /* Chrome fills: tab-bar track + inactive tabs. Selected tab + toolbar = --chrome-active-bg. */
-  --chrome-find: #ffe4e8;
-  --chrome-read: #e3f0ff;
-  --chrome-consult: #e3f5e8;
-  --chrome-annotate: #fff6b8;
+  /* Chrome fills: Google Drawings Light 3 of Red / Blue / Green / Yellow. */
+  --chrome-find: #f4cccc;
+  --chrome-read: #c9daf8;
+  --chrome-consult: #d9ead3;
+  --chrome-annotate: #fff2cc;
   --chrome-band: var(--surface);
   --chrome-active-bg: var(--surface);
   --chrome-tab-top: 3px;
@@ -48,21 +48,20 @@
   --tab-top-consult: var(--accent-consult);
   --tab-top-annotate: var(--accent-annotate);
   /*
-   * Pane title accents — WebAIM AA normal text on white (≥4.5:1).
-   * Checked: crimson≈5.0, #0b5cad≈6.7, #0d6b2c≈6.7, #7a5c00≈6.3 on #fff.
-   * (dodgerblue / limegreen / #ffcc00 failed AA on white.)
+   * Pane title accents — Google Drawings named hues, AA on white (≥4.5:1).
+   * Dark red 2 / Dark blue 2 / Dark green 2 / Dark yellow 3.
+   * Stationery labels used Dark yellow 2 #bf9000 (2.91:1 on white) — Dark yellow 3 keeps AA.
    */
-  --accent-find: #a0122a;
-  --accent-read: #0b5cad;
-  --accent-consult: #0d6b2c;
-  --accent-annotate: #7a5c00;
+  --accent-find: #990000;
+  --accent-read: #1155cc;
+  --accent-consult: #38761d;
+  --accent-annotate: #7f6000;
   /* p4 toolbar bottom bar — keep */
   --bar: #111;
   --bar-fg: #fff;
-  --accent: #1a5fb4;
+  --accent: #3c78d8;
   --book-size: 1rem;
   --book-lh: 1.65;
-  /* Fallback; #book overrides per data-measure (pane % + rem cap) */
   --book-measure: min(72%, 42rem);
   /* Side panes (Find / Consult / Annotate) — one flat fill, not layered */
   --pane-aux: #f5f5f5;
@@ -87,14 +86,14 @@ html[data-theme="dark"] {
   --chrome-annotate: #3a3520;
   /* On dark chrome: light labels */
   --chrome-label: #f0f0f0;
-  /* Accents on dark surface — all ≥6:1 vs #1a1a1a */
-  --accent-find: #ff8a96;
-  --accent-read: #7eb6f0;
-  --accent-consult: #8ee5b0;
-  --accent-annotate: #e6c200;
+  /* Accents on dark — Google Drawings Light 1 of the same columns (≥5:1 vs #1a1a1a) */
+  --accent-find: #e06666;
+  --accent-read: #6d9eeb;
+  --accent-consult: #93c47d;
+  --accent-annotate: #ffd966;
   --bar: #000;
   --bar-fg: #fff;
-  --accent: #62a0ea;
+  --accent: #6d9eeb;
   --go: #22c55e;
   --go-fg: #fff;
   color-scheme: dark;
@@ -593,6 +592,22 @@ html[data-flavor="centro"] #grid > li:first-child > button {
   );
 }
 
+#grid > li > button > .cover-beta {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #c9a000;
+  line-height: 1;
+  pointer-events: none;
+}
+
+html[data-theme="dark"] #grid > li > button > .cover-beta {
+  color: #e6c200;
+}
+
 #grid > li > button > b {
   font-size: 1.85rem;
   position: absolute;
@@ -897,15 +912,15 @@ html:not([data-guide]) {
 
 /* soft: diluted fills; slightly punchier tops */
 html[data-guide="soft"] {
-  --chrome-find: color-mix(in srgb, #ffe4e8 40%, var(--surface));
-  --chrome-read: color-mix(in srgb, #e3f0ff 40%, var(--surface));
-  --chrome-consult: color-mix(in srgb, #e3f5e8 40%, var(--surface));
-  --chrome-annotate: color-mix(in srgb, #fff6b8 40%, var(--surface));
+  --chrome-find: color-mix(in srgb, #f4cccc 40%, var(--surface));
+  --chrome-read: color-mix(in srgb, #c9daf8 40%, var(--surface));
+  --chrome-consult: color-mix(in srgb, #d9ead3 40%, var(--surface));
+  --chrome-annotate: color-mix(in srgb, #fff2cc 40%, var(--surface));
   --chrome-band: var(--surface);
-  --tab-top-find: #d01232;
-  --tab-top-read: #0a6fd4;
-  --tab-top-consult: #0f8a38;
-  --tab-top-annotate: #c9a000;
+  --tab-top-find: #cc0000;
+  --tab-top-read: #3c78d8;
+  --tab-top-consult: #6aa84f;
+  --tab-top-annotate: #f1c232;
 }
 
 html[data-theme="dark"][data-guide="soft"] {
@@ -931,10 +946,10 @@ html[data-guide="min"] {
   --chrome-band: #ffffff;
   --chrome-active-bg: #e8e8e8;
   --chrome-label: #111111;
-  --tab-top-find: #ff2d4a;
-  --tab-top-read: #1a8cff;
-  --tab-top-consult: #12b54a;
-  --tab-top-annotate: #e6b800;
+  --tab-top-find: #ff0000;
+  --tab-top-read: #6d9eeb;
+  --tab-top-consult: #6aa84f;
+  --tab-top-annotate: #f1c232;
   --chrome-tab-top: 3px;
 }
 
@@ -1601,9 +1616,9 @@ html[data-theme="dark"] .ctx-providers-banner.is-dict .ctx-providers-wordmark {
    * Fill scrollport so the pane scrollbar tracks the 2|3 border.
    * Measure is % of this box (see data-measure) so narrow/medium/wide
    * stay distinct on tablet half-panes where fixed rem all overflowed.
-   * --book-gutter never collapses — text must not kiss the pane edges.
+   * Side pad is at least 10px so body text never kisses the pane.
    */
-  --book-gutter: clamp(1.25rem, 3.5%, 2rem);
+  --book-gutter: max(10px, clamp(1.25rem, 3.5%, 2rem));
   --book-measure: min(72%, 42rem);
   width: 100%;
   max-width: none;
@@ -1619,7 +1634,6 @@ html[data-theme="dark"] .ctx-providers-banner.is-dict .ctx-providers-wordmark {
   max-width: var(--book-measure);
   margin-left: auto;
   margin-right: auto;
-  /* Nested full-bleed edges still stay inside the guttered scrollport */
   box-sizing: border-box;
 }
 
@@ -1636,6 +1650,131 @@ html[data-theme="dark"] .ctx-providers-banner.is-dict .ctx-providers-wordmark {
   height: auto;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Termos relacionados: muted hops, not body ink */
+#book .related-terms-block {
+  color: var(--muted);
+  font-size: 0.92em;
+  clear: left;
+}
+
+#book .related-terms-block .expand-summary {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+#book .related-terms-block a {
+  color: var(--muted);
+}
+
+#book .related-terms-block a:hover {
+  color: var(--fg);
+}
+
+#book .back-to-parent {
+  color: var(--muted);
+  font-size: 0.92em;
+}
+
+#book .back-to-parent a {
+  color: var(--muted);
+}
+
+#book .back-to-parent a:hover {
+  color: var(--fg);
+}
+
+/* In-book links: underline only on hover (legibility of the line) */
+#book a {
+  text-decoration: none;
+  text-underline-offset: 0.15em;
+}
+
+#book a:hover {
+  text-decoration: underline;
+}
+
+/* Voice rail + wash; marks stay in the text flow (no gutter hang). */
+#book .spirit-block,
+#book .kardec-block,
+#book .bible-block {
+  margin-block: 0.85rem;
+  padding: 0.65rem 0.9rem;
+  border-left: 3.5px solid;
+  clear: left;
+}
+
+#book .spirit-block p:last-child,
+#book .kardec-block p:last-child,
+#book .bible-block p:last-child {
+  margin-bottom: 0;
+}
+
+#book .spirit-block {
+  background: color-mix(in srgb, #4a90e2 10%, var(--surface));
+  border-left-color: #4a90e2;
+  font-style: italic;
+}
+
+#book .kardec-block {
+  background: color-mix(in srgb, var(--fg) 5.5%, var(--surface));
+  border-left-color: #7f8c8d;
+}
+
+#book .bible-block {
+  background: color-mix(in srgb, #8e44ad 9%, var(--surface));
+  border-left-color: #8e44ad;
+}
+
+#book .bible-cite {
+  font-size: 0.9em;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+html[data-theme="dark"] #book .spirit-block {
+  background: color-mix(in srgb, #6d9eeb 16%, var(--surface));
+  border-left-color: #6d9eeb;
+}
+
+html[data-theme="dark"] #book .kardec-block {
+  background: color-mix(in srgb, var(--fg) 8%, var(--surface));
+  border-left-color: #9aa0a6;
+}
+
+html[data-theme="dark"] #book .bible-block {
+  background: color-mix(in srgb, #c39bd3 16%, var(--surface));
+  border-left-color: #c39bd3;
+}
+
+/* H5/H6 = body size. Question number + text share one line. */
+#book h5,
+#book h6 {
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: 700;
+}
+
+#book .q-item {
+  margin-block: 0.85em 0.35em;
+}
+
+#book .q-item .q-num {
+  display: inline;
+  margin: 0;
+  padding-inline-end: 0.35em;
+  font-variant-numeric: tabular-nums;
+}
+
+#book .q-item p {
+  display: inline;
+  margin: 0;
+}
+
+#book h6 {
+  font-weight: 600;
+  margin-block: 0.7em 0.25em;
 }
 
 /*
@@ -1669,7 +1808,6 @@ html[data-theme="dark"] .ctx-providers-banner.is-dict .ctx-providers-wordmark {
 }
 
 #book[data-measure="wide"] {
-  /* Leave ~8% column air + --book-gutter — never flush to borders */
   --book-measure: min(92%, 56rem);
 }
 
@@ -2180,7 +2318,7 @@ body[data-compact-consult="1"] #reader #p3 [data-tool] button {
 }
 
 #ctx-host.is-need-term {
-  outline: 2px solid var(--accent-consult, #0d6b2c);
+  outline: 2px solid var(--accent-consult, #38761d);
   outline-offset: -2px;
 }
 
@@ -2196,7 +2334,7 @@ body[data-compact-consult="1"] #reader #p3 [data-tool] button {
   border-radius: 8px;
   background: var(--surface);
   color: var(--fg);
-  border: 1px solid var(--accent-consult, #0d6b2c);
+  border: 1px solid var(--accent-consult, #38761d);
   font-size: 0.88rem;
   text-align: center;
   z-index: 2;
@@ -3802,7 +3940,7 @@ html.is-portrait-blocked #scrim.is-open {
 }
 
 .onboard-mock-link {
-  color: var(--accent-read, #0b5cad);
+  color: var(--accent-read, #1155cc);
   text-decoration: underline;
   text-underline-offset: 2px;
   cursor: inherit;
@@ -3874,7 +4012,7 @@ a.onboard-mock-link {
 .onboard-note {
   margin: 0;
   padding: 0.5rem 0.55rem;
-  border-left: 3px solid var(--accent-annotate, #7a5c00);
+  border-left: 3px solid var(--accent-annotate, #7f6000);
   background: color-mix(in srgb, var(--chrome-annotate) 55%, var(--surface));
   border-radius: 0 8px 8px 0;
 }
