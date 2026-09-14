@@ -123,7 +123,7 @@ npm run dev:centro     # http://localhost:5176
 1. Run a flavor locally; file issues with viewport + flavor id.  
 2. Propose UX fixes that keep **active study** (not passive media). Shell chrome is frozen — prefer book/CSS issues.  
 3. Keep PRs focused; do not hand-edit host `dist/` — change the shell and deploy.  
-4. New version: reset and run [docs/SMOKE.md](docs/SMOKE.md).  
+4. New version: open [`/smoke.html`](https://librus.app/smoke.html) (reset + log). Markdown: [docs/SMOKE.md](docs/SMOKE.md).  
 
 ## 🏅 Credits
 
@@ -213,7 +213,7 @@ npm run dev:centro     # http://localhost:5176
 1. Rode um sabor localmente; abra issues com viewport + id do sabor.  
 2. Proponha UX que preserve **estudo ativo** (não mídia passiva). Chrome congelado — prefira issues de livro/CSS.  
 3. PRs focados; não edite `dist/` nos hosts à mão — altere o shell e faça deploy.  
-4. Nova versão: zere e rode [docs/SMOKE.md](docs/SMOKE.md).  
+4. Nova versão: abra [`/smoke.html`](https://librus.app/smoke.html) (reset + log). Markdown: [docs/SMOKE.md](docs/SMOKE.md).  
 
 ## 🏅 Créditos
 

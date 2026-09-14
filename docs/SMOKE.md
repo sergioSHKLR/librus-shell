@@ -1,6 +1,10 @@
 # Smoke checklist
 
-Resetable pass for each shell version. Uncheck, fill the header, run top to bottom. Failures: note width × height, flavor, and whether it is live or local.
+Interactive page (log + checkboxes + reset): **`/smoke.html`** on any flavor
+(`https://librus.app/smoke.html`, or `http://localhost:5174/smoke.html`).
+
+Plain-text copy below if you prefer git/markdown. Reset the HTML page with **Reset**
+(archives the pass in the log). Here: clear the header and turn `- [x]` back to `- [ ]`.
 
 ## Reset
 
