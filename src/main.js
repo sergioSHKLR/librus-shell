@@ -61,7 +61,7 @@ const VP = {
 const STUDY_REDUCED_MAX_W = VP.FOLD_CONSULT;
 /** Providers kept on tablet/phone (flavor allowlist still applies). */
 const NARROW_PROVIDERS = ["encyc", "dict"];
-const APP_VERSION = "0.9.13"; // 2026-09-10 — no FS API on tall Android phones
+const APP_VERSION = "0.9.14"; // 2026-09-14 — overlay under tabs; Links hides hardcoded hrefs
 
 /** Installed PWA / iOS home-screen. Standalone still shows the Android status bar. */
 function isStandaloneApp() {

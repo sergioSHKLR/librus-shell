@@ -1,10 +1,10 @@
 # Interface freeze — v0.9.13
 
 **Date:** 2026-09-10  
-**Version:** `0.9.13` BETA  
+**Version:** `0.9.14` BETA (freeze lock remains v0.9.13)  
 **Repo:** `librus-shell` (build step 3 of 4)
 
-Chrome, Help, flavors, and Consulte empty-state are **frozen** (v0.9.9). **v0.9.10** is handheld/toolbar polish. **v0.9.11–0.9.12** were Fullscreen API experiments. **v0.9.13** locks the policy: no Fullscreen API on tall Android phones; manual only on slates/desktop. 2026-09-11: Páginas left-align + labels, Hypo dark ink, LDE `vine.webp`. **2026-09-12:** LDE `#book` presentation and shelf **BETA** on unfinished Kardec covers. See [`KNOWN-LIMITATIONS.md`](KNOWN-LIMITATIONS.md). Do not add panes, bar items, Help beats, or flavor marks without an explicit unfreeze. Book HTML/CSS and editorial Markdown are **not** frozen.
+Chrome, Help, flavors, and Consulte empty-state are **frozen** (v0.9.9). **v0.9.10** is handheld/toolbar polish. **v0.9.11–0.9.12** were Fullscreen API experiments. **v0.9.13** locks the policy: no Fullscreen API on tall Android phones; manual only on slates/desktop. 2026-09-11: Páginas left-align + labels, Hypo dark ink, LDE `vine.webp`. **2026-09-12:** LDE `#book` presentation and shelf **BETA** on unfinished Kardec covers. **v0.9.14** (2026-09-14): Ache overlay sits under `#main-tabs` from the first fold; Páginas Links hides hardcoded `href`s. See [`KNOWN-LIMITATIONS.md`](KNOWN-LIMITATIONS.md). Do not add panes, bar items, Help beats, or flavor marks without an explicit unfreeze. Book HTML/CSS and editorial Markdown are **not** frozen.
 
 ---
 
@@ -16,7 +16,7 @@ Chrome, Help, flavors, and Consulte empty-state are **frozen** (v0.9.9). **v0.9.
 2. **Library CTA** — PT `Ache · Leia · Consulte · Anote` · EN `Find · Read · Lookup · Note`. Same line on LIBRUS, DOUTRINA, CENTRO.  
 3. **Marks** — three Lucide strokes, accent = Google Drawings **Dark 1** of the family: LIBRUS columns-4 `#6aa84f` (Dark green 1) · DOUTRINA droplet `#3c78d8` (Dark cornflower 1) · CENTRO house-heart `#cc0000` (Dark red 1). Do not collapse to one glyph. Do not use web `#008b00` (not on the Drawings grid). Pane titles (AA on white): Ache Dark red 2 `#990000` · Leia Dark cornflower 2 `#1155cc` · Consulte Dark green 2 `#38761d` · Anote Dark yellow 3 `#7f6000`. Pane washes (print/map): Light 3 `#f4cccc` / `#c9daf8` / `#d9ead3` / `#fff2cc`. Contact mailbox is **sergio@doutrina.org** only (no librus@). CTA for all flavors: `Ache · Leia · Consulte · Anote`. LIBRUS tagline is *anotar para assimilar* / *annotate to assimilate* — never the English placeholder “call to action”. Brand sheets: `docs/brand/*-A4.pdf`.  
 4. **Floor bar** — Library: Help · Settings only (no Home, no wordmark, no BETA). Reader: Home + emoji + book title (no `›`); Help · Settings. `document.title` is `Book · Flavor` in the reader, flavor name on the shelf.  
-5. **BETA** — Settings → Sobre, next to `v0.9.13`. Library **bar** stays without BETA. Shelf **covers** may show a small gold `BETA` (LDM · ESE · CEU · GEN); LDE is unmarked.  
+5. **BETA** — Settings → Sobre, next to `v0.9.14`. Library **bar** stays without BETA. Shelf **covers** may show a small gold `BETA` (LDM · ESE · CEU · GEN); LDE is unmarked.  
 6. **Help (bar ?)** — full-bleed 1×4 map, five steps, bar stays visible. Steps 2–3: in-pane cards. Steps 4–5: card in Consulte/Anote with a **left** arrow into **2. Leia**. Portrait (≤920px): equal columns, tighter titles, arrows still to Leia. First-visit Device tab stays hidden.  
 7. **How-to** — first visit, How-to only; do not add beats (already ~10).  
 8. **Consulte empty state** — provider banners. Wikipedia/Wikcionário wordmarks `#4D4D4D` + `invert(1)` in dark. Luz and Bible are SVG lockups (`public/providers/luz.svg`, `bible.svg`). Kardecpedia / OSM unchanged. Web tab label is **Consulte** / **Consult** (not Context). PDF tab follows Consulte (tablet+; off on phone). Videoconf: stage + status only (no idle footnote).  
@@ -62,7 +62,7 @@ Chrome, Help, flavors, and Consulte empty-state are **frozen** (v0.9.9). **v0.9.
 1. **Mesa** — quatro colunas: **1. Ache · 2. Leia · 3. Consulte · 4. Anote**.  
 2. **CTA da biblioteca** — `Ache · Leia · Consulte · Anote` / `Find · Read · Lookup · Note` nos três sabores.  
 3. **Marcas** — Lucide, acento Drawings Dark 1: LIBRUS `#6aa84f` · DOUTRINA `#3c78d8` · CENTRO `#cc0000`. CTA: `Ache · Leia · Consulte · Anote`. Tagline LIBRUS: *anotar para assimilar*. Email: só `sergio@doutrina.org`. Folhas A4: `docs/brand/`.  
-4. **Barra** — Biblioteca: só Ajuda · Ajustes. Leitor: Home + emoji + livro (sem `›`). BETA em Ajustes, ao lado de `v0.9.13`. Capas LDM · ESE · CEU · GEN podem ter **BETA** dourado; LDE sem selo. A barra da biblioteca continua sem BETA.  
+4. **Barra** — Biblioteca: só Ajuda · Ajustes. Leitor: Home + emoji + livro (sem `›`). BETA em Ajustes, ao lado de `v0.9.14`. Capas LDM · ESE · CEU · GEN podem ter **BETA** dourado; LDE sem selo. A barra da biblioteca continua sem BETA.  
 5. **Ajuda** — mapa 1×4, cinco passos; setas dos passos 4–5 apontam para Leia. Retrato: colunas iguais.  
 6. **Consulte** — banners; Wikipedia cinza+invert no escuro; Luz e Bible em SVG. Aba web **Consulte**, não Contexto. PDF no tablet. Videoconf sem rodapé de dica.  
 7. **Tela cheia** — PWA standalone. Sem Fullscreen API em celular Android alto (limitação conhecida). Tablet (Tab M9) e desktop: botão manual em Páginas, à esquerda com Links e o pager. Nunca auto-enter.  
