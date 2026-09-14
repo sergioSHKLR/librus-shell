@@ -57,8 +57,6 @@ const VP = {
   FOLD_NOTES: 1400,
   FOLD_CONSULT: 920,
 };
-/** @deprecated alias — consult fold / phone tier */
-const STUDY_REDUCED_MAX_W = VP.FOLD_CONSULT;
 /** Providers kept on tablet/phone (flavor allowlist still applies). */
 const NARROW_PROVIDERS = ["encyc", "dict"];
 const APP_VERSION = "0.9.14"; // 2026-09-14 — overlay under tabs; Links hides hardcoded hrefs
@@ -3347,7 +3345,6 @@ function setCtxHintVisible(on) {
 }
 
 function loadCtx(url, { push = true, term = "", provider = "" } = {}) {
-  if (isStudyReduced()) return;
   const frame = ctxEl();
   if (!frame || !url) return;
   setCtxHintVisible(false);
@@ -3421,7 +3418,7 @@ function syncProviderArmed() {
 
 /** Open a provider from toolbar (selection = query for search). */
 async function openProvider(key) {
-  if (phoneReaderOnly() || isStudyReduced()) return;
+  if (phoneReaderOnly()) return;
   const term = selectionTerm();
   if (!term) {
     flashConsultNeedTerm();
@@ -3439,20 +3436,6 @@ async function openProvider(key) {
 async function openBookLink(href, anchor) {
   if (!href) return;
   if (phoneReaderOnly()) return;
-  /* Reduced mode: no simultaneous consult — ignore consultation triggers */
-  if (isStudyReduced()) {
-    const code = (anchor?.getAttribute("data-link-provider") || "").toLowerCase();
-    if (
-      code ||
-      anchor?.hasAttribute("data-doutrina-link") ||
-      isMapUrl(href)
-    ) {
-      return;
-    }
-    /* Allow pure internal section jumps only */
-    if (href.startsWith("#")) return;
-    return;
-  }
   const code = (anchor?.getAttribute("data-link-provider") || "").toLowerCase();
   const key = LINK_PROVIDER_KEY[code] || "";
   const term = String(anchor?.textContent || "")
@@ -4080,14 +4063,9 @@ function closeAllDrawers() {
 
 /* ── Viewport tiers (fold + feature handicaps; no hard block) ─── */
 
-/** @deprecated phone-tier alias — kept for onboard stubs */
+/** Phone-tier alias for the onboard stub. */
 function isStudyConstrained() {
   return vpTier() === "phone";
-}
-
-/** @deprecated always false — hard reduced gate removed */
-function isStudyReduced() {
-  return false;
 }
 
 /**
