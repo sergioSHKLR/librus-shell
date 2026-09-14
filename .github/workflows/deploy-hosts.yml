@@ -137,6 +137,8 @@ jobs:
           # Runner extraheader is GITHUB_TOKEN (this repo, contents:read) and
           # wins over origin credentials, so host push 401s. Drop it and push
           # with DEPLOY_TOKEN on the URL.
+          git config --global --unset-all http.https://github.com/.extraheader || true
           git config --local --unset-all http.https://github.com/.extraheader || true
-          git push "https://x-access-token:${DEPLOY_TOKEN}@github.com/${OWNER}/${TARGET_REPO}.git" HEAD:main
+          git -c http.https://github.com/.extraheader= \
+            push "https://x-access-token:${DEPLOY_TOKEN}@github.com/${OWNER}/${TARGET_REPO}.git" HEAD:main
           echo "Published → https://github.com/${OWNER}/${TARGET_REPO}"
