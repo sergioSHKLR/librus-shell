@@ -1,4 +1,4 @@
-/* Archived: real module in src/onboard.archive — first-visit How-to retired in favor of Help modal. */
+/* First-visit How-to retired in favor of Help. Stubs keep main.js imports. */
 
 export function bindOnboard() {}
 export function initOnboard() {}

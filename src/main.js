@@ -4063,11 +4063,6 @@ function closeAllDrawers() {
 
 /* ── Viewport tiers (fold + feature handicaps; no hard block) ─── */
 
-/** Phone-tier alias for the onboard stub. */
-function isStudyConstrained() {
-  return vpTier() === "phone";
-}
-
 /**
  * Hide/show consult tools and provider buttons by width tier.
  * Flavor allowlists still apply; size is a second axis.
@@ -4405,16 +4400,7 @@ async function boot() {
   }
 
   try {
-    bindOnboard({
-      t,
-      getLang: () => currentLang,
-      applyI18n,
-      isStudyConstrained,
-      closeOrientGate,
-      openOrientGate,
-      updateOrientLock,
-      modalIds: () => MODAL_IDS,
-    });
+    bindOnboard();
     initOnboard();
   } catch (err) {
     console.warn("[POC] onboard", err);
