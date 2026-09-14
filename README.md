@@ -84,7 +84,7 @@ Chrome is frozen at **v0.9.9**; polish through **v0.9.13** (2026-09-10; Páginas
 
 ## 🚀 Local development
 
-1. Requires **Node ≥ 20**.  
+1. Requires **Node ≥ 20**. Family-wide OS install (Node, Python, pandoc, wkhtmltopdf): [`librus/GUIDE.md`](https://github.com/sergioSHKLR/librus/blob/main/GUIDE.md).  
 2. Install and run a flavor:  
 
 ```bash
@@ -180,7 +180,7 @@ Chrome congelado em **v0.9.9**; polimento até **v0.9.13** (2026-09-10; Páginas
 
 ## 🚀 Desenvolvimento local
 
-1. **Node ≥ 20**.  
+1. **Node ≥ 20**. Instalação por SO (Node, Python, pandoc, wkhtmltopdf): [`librus/GUIDE.md`](https://github.com/sergioSHKLR/librus/blob/main/GUIDE.md).  
 2. Instale e rode um sabor:  
 
 ```bash

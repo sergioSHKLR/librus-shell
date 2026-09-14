@@ -93,11 +93,11 @@ jobs:
           cd "$WORK"
 
           # Stash paths we must keep across a clean publish
-          # Always keep maintainer docs (README/CREDITS) — deploys replace the SPA tree only.
+          # Always keep maintainer docs (README/CREDITS/GUIDE) — deploys replace the SPA tree only.
           KEEP_DIR="$RUNNER_TEMP/keep-$TARGET_REPO"
           rm -rf "$KEEP_DIR"
           mkdir -p "$KEEP_DIR"
-          ALWAYS_KEEP="README.md CREDITS.md"
+          ALWAYS_KEEP="README.md CREDITS.md GUIDE.md"
           for p in $ALWAYS_KEEP $PRESERVE; do
             if [ -e "$p" ]; then
               mkdir -p "$KEEP_DIR/$(dirname "$p")"
