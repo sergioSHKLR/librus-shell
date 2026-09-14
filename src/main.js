@@ -291,13 +291,11 @@ function isPhoneLandscape(
   return vpTier(w) === "phone" && isLandscape(w, h);
 }
 
-/** Phone: no Consulte overlay (reader + Ache only). */
-function shouldFoldConsult(
-  w = window.innerWidth || 0,
-  h = window.innerHeight || 0,
-) {
-  void w;
-  void h;
+/**
+ * Consulte overlay is off. Phone hides #p3; tablet+ keep a column.
+ * Fold-consult clones and p3.overlay stay in the file but never arm.
+ */
+function shouldFoldConsult() {
   return false;
 }
 

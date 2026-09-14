@@ -2140,7 +2140,7 @@ html.hypo-in-pane #p4 [data-body] > p {
 /*
  * Landscape phone (≤920 wide, short height): Read | Consult side by side.
  * Find stays folded into Leia’s strip; one toolbar row — usable study loop.
- * (orientation:landscape ≈ w>h; JS shouldFoldConsult mirrors this.)
+ * (orientation:landscape ≈ w>h. Consulte overlay stays off.)
  */
 @media screen and (max-width: 920px) and (orientation: landscape) {
   #workspace {
