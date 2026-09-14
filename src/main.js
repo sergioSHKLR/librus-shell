@@ -128,6 +128,40 @@ function isTallAndroidPhone() {
   return long / short >= 1.85;
 }
 
+/**
+ * OEM status bar with env(safe-area-inset-top) = 0 (librus-shell#2).
+ * Phone PWA, any Android PWA, and tablet (coarse + short ≥ 700) including
+ * 1920×1031 desktop-width tablet layout. Not fine-pointer desktop.
+ * Sets --safe-top so screens, #p1 overlay, and help-map all inset from the
+ * top; floor bar math is unchanged.
+ */
+function needsStatusBarTopInset() {
+  if (isAndroidUa() && isStandaloneApp()) return true;
+  const short = Math.min(window.innerWidth || 0, window.innerHeight || 0);
+  if (short < 700) return false;
+  try {
+    if (window.matchMedia("(pointer: coarse)").matches) return true;
+    if (window.matchMedia("(hover: none)").matches) return true;
+  } catch (_) {
+    /* ignore */
+  }
+  return false;
+}
+
+function syncStatusBarTopInset() {
+  const on = needsStatusBarTopInset();
+  const root = document.documentElement;
+  root.classList.toggle("status-inset-top", on);
+  if (on) {
+    root.style.setProperty(
+      "--safe-top",
+      "max(env(safe-area-inset-top, 0px), var(--chrome))",
+    );
+  } else {
+    root.style.removeProperty("--safe-top");
+  }
+}
+
 function allowFullscreenApi() {
   if (!canToggleFullscreen()) return false;
   if (isTallAndroidPhone()) return false;
@@ -2097,22 +2131,31 @@ function bookLinksWanted() {
 }
 
 /**
- * Show/hide every inject link in the book.
- * Phone: forced off (no fat-finger consult). Does not open Consulte.
+ * Same-document jumps stay when Links is off (librus-shell#3).
+ * `#s####` serials, `#page-N`, `#lde…` (and sibling book ids), `#fn` / `#fnref`.
+ */
+function isInBookJumpHref(href) {
+  const h = String(href || "").trim();
+  return h.startsWith("#") && h.length > 1;
+}
+
+/**
+ * Show/hide in-book consult links (stamped inject + hardcoded Markdown hrefs).
+ * Hash jumps stay. Phone: forced off (no fat-finger consult).
  */
 function applyLinkFilters() {
   const book = bookEl();
   if (!book) return;
   delete book.dataset.linkDensity;
   const show = bookLinksWanted();
-  book.querySelectorAll("a[data-link-provider], a[data-doutrina-link]").forEach(
-    (a) => {
-      if (!(a instanceof HTMLElement)) return;
-      a.classList.toggle("link-hidden", !show);
-      if (!show) a.setAttribute("aria-hidden", "true");
-      else a.removeAttribute("aria-hidden");
-    },
-  );
+  book.querySelectorAll("a[href]").forEach((a) => {
+    if (!(a instanceof HTMLElement)) return;
+    const href = a.getAttribute("href") || "";
+    const hide = !show && !isInBookJumpHref(href);
+    a.classList.toggle("link-hidden", hide);
+    if (hide) a.setAttribute("aria-hidden", "true");
+    else a.removeAttribute("aria-hidden");
+  });
   syncLinkControls();
 }
 
@@ -4200,6 +4243,7 @@ function closeOrientGate(el) {
 
 /** Fold + handicaps. Do not block phone landscape. Portrait Help is gated separately. */
 function updateOrientLock() {
+  syncStatusBarTopInset();
   applyViewportHandicaps();
   const el = document.getElementById("orient");
   if (el && (el.classList.contains("is-open") || !el.hidden)) closeOrientGate(el);
@@ -4231,6 +4275,15 @@ function initOrientLock() {
     const mq = window.matchMedia("(max-width: " + VP.FOLD_CONSULT + "px)");
     if (mq.addEventListener) mq.addEventListener("change", updateOrientLock);
     else if (mq.addListener) mq.addListener(updateOrientLock);
+  } catch (_) {
+    /* ignore */
+  }
+  try {
+    const dm = window.matchMedia(
+      "(display-mode: fullscreen), (display-mode: standalone), (display-mode: minimal-ui)",
+    );
+    if (dm.addEventListener) dm.addEventListener("change", syncStatusBarTopInset);
+    else if (dm.addListener) dm.addListener(syncStatusBarTopInset);
   } catch (_) {
     /* ignore */
   }

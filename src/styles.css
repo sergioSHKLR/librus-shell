@@ -2066,11 +2066,13 @@ html.hypo-in-pane #p4 [data-body] > p {
     /*
      * Park on the same grid area as #p2 (read). Fixed items don’t size the
      * track, so read/consult stay 1fr|1fr without p1 stealing a column.
+     * Top sits under #main-tabs (--ctrl-h) from the first fold; do not cover
+     * the tab strip (librus-shell#2).
      */
     grid-area: read;
     position: fixed;
     left: 0;
-    top: var(--safe-top);
+    top: calc(var(--safe-top) + var(--ctrl-h));
     bottom: var(--chrome-bottom);
     /* Wider find overlay on tablet */
     width: min(42vw, 28rem);
@@ -4568,7 +4570,7 @@ html[data-theme="dark"]
   color: var(--chrome-label, var(--fg));
 }
 
-/* Inject links suppressed by provider filter */
+/* Consult links suppressed by Páginas Links (stamped inject + hardcoded href) */
 #book a.link-hidden,
 #book a.link-hidden[data-link-provider],
 #book a.link-hidden[data-doutrina-link] {

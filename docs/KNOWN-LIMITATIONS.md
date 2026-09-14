@@ -26,6 +26,10 @@ Manifest stays `display: standalone` + `display_override: [standalone, minimal-u
 
 Portrait phones keep `viewport-fit=cover`, `black-translucent`, and `theme-color` matching the Leia band so the leftover bar is not a grey stripe. Landscape on phones is already blocked by the shell (rotate to portrait).
 
+On the same OEM, `env(safe-area-inset-top)` is often **0**. Ache overlays and the reader/library then start at y=0 and read **50px too tall** (phone PWA and tablet, including 1920×1031 desktop-width tablet layout). `needsStatusBarTopInset()` sets `--safe-top` to `max(env(safe-area-inset-top, 0px), var(--chrome))` so every `top: var(--safe-top)` consumer insets from the top. Fine-pointer desktop is unchanged. Do **not** shrink from the bottom — `--chrome-bottom` / `html.bar-scroll-hidden` already own the floor bar.
+
+From the **first P1 fold** (≤1650), `#p1` is `top: calc(var(--safe-top) + var(--ctrl-h))` so the drawer never covers `#main-tabs`. Overlay chrome stays on the Leia tab strip; the drawer is tool + body only.
+
 ### Do not “fix” by
 
 - calling `requestFullscreen` from `pointerup` / first tap in the book
