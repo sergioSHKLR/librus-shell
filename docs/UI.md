@@ -41,6 +41,7 @@ Same on the library and on SHKLR. Mark at `3.5 × 15px`, in the brand hue. Name 
 - **Ajustes is the last icon on the right** of that bar.
 - LDE-Q keeps three labeled tabs (Início, Questão, Caderno). It is not the four-pane desk. The gear still belongs at the end of that bar.
 - Modal: centered, white surface, 12px radius, a title, a plain close mark, a line under the header.
+- Boot: a 2rem ring, 3px, the top edge in the brand hue, then `Carregando…` / `Loading…` in Quicksand, 0.95rem, weight 600, muted.
 
 ## Controls
 
@@ -101,6 +102,7 @@ O mesmo na biblioteca e no SHKLR. Marca a `3,5 × 15px`, no tom da marca. Nome a
 - **Ajustes é o último ícone à direita** dessa barra.
 - O LDE-Q mantém três abas com rótulo (Início, Questão, Caderno). Não é a mesa de quatro colunas. A engrenagem continua no fim dessa barra.
 - Modal: centrado, superfície branca, raio 12px, título, fechar simples, linha sob o cabeçalho.
+- Arranque: um anel de 2rem, 3px, o topo no tom da marca, depois `Carregando…` / `Loading…` em Quicksand, 0,95rem, peso 600, discreto.
 
 ## Controles
 
