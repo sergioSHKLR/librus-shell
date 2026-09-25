@@ -6,6 +6,8 @@
 
 Chrome, Help, flavors, and Consulte empty-state are **frozen** (v0.9.9). **v0.9.10** is handheld/toolbar polish. **v0.9.11–0.9.12** were Fullscreen API experiments. **v0.9.13** locks the policy: no Fullscreen API on tall Android phones; manual only on slates/desktop. 2026-09-11: Páginas left-align + labels, Hypo dark ink, LDE `vine.webp`. **2026-09-12:** LDE `#book` presentation and shelf **BETA** on unfinished Kardec covers. **v0.9.14** (2026-09-14): Ache overlay sits under `#main-tabs` from the first fold; Páginas Links hides hardcoded `href`s. See [`KNOWN-LIMITATIONS.md`](KNOWN-LIMITATIONS.md). Do not add panes, bar items, Help beats, or flavor marks without an explicit unfreeze. Book HTML/CSS and editorial Markdown are **not** frozen.
 
+Shared control language (type, icons, choices, chips): [`UI.md`](UI.md).
+
 ---
 
 # 🇺🇸 English
