@@ -4,8 +4,6 @@ Family control language for LIBRUS, DOUTRINA, CENTRO, LDE-Q, and SHKLR.
 
 The shell freeze (panes, Help, fullscreen) stays in [`INTERFACE.md`](INTERFACE.md). Flavor marks for the three readers stay in [`docs/brand/`](brand/README.md). This page is the shared language. It does not unfreeze the shell.
 
-Scanned 2026-09-25. The rules below are the language. **Still off** is what the apps still do instead.
-
 ---
 
 # English
@@ -66,14 +64,6 @@ A setting that only picks one option is a choice. **Update** and **Sign out** st
 - Set a button, a chip, or a settings label in the book serif.
 - Give the favicon a different stroke or a different radius from the icon.
 
-## Still off
-
-1. **Gear.** LDE-Q puts Ajustes in the top bar, and a second gear on the Início header. The other four put it last on the black bar.
-2. **LDE-Q modal** is a bottom sheet on warm paper (`#1c1916` ink, `#ddd4c6` lines, dark `#1a1815`). The others are a centered white dialog. Dark theme there is not `#1a1a1a`.
-3. **Tab icons.** `doutrina.org/favicon.svg` and `centro.doutrina.org/favicon.svg` are still the green LIBRUS columns. The brand files (droplet, house) are right. The tab uses the root file. SHKLR still stores the LDE hue as `#c17f3e`.
-4. **SHKLR body** is 17px serif, and its headings are the brand purple. Reader chrome is 15px Quicksand. Reader section titles are muted, not the accent.
-5. **SHKLR settings** sits on `--lift` (`#ececec`), not the white surface. The next-thought control is a circled tool.
-
 ---
 
 # Português
@@ -133,11 +123,3 @@ Ajuste que só escolhe uma opção é escolha. **Atualizar** e **Sair** continua
 - Pôr chip numa escolha.
 - Pôr botão, chip ou rótulo de ajuste na serifada do livro.
 - Dar ao favicon um traço ou um raio diferente do ícone.
-
-## Ainda fora
-
-1. **Engrenagem.** O LDE-Q põe Ajustes na barra de cima, e uma segunda no cabeçalho do Início. Os outros quatro põem no fim da barra preta.
-2. **Modal do LDE-Q** é uma folha embaixo, em papel quente (`#1c1916`, linhas `#ddd4c6`, escuro `#1a1815`). Os outros são um diálogo branco centrado. O escuro ali não é `#1a1a1a`.
-3. **Ícone da aba.** `doutrina.org/favicon.svg` e `centro.doutrina.org/favicon.svg` ainda são as colunas verdes do LIBRUS. Os arquivos de marca (gota, casa) estão certos. A aba usa o arquivo da raiz. O SHKLR ainda guarda o tom do LDE como `#c17f3e`.
-4. **Corpo do SHKLR** é serifada de 17px, e os títulos são o roxo da marca. O chrome dos leitores é Quicksand de 15px. Os títulos de seção do leitor são discretos, não o acento.
-5. **Ajustes do SHKLR** assenta em `--lift` (`#ececec`), não na superfície branca. O botão do próximo pensamento é uma ferramenta com contorno.
