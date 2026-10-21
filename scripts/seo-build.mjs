@@ -1,4 +1,4 @@
-// Post-build SEO: prerender /library + /books/<id> shells, legacy redirect stubs, sitemap.
+// Post-build SEO: prerender /library + /books/<id> shells, sitemap.
 import fs from "node:fs";
 import path from "node:path";
 const DIST = "dist";
@@ -41,10 +41,6 @@ for (const b of catalog) {
   write(`books/${b.id}.html`, html);
   if (home === HOME.doutrina) urls.push(canonical);
 }
-// Legacy static redirects (examples; 404.html head script maps whole families)
-const redir = (to) => `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Redirecionando…</title><link rel="canonical" href="https://doutrina.org${to}"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url=${to}"><script>location.replace(${JSON.stringify(to)})</script></head><body><a href="${to}">${to}</a></body></html>\n`;
-const legacy = { "1lde/index.html": "/books/lde", "1lde/p5-01.html": "/books/lde", "2ldm/index.html": "/books/ldm", "old/3ese/075.html": "/books/ese", "3ese/index.html": "/books/ese", "4ceu/index.html": "/books/ceu", "5gen/index.html": "/books/gen", "assets/video/samaritano.html": "/books/ese" };
-for (const [f, to] of Object.entries(legacy)) write(f, redir(to));
 const today = new Date().toISOString().slice(0, 10);
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${u}</loc><lastmod>${today}</lastmod></url>`).join("\n")}\n</urlset>\n`);
-console.log("[seo] sitemap", urls.length, "urls; books", catalog.length, "; legacy", Object.keys(legacy).length);
+console.log("[seo] sitemap", urls.length, "urls; books", catalog.length, "");

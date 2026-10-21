@@ -1518,9 +1518,24 @@ function pathFor(view, opts = {}) {
   return "/library";
 }
 
+/** Native replaceState captured in index.html before Umami wraps history:
+ *  in-book page changes update the URL without counting a pageview. */
+function silentReplace(url) {
+  const fn = window.__librusNativeReplaceState;
+  if (typeof fn === "function") fn.call(history, { path: url }, "", url);
+  else history.replaceState({ path: url }, "", url);
+}
+
+function sameBookPath(a, b) {
+  const ra = parsePath(a);
+  const rb = parsePath(b);
+  return ra.view === "reader" && rb.view === "reader" && ra.slug === rb.slug;
+}
+
 function navigate(path, { replace = false, skip = false } = {}) {
   const url = path.startsWith("/") ? path : "/" + path;
-  if (replace) history.replaceState({ path: url }, "", url);
+  if (location.pathname !== url && sameBookPath(location.pathname, url)) silentReplace(url);
+  else if (replace) history.replaceState({ path: url }, "", url);
   else if (location.pathname !== url) history.pushState({ path: url }, "", url);
   if (!skip) applyRoute();
 }
@@ -2418,7 +2433,7 @@ function syncFolioChrome(folioNum) {
   const path = pathFor("reader", { slug: currentSlug, page: folio - 1 });
   if (location.pathname !== path) {
     try {
-      history.replaceState({ path }, "", path);
+      silentReplace(path);
     } catch (_) {
       /* ignore */
     }
