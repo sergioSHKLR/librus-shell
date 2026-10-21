@@ -390,6 +390,7 @@ const I18N = {
     "ctx.providersLead":
       "Selecione um termo no texto e escolha um buscador.",
     "notes.hypo": "Anotações",
+    "notes.open": "Abrir anotações",
     "notes.hint":
       "Notas abrem na barra lateral do Hypothesis (ícone no canto).",
     "notes.off": "Hypothesis desligado neste build.",
@@ -635,6 +636,7 @@ const I18N = {
       "Select a term in the Read pane and click a provider above (Luz Espírita, Encyclopedia, Dictionary, etc). You can also use an existing link — the result opens in this pane.",
     "ctx.providersLead": "Select a term in the text, then a lookup.",
     "notes.hypo": "Hypothesis",
+    "notes.open": "Open notes",
     "notes.hint": "Notes open in the Hypothesis sidebar (corner control).",
     "notes.off": "Hypothesis disabled in this build.",
     "set.title": "Settings",
@@ -1290,6 +1292,7 @@ function setTheme(pref, { persist = true, reloadHypo = true } = {}) {
     import.meta.env.VITE_FEAT_HYPO === "1" &&
     document.body.dataset.view === "reader"
   ) {
+    hypoBootPromise &&
     import("./features/hypo.js")
       .then((m) => m.reloadHypothesisForTheme())
       .catch(() => {});
@@ -1504,7 +1507,43 @@ function parsePath(pathname) {
       page: m[2] ? Math.max(0, parseInt(m[2], 10) - 1) : 0,
     };
   }
-  return { view: "library" };
+  return { view: "notfound" };
+}
+
+/** Plain not-found page for unknown URLs (server already answers 404). */
+function renderNotFound() {
+  const fid = (typeof getFlavorId === "function" && getFlavorId()) || "";
+  const nav = (navigator.language || "").toLowerCase();
+  const en = fid === "librus" ? !nav.startsWith("pt") : false;
+  const brand = getFlavor()?.brand?.name || "LIBRUS";
+  document.documentElement.lang = en ? "en" : "pt-BR";
+  document.title = (en ? "Page not found" : "Página não encontrada") + " · " + brand;
+  let robots = document.querySelector('meta[name="robots"]');
+  if (!robots) {
+    robots = document.createElement("meta");
+    robots.name = "robots";
+    document.head.appendChild(robots);
+  }
+  robots.content = "noindex";
+  document.querySelector('link[rel="canonical"]')?.remove();
+  document.body.dataset.view = "notfound";
+  document.body.replaceChildren();
+  const main = document.createElement("main");
+  main.id = "not-found";
+  main.style.cssText =
+    "min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding:2rem;font-family:Quicksand,system-ui,sans-serif;text-align:center";
+  const h = document.createElement("h1");
+  h.textContent = en ? "Page not found" : "Página não encontrada";
+  const p = document.createElement("p");
+  p.textContent = en
+    ? "This address does not exist (404)."
+    : "Este endereço não existe (404).";
+  const a = document.createElement("a");
+  a.href = "/library";
+  a.textContent = en ? "Go to the library" : "Ir para a biblioteca";
+  a.style.cssText = "color:inherit;font-weight:700";
+  main.append(h, p, a);
+  document.body.append(main);
 }
 
 function pathFor(view, opts = {}) {
@@ -1542,13 +1581,18 @@ function navigate(path, { replace = false, skip = false } = {}) {
 
 async function applyRoute() {
   const route = parsePath(location.pathname);
+  if (route.view === "notfound") {
+    renderNotFound();
+    return;
+  }
   setView(route.view);
   if (route.view === "reader" && route.slug) {
     try {
       await enterReader(route.slug, route.page || 0);
     } catch (err) {
       console.warn("[POC] book load", err);
-      navigate("/library", { replace: true });
+      renderNotFound();
+      return;
     }
   }
   if (route.view === "library") {
@@ -1652,8 +1696,27 @@ function dismissBootSplash() {
   setTimeout(finish, 450);
 }
 
+/** Load Hypothesis only when the user opens annotations (Notes tab / button). */
+function bindHypothesisOnDemand() {
+  if (import.meta.env.VITE_FEAT_HYPO !== "1") return;
+  document.addEventListener(
+    "click",
+    (ev) => {
+      const el = ev.target?.closest?.('[data-mode="annotate:notes"], #hypo-open');
+      if (!el) return;
+      if (document.body.dataset.view !== "reader") return;
+      preloadHypothesis();
+      const b = document.getElementById("hypo-open");
+      if (b) b.hidden = true;
+    },
+    true,
+  );
+}
+
 function scheduleHypothesis() {
   if (import.meta.env.VITE_FEAT_HYPO !== "1") return;
+  /* Lazy: only re-dock once the user has opened annotations */
+  if (!hypoBootPromise) return;
   if (hypoTimer) {
     clearTimeout(hypoTimer);
     hypoTimer = null;
@@ -4459,6 +4522,11 @@ async function boot() {
     console.warn("[POC] flavor", err);
   }
 
+  if (parsePath(location.pathname).view === "notfound") {
+    renderNotFound();
+    return;
+  }
+
   try {
     /* Viewport tiers: fold + handicaps (no hard size gate) */
     initOrientLock();
@@ -4500,11 +4568,6 @@ async function boot() {
     console.warn("[POC] theme", err);
   }
 
-  try {
-    preloadHypothesis();
-  } catch (err) {
-    console.warn("[POC] Hypothesis preload", err);
-  }
 
   try {
     let g = "full";
@@ -4583,15 +4646,7 @@ async function boot() {
   }
   syncChromeBar();
   bindAppFullscreen();
-  try {
-    const hypo = preloadHypothesis();
-    await Promise.race([
-      Promise.resolve(hypo),
-      new Promise((resolve) => setTimeout(resolve, 3000)),
-    ]);
-  } catch (err) {
-    console.warn("[POC] Hypothesis preload", err);
-  }
+  bindHypothesisOnDemand();
   dismissBootSplash();
 
   try {
