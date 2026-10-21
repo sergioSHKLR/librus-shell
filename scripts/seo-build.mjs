@@ -41,6 +41,16 @@ for (const b of catalog) {
   write(`books/${b.id}.html`, html);
   if (home === HOME.doutrina) urls.push(canonical);
 }
+// Flag books that ship pages.json so the reader only fetches folio maps that exist
+for (const f of fs.readdirSync(path.join(DIST, "books")).filter((n) => /^catalog.*\.json$/.test(n))) {
+  const fp = path.join(DIST, "books", f);
+  const list = JSON.parse(fs.readFileSync(fp, "utf8"));
+  for (const b of list) {
+    if (fs.existsSync(path.join(DIST, "books", b.id, "pages.json"))) b.folio = true;
+    else delete b.folio;
+  }
+  fs.writeFileSync(fp, JSON.stringify(list, null, 2) + "\n");
+}
 const today = new Date().toISOString().slice(0, 10);
 write("sitemap.xml", `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${u}</loc><lastmod>${today}</lastmod></url>`).join("\n")}\n</urlset>\n`);
 console.log("[seo] sitemap", urls.length, "urls; books", catalog.length, "");

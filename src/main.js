@@ -2397,6 +2397,9 @@ function renderLibrary() {
 async function loadFolioPages(id) {
   folioPages = [];
   if (!id) return;
+  /* Only books flagged at build time (pages.json present) have folio maps */
+  const entry = CATALOG_ALL.find((b) => b && b.id === id);
+  if (!entry || entry.folio !== true) return;
   try {
     const res = await fetch("/books/" + id + "/pages.json", {
       cache: "no-cache",
@@ -3511,6 +3514,18 @@ function loadCtx(url, { push = true, term = "", provider = "" } = {}) {
   /* Safety: don't spin forever on blocked/cross-origin quirks */
   setTimeout(done, 12000);
   if (phoneReaderOnly()) return;
+  /* Sandbox applied lazily (no console warning on boot). Same-origin pages
+   * never get allow-same-origin, so they cannot lift the sandbox. */
+  try {
+    const sameOrigin = new URL(url, location.href).origin === location.origin;
+    const flags = (frame.dataset.sandbox || "allow-scripts allow-forms allow-popups")
+      .split(/\s+/)
+      .filter((f) => f && !(sameOrigin && f === "allow-same-origin"))
+      .join(" ");
+    if (frame.getAttribute("sandbox") !== flags) frame.setAttribute("sandbox", flags);
+  } catch (_) {
+    frame.setAttribute("sandbox", "allow-scripts allow-forms allow-popups");
+  }
   frame.src = url;
   setMode("consult", "web");
   /* Ensure back/reload icons paint when consult chrome first appears */
