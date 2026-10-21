@@ -33,8 +33,7 @@ jobs:
         run: |
           npm ci
           npm run build
-          # SPA fallback for GitHub Pages (no server rewrite)
-          cp dist/index.html dist/404.html
+          # 404.html (SPA fallback) is produced per host by scripts/seo-build.mjs
 
       - name: Upload dist
         uses: actions/upload-artifact@v4
@@ -111,6 +110,11 @@ jobs:
           # Replace tree with SPA build (orphan-style clean, keep .git)
           find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
           cp -a "$GITHUB_WORKSPACE/dist/." .
+          # Host-branded overlay (index/404/library/books shells, robots, sitemap)
+          if [ -d "_hosts/$TARGET_REPO" ]; then
+            cp -a "_hosts/$TARGET_REPO/." .
+          fi
+          rm -rf _hosts
 
           # Restore preserved docs + Center sources (if any)
           for p in $ALWAYS_KEEP $PRESERVE; do
