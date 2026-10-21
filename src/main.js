@@ -917,6 +917,7 @@ function applyI18n() {
   });
   document.documentElement.lang = currentLang === "en" ? "en" : "pt-BR";
   document.body.dataset.lang = currentLang;
+  if (typeof syncSeoMeta === "function") syncSeoMeta();
   if (typeof syncHelpI18n === "function") syncHelpI18n();
   if (typeof syncHelpPaneFeatures === "function") syncHelpPaneFeatures();
   if (typeof syncTypoButtons === "function") syncTypoButtons();
@@ -1379,6 +1380,59 @@ function syncBarTitle() {
   }
 
   document.title = onReader && bookTitle ? bookTitle + " · " + flavorName : flavorName;
+  syncSeoMeta();
+}
+
+/** Per-page SEO: description, canonical, html lang (book language on reader). */
+function syncSeoMeta() {
+  try {
+    const onReader = document.body?.dataset?.view === "reader";
+    const brand = getFlavor()?.brand || {};
+    const HOME = {
+      doutrina: "https://doutrina.org",
+      librus: "https://librus.app",
+      centro: "https://centro.doutrina.org",
+    };
+    const flavorHome = HOME[getFlavor()?.id] || location.origin;
+    const entry =
+      onReader && currentSlug
+        ? CATALOG_ALL.find((e) => e && e.id === currentSlug) || null
+        : null;
+    const bookLang = (entry && entry.lang) || currentBook?.lang || "";
+    if (onReader && bookLang) {
+      document.documentElement.lang = bookLang === "en" ? "en" : "pt-BR";
+    }
+    let desc = brand.description || brand.name || "LIBRUS";
+    if (onReader && entry) {
+      const pt = bookLang !== "en";
+      const title = pt ? entry.titlePt || entry.title : entry.title;
+      desc = pt
+        ? "Leia " + title + " (" + entry.author + (entry.year ? ", " + entry.year : "") + ") online — " + (brand.name || "LIBRUS") + ": estudo, consulta e anotação."
+        : "Read " + title + " by " + entry.author + (entry.year ? " (" + entry.year + ")" : "") + " online — " + (brand.name || "LIBRUS") + ": annotate to assimilate.";
+    }
+    let md = document.querySelector('meta[name="description"]');
+    if (!md) {
+      md = document.createElement("meta");
+      md.name = "description";
+      document.head.appendChild(md);
+    }
+    if (md.content !== desc) md.content = desc;
+    const bookHome =
+      entry && Array.isArray(entry.profiles) && HOME[entry.profiles[0]]
+        ? HOME[entry.profiles[0]]
+        : flavorHome;
+    const href =
+      (onReader && currentSlug ? bookHome : flavorHome) + (onReader && currentSlug ? "/books/" + encodeURIComponent(currentSlug) : "/library");
+    let link = document.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "canonical";
+      document.head.appendChild(link);
+    }
+    if (link.href !== href) link.href = href;
+  } catch (_) {
+    /* ignore */
+  }
 }
 
 function setView(name) {
