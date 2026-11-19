@@ -23,6 +23,10 @@ function page(host, { lang, title, desc, canonical, type = "website" }) {
     : h.replace(/\s*<link rel="canonical" id="link-canonical" href="[^"]*" \/>/, "");
   h = h.replaceAll("/manifest-librus.webmanifest", `/manifest-${host}.webmanifest`);
   h = h.replaceAll("/pwa/librus-apple-touch-icon.png", `/pwa/${host}-apple-touch-icon.png`);
+  h = h.replaceAll("/pwa/librus-apple-touch-icon-dark.png", `/pwa/${host}-apple-touch-icon-dark.png`);
+  h = h.replaceAll("/pwa/librus-favicon.ico", `/pwa/${host}-favicon.ico`);
+  h = h.replaceAll("/brand/librus-favicon.svg", `/brand/${host}-favicon.svg`);
+  h = h.replaceAll("/pwa/splash/librus-", `/pwa/splash/${host}-`);
   h = h.replace('<span data-i18n="library.title">LIBRUS</span>', `<span data-i18n="library.title">${esc(brand.name)}</span>`);
   const metas = [
     ["name", "apple-mobile-web-app-title", brand.name],

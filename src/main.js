@@ -1109,7 +1109,7 @@ function syncThemeInputs() {
 }
 
 /** Match --bg so system bars blend when the PWA is not fully fullscreen. */
-const CHROME_GREY_LIGHT = "#f5f5f5";
+const CHROME_GREY_LIGHT = "#ffffff"; /* = --bg light and the kit plate */
 const CHROME_GREY_DARK = "#1a1a1a";
 
 /**

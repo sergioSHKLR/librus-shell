@@ -224,7 +224,7 @@ export function applyFlavorBrand(flavor, lang, resolvedTheme) {
   try {
     const metaTheme = document.getElementById("meta-theme-color");
     if (metaTheme) {
-      metaTheme.content = resolvedTheme === "dark" ? "#1a1a1a" : "#f5f5f5";
+      metaTheme.content = resolvedTheme === "dark" ? "#1a1a1a" : "#ffffff";
     }
   } catch (_) {
     /* ignore */

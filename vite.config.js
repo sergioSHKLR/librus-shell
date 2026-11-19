@@ -70,7 +70,7 @@ export default defineConfig(({ mode }) => {
         ],
         workbox: {
           globPatterns: ['**/*.{js,css,html,svg,ico,png,woff2,webmanifest}'],
-          globIgnores: ['**/books/**'],
+          globIgnores: ['**/books/**', '**/pwa/splash/**'],
           maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
           navigateFallback: 'index.html',
           runtimeCaching: [
