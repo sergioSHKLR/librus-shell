@@ -5,42 +5,42 @@ From the SHKLR brand kit (final, rev 3, approved 19 Nov 2026). Generated; update
 ## LIBRUS
 
 - Tagline: “Ache · Leia · Consulte · Anote”
-- Mode: dual (light + dark, favicon.svg swaps with prefers-color-scheme)
+- Mode: dual (light + dark plates)
 - Plate light **#ffffff** — glyph #38761d book + spines 5.56:1
 - Plate dark **#1a1a1a** — glyph #93c47d book + spines 8.65:1
 
 Files in `librus/`:
 - `icons/` master SVGs (glyph, tile, square, maskable, mono); `icons/flat/` flat copies for simple SVG tools (no groups, transforms, clips or arcs).
 - `png/` tile PNGs 16–1024, maskable and apple-touch.
-- `web/` site drop-ins: favicon.svg/.ico/16/32/48, apple-touch-icon, icon-192/512, maskable, monochrome, manifest.webmanifest, meta-head.html, splash/ (iOS).
+- `web/` site drop-ins: favicon.svg (bare stroke glyph, transparent, dark-tab colours via prefers-color-scheme) + favicon.ico/16/32/48 (transparent), apple-touch-icon, icon-192/512, maskable, monochrome, manifest.webmanifest, meta-head.html, splash/ (iOS).
 - `wordmark/` wordmark and lockups (SVG, flat SVG, PNG), all text outlined.
 - `social/` og-1200x630, x-card-1200x600, github-card-1280x640 (repo social preview), whatsapp, Instagram sizes.
 
 ## DOUTRINA
 
 - Tagline: “Ache · Leia · Consulte · Anote”
-- Mode: dual (light + dark, favicon.svg swaps with prefers-color-scheme)
+- Mode: dual (light + dark plates)
 - Plate light **#ffffff** — glyph #3c78d8 drop outline 4.31:1
 - Plate dark **#1a1a1a** — glyph #6d9eeb drop outline 6.42:1
 
 Files in `doutrina/`:
 - `icons/` master SVGs (glyph, tile, square, maskable, mono); `icons/flat/` flat copies for simple SVG tools (no groups, transforms, clips or arcs).
 - `png/` tile PNGs 16–1024, maskable and apple-touch.
-- `web/` site drop-ins: favicon.svg/.ico/16/32/48, apple-touch-icon, icon-192/512, maskable, monochrome, manifest.webmanifest, meta-head.html, splash/ (iOS).
+- `web/` site drop-ins: favicon.svg (bare stroke glyph, transparent, dark-tab colours via prefers-color-scheme) + favicon.ico/16/32/48 (transparent), apple-touch-icon, icon-192/512, maskable, monochrome, manifest.webmanifest, meta-head.html, splash/ (iOS).
 - `wordmark/` wordmark and lockups (SVG, flat SVG, PNG), all text outlined.
 - `social/` og-1200x630, x-card-1200x600, github-card-1280x640 (repo social preview), whatsapp, Instagram sizes.
 
 ## CENTRO
 
 - Tagline: “Ache · Leia · Consulte · Anote · VideoConf”
-- Mode: dual (light + dark, favicon.svg swaps with prefers-color-scheme)
+- Mode: dual (light + dark plates)
 - Plate light **#ffffff** — glyph #111111 house 18.88:1, #cc0000 heart 5.89:1
 - Plate dark **#1a1a1a** — glyph #f2f2f2 house 15.55:1, #d94040 heart 3.94:1
 
 Files in `centro/`:
 - `icons/` master SVGs (glyph, tile, square, maskable, mono); `icons/flat/` flat copies for simple SVG tools (no groups, transforms, clips or arcs).
 - `png/` tile PNGs 16–1024, maskable and apple-touch.
-- `web/` site drop-ins: favicon.svg/.ico/16/32/48, apple-touch-icon, icon-192/512, maskable, monochrome, manifest.webmanifest, meta-head.html, splash/ (iOS).
+- `web/` site drop-ins: favicon.svg (bare stroke glyph, transparent, dark-tab colours via prefers-color-scheme) + favicon.ico/16/32/48 (transparent), apple-touch-icon, icon-192/512, maskable, monochrome, manifest.webmanifest, meta-head.html, splash/ (iOS).
 - `wordmark/` wordmark and lockups (SVG, flat SVG, PNG), all text outlined.
 - `social/` og-1200x630, x-card-1200x600, github-card-1280x640 (repo social preview), whatsapp, Instagram sizes.
 
