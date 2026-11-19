@@ -34,8 +34,8 @@ Files in `doutrina/`:
 
 - Tagline: “Ache · Leia · Consulte · Anote · VideoConf”
 - Mode: dual (light + dark plates)
-- Plate light **#ffffff** — glyph #111111 house 18.88:1, #cc0000 heart 5.89:1
-- Plate dark **#1a1a1a** — glyph #f2f2f2 house 15.55:1, #d94040 heart 3.94:1
+- Plate light **#ffffff** — glyph #cc0000 house + heart (all red stroke, 19 Nov 2026) 5.89:1
+- Plate dark **#1a1a1a** — glyph #d94040 house + heart (all red stroke, 19 Nov 2026) 3.94:1
 
 Files in `centro/`:
 - `icons/` master SVGs (glyph, tile, square, maskable, mono); `icons/flat/` flat copies for simple SVG tools (no groups, transforms, clips or arcs).

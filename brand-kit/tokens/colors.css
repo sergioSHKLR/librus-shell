@@ -22,13 +22,11 @@
   --centro-light-plate: #ffffff;
   --centro-light-ink: #111111;
   --centro-light-muted: #646464;
-  --centro-light-glyph-1: #111111; /* house · 18.88:1 */
-  --centro-light-glyph-2: #cc0000; /* heart · 5.89:1 */
+  --centro-light-glyph-1: #cc0000; /* house + heart (all red stroke, 19 Nov 2026) · 5.89:1 */
   --centro-dark-plate: #1a1a1a;
   --centro-dark-ink: #f2f2f2;
   --centro-dark-muted: #a6a6a6;
-  --centro-dark-glyph-1: #f2f2f2; /* house · 15.55:1 */
-  --centro-dark-glyph-2: #d94040; /* heart · 3.94:1 */
+  --centro-dark-glyph-1: #d94040; /* house + heart (all red stroke, 19 Nov 2026) · 3.94:1 */
 }
 /* dual-mode apps: map the active scheme */
 .librus { --app-plate: var(--librus-light-plate); --app-ink: var(--librus-light-ink); --app-muted: var(--librus-light-muted); }

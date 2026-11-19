@@ -1,6 +1,6 @@
-# librus-shell
+<p align="center" data-brand-icon><picture><source media="(prefers-color-scheme: dark)" srcset="brand-kit/librus/icons/tile-dark.svg"><img src="brand-kit/librus/icons/tile-light.svg" alt="LIBRUS" width="96" height="96"></picture>&nbsp;&nbsp;<picture><source media="(prefers-color-scheme: dark)" srcset="brand-kit/doutrina/icons/tile-dark.svg"><img src="brand-kit/doutrina/icons/tile-light.svg" alt="DOUTRINA" width="96" height="96"></picture>&nbsp;&nbsp;<picture><source media="(prefers-color-scheme: dark)" srcset="brand-kit/centro/icons/tile-dark.svg"><img src="brand-kit/centro/icons/tile-light.svg" alt="CENTRO" width="96" height="96"></picture></p>
 
-<img src="brand-kit/librus/icons/tile-light.svg" width="40" height="40" alt="LIBRUS"> <img src="brand-kit/doutrina/icons/tile-light.svg" width="40" height="40" alt="DOUTRINA"> <img src="brand-kit/centro/icons/tile-light.svg" width="40" height="40" alt="CENTRO">
+# librus-shell
 
 Live: https://librus.app/ · https://doutrina.org/ · https://centro.doutrina.org/ · Brand: [brand-kit/](brand-kit/README.md) (SHKLR brand kit, final 19 Nov 2026).
 

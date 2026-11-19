@@ -90,12 +90,7 @@
      "muted_contrast": 5.92,
      "glyph": [
       {
-       "role": "house",
-       "hex": "#111111",
-       "contrast": 18.88
-      },
-      {
-       "role": "heart",
+       "role": "house + heart (all red stroke, 19 Nov 2026)",
        "hex": "#cc0000",
        "contrast": 5.89
       }
@@ -110,12 +105,7 @@
      "muted_contrast": 7.15,
      "glyph": [
       {
-       "role": "house",
-       "hex": "#f2f2f2",
-       "contrast": 15.55
-      },
-      {
-       "role": "heart",
+       "role": "house + heart (all red stroke, 19 Nov 2026)",
        "hex": "#d94040",
        "contrast": 3.94
       }
