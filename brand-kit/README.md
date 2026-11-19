@@ -10,7 +10,7 @@ From the SHKLR brand kit (final, rev 3, approved 19 Nov 2026). Generated; update
 - Plate dark **#1a1a1a** — glyph #93c47d book + spines 8.65:1
 
 Files in `librus/`:
-- `icons/` master SVGs (glyph, tile, square, maskable, mono); `icons/flat/` SDRAW-safe copies (no groups, transforms, clips or arcs).
+- `icons/` master SVGs (glyph, tile, square, maskable, mono); `icons/flat/` flat copies for simple SVG tools (no groups, transforms, clips or arcs).
 - `png/` tile PNGs 16–1024, maskable and apple-touch.
 - `web/` site drop-ins: favicon.svg/.ico/16/32/48, apple-touch-icon, icon-192/512, maskable, monochrome, manifest.webmanifest, meta-head.html, splash/ (iOS).
 - `wordmark/` wordmark and lockups (SVG, flat SVG, PNG), all text outlined.
@@ -24,7 +24,7 @@ Files in `librus/`:
 - Plate dark **#1a1a1a** — glyph #6d9eeb drop outline 6.42:1
 
 Files in `doutrina/`:
-- `icons/` master SVGs (glyph, tile, square, maskable, mono); `icons/flat/` SDRAW-safe copies (no groups, transforms, clips or arcs).
+- `icons/` master SVGs (glyph, tile, square, maskable, mono); `icons/flat/` flat copies for simple SVG tools (no groups, transforms, clips or arcs).
 - `png/` tile PNGs 16–1024, maskable and apple-touch.
 - `web/` site drop-ins: favicon.svg/.ico/16/32/48, apple-touch-icon, icon-192/512, maskable, monochrome, manifest.webmanifest, meta-head.html, splash/ (iOS).
 - `wordmark/` wordmark and lockups (SVG, flat SVG, PNG), all text outlined.
@@ -38,7 +38,7 @@ Files in `doutrina/`:
 - Plate dark **#1a1a1a** — glyph #f2f2f2 house 15.55:1, #d94040 heart 3.94:1
 
 Files in `centro/`:
-- `icons/` master SVGs (glyph, tile, square, maskable, mono); `icons/flat/` SDRAW-safe copies (no groups, transforms, clips or arcs).
+- `icons/` master SVGs (glyph, tile, square, maskable, mono); `icons/flat/` flat copies for simple SVG tools (no groups, transforms, clips or arcs).
 - `png/` tile PNGs 16–1024, maskable and apple-touch.
 - `web/` site drop-ins: favicon.svg/.ico/16/32/48, apple-touch-icon, icon-192/512, maskable, monochrome, manifest.webmanifest, meta-head.html, splash/ (iOS).
 - `wordmark/` wordmark and lockups (SVG, flat SVG, PNG), all text outlined.
@@ -53,4 +53,4 @@ Files in `centro/`:
 - Wordmarks: uppercase SHKLR Mono Narrow Bold, +0.02em, ink #111111 on light / #f2f2f2 on dark.
 - Clear space 25% of the tile; minimum tile 16 px.
 
-`tokens/` holds the colour and type tokens for the whole SHKLR family.
+`tokens/` holds the colour and type tokens for LIBRUS / DOUTRINA / CENTRO only.
