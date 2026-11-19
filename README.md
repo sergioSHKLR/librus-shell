@@ -1,5 +1,9 @@
 # librus-shell
 
+<img src="brand-kit/librus/icons/tile-light.svg" width="40" height="40" alt="LIBRUS"> <img src="brand-kit/doutrina/icons/tile-light.svg" width="40" height="40" alt="DOUTRINA"> <img src="brand-kit/centro/icons/tile-light.svg" width="40" height="40" alt="CENTRO">
+
+Live: https://librus.app/ · https://doutrina.org/ · https://centro.doutrina.org/ · Brand: [brand-kit/](brand-kit/README.md) (SHKLR brand kit, final 19 Nov 2026).
+
 **Build step 3 of 4** · Multi-flavor reader SPA (maintainers & volunteers)
 
 ---
