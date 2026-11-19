@@ -32,6 +32,9 @@ function page(host, { lang, title, desc, canonical, type = "website" }) {
     ["property", "og:type", type],
   ];
   if (canonical) metas.push(["property", "og:url", canonical]);
+  metas.push(["property", "og:image", `${HOME[host]}/og/${host}-og.png`]);
+  metas.push(["property", "og:image:width", "1200"], ["property", "og:image:height", "630"]);
+  metas.push(["name", "twitter:card", "summary_large_image"], ["name", "twitter:image", `${HOME[host]}/og/${host}-x-card.png`]);
   h = h.replace("</head>", metas.map(([a, k, v]) => `    <meta ${a}="${k}" content="${esc(v)}" />\n`).join("") + "  </head>");
   return h;
 }
